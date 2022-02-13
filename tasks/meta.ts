@@ -1,3 +1,4 @@
+import { spawn } from "child_process";
 import fs from "mz/fs";
 import Task from "./utilities/Task";
 
@@ -12,4 +13,14 @@ export default Task("meta", async () => {
 
 	await fs.copyFile("LICENSE", "build/LICENSE");
 	await fs.copyFile("README.md", "build/README.md");
+
+	await new Promise<void>((resolve, reject) => {
+		const ext = process.platform === "win32" ? ".cmd" : "";
+		const childProcess = spawn("npm" + ext, ["install"], { cwd: "build", stdio: [process.stdin, process.stdout, process.stderr] });
+		childProcess.on("error", reject);
+		childProcess.on("exit", code => {
+			if (code === 1) reject("Error code 1");
+			else resolve();
+		});
+	});
 });
