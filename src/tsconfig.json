@@ -6,6 +6,7 @@
 		"moduleResolution": "node",
 		"noImplicitOverride": true,
 		"outDir": "../build",
-		"declaration": true
+		"declaration": true,
+		"module": "CommonJS"
 	}
 }
