@@ -8,7 +8,7 @@
 	},
 	"scripts": {
 		"build": "npx ts-node tasks/utilities/TaskRunner.ts clean meta build",
-		"watch": "npx ts-node tasks/utilities/TaskRunner.ts clean watch",
+		"watch": "npx ts-node tasks/utilities/TaskRunner.ts clean meta watch",
 		"clean": "npx ts-node tasks/utilities/TaskRunner.ts clean"
 	},
 	"devDependencies": {
