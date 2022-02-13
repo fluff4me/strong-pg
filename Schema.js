@@ -1,6 +1,10 @@
-export function Schema(schema) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Schema = void 0;
+function Schema(schema) {
     return schema;
 }
+exports.Schema = Schema;
 (function (Schema) {
     function primaryKey(...keys) {
         return keys;
@@ -11,4 +15,4 @@ export function Schema(schema) {
         return schema;
     }
     Schema.table = table;
-})(Schema || (Schema = {}));
+})(Schema = exports.Schema || (exports.Schema = {}));

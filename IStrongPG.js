@@ -1,4 +1,7 @@
-export var DataTypeID;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DataType = exports.DataTypeID = void 0;
+var DataTypeID;
 (function (DataTypeID) {
     // numeric
     DataTypeID[DataTypeID["SMALLINT"] = 0] = "SMALLINT";
@@ -26,8 +29,8 @@ export var DataTypeID;
     DataTypeID[DataTypeID["BOOLEAN"] = 18] = "BOOLEAN";
     // special
     DataTypeID[DataTypeID["TSVECTOR"] = 19] = "TSVECTOR";
-})(DataTypeID || (DataTypeID = {}));
-export var DataType;
+})(DataTypeID = exports.DataTypeID || (exports.DataTypeID = {}));
+var DataType;
 (function (DataType) {
     // numeric
     DataType.SMALLINT = "SMALLINT";
@@ -80,4 +83,4 @@ export var DataType;
     DataType.BOOLEAN = "BOOLEAN";
     // special
     DataType.TSVECTOR = "TSVECTOR";
-})(DataType || (DataType = {}));
+})(DataType = exports.DataType || (exports.DataType = {}));

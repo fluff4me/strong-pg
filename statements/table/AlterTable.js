@@ -1,5 +1,11 @@
-import Transaction from "../../Transaction";
-export default class AlterTable extends Transaction {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ColumnAddition = exports.ColumnReference = void 0;
+const Transaction_1 = __importDefault(require("../../Transaction"));
+class AlterTable extends Transaction_1.default {
     constructor(table) {
         super();
         this.table = table;
@@ -41,17 +47,18 @@ export default class AlterTable extends Transaction {
     }
     compile() {
         return [this.operations.join(","), ...this.standaloneOperations]
-            .map(operation => `ALTER TABLE ${this.table} ${operation}`)
-            .join(";");
+            .map(operation => `ALTER TABLE ${this.table} ${operation}`);
     }
 }
-export class ColumnReference {
+exports.default = AlterTable;
+class ColumnReference {
     constructor(table, column) {
         this.table = table;
         this.column = column;
     }
 }
-export class ColumnAddition {
+exports.ColumnReference = ColumnReference;
+class ColumnAddition {
     constructor(name, type) {
         this.name = name;
         this.type = type;
@@ -61,3 +68,4 @@ export class ColumnAddition {
         return this;
     }
 }
+exports.ColumnAddition = ColumnAddition;

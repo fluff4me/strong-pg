@@ -1,5 +1,3 @@
-import { Client, Pool as PGPool, PoolClient } from "pg";
-export declare type ClientOrPool = Client | PGPool | PoolClient;
 export declare type Type = DataTypeID;
 export declare enum DataTypeID {
     SMALLINT = 0,

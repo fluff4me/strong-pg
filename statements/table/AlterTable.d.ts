@@ -27,7 +27,7 @@ export default class AlterTable<SCHEMA_START = null, SCHEMA_END = SCHEMA_START e
     dropPrimaryKey(): AlterTable<SCHEMA_START, Schema.DropPrimaryKey<SCHEMA_END>>;
     renameTo(newName: string): this;
     schema<SCHEMA_TEST extends SCHEMA_END>(): SCHEMA_END extends SCHEMA_TEST ? AlterTable<SCHEMA_START, SCHEMA_TEST> : null;
-    compile(): string;
+    compile(): string[];
 }
 export declare class ColumnReference<TYPE extends TypeString> {
     readonly table: string;

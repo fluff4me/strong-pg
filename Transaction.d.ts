@@ -1,8 +1,9 @@
-import { ClientOrPool } from "./IStrongPG";
+import { Pool, PoolClient } from "pg";
 import Statement from "./Statement";
 export default class Transaction extends Statement {
+    static execute(pool: Pool, executor: (client: PoolClient) => Promise<void>): Promise<void>;
     protected readonly statements: Statement[];
     add(statement: Statement): this;
-    execute(pool: ClientOrPool): Promise<import("pg").QueryResult<any>>;
-    compile(): string;
+    execute(pool: Pool): Promise<void>;
+    compile(): string[];
 }
