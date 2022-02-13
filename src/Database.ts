@@ -1,12 +1,12 @@
+import { Pool } from "pg";
 import { History } from "./History";
-import { ClientOrPool } from "./IStrongPG";
 import { DatabaseSchema } from "./Schema";
 
 export default class Database<SCHEMA extends DatabaseSchema> {
 
 	protected history?: History<SCHEMA>;
 
-	public constructor (protected readonly schema: SCHEMA, protected readonly pool: ClientOrPool) {
+	public constructor (protected readonly schema: SCHEMA, protected readonly pool: Pool) {
 
 	}
 

@@ -85,8 +85,7 @@ export default class AlterTable<SCHEMA_START = null, SCHEMA_END = SCHEMA_START e
 
 	public override compile () {
 		return [this.operations.join(","), ...this.standaloneOperations]
-			.map(operation => `ALTER TABLE ${this.table} ${operation}`)
-			.join(";");
+			.map(operation => `ALTER TABLE ${this.table} ${operation}`);
 	}
 }
 
