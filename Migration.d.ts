@@ -7,5 +7,6 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
     constructor(schemaStart?: SCHEMA_START | undefined);
     createTable<NAME extends string, TABLE_SCHEMA_NEW>(table: NAME, initialiser: (statement: AlterTable<SCHEMA_END["tables"][NAME]>) => AlterTable<SCHEMA_END["tables"][NAME], TABLE_SCHEMA_NEW>): Migration<SCHEMA_START, DatabaseSchema.ReplaceTable<SCHEMA_END, NAME, TABLE_SCHEMA_NEW>>;
     alterTable<NAME extends TableName<SCHEMA_END>, TABLE_SCHEMA_NEW>(table: NAME, initialiser: (statement: AlterTable<SCHEMA_END["tables"][NAME]>) => AlterTable<SCHEMA_END["tables"][NAME], TABLE_SCHEMA_NEW>): Migration<SCHEMA_START, DatabaseSchema.ReplaceTable<SCHEMA_END, NAME, TABLE_SCHEMA_NEW>>;
+    dropTable<NAME extends TableName<SCHEMA_END>>(table: NAME): Migration<SCHEMA_START, DatabaseSchema.DropTable<SCHEMA_END, NAME>>;
     schema<SCHEMA_TEST extends SCHEMA_END>(schema: SCHEMA_TEST): SCHEMA_END extends SCHEMA_TEST ? Migration<SCHEMA_START, SCHEMA_TEST> : "Migration does not match schema";
 }

@@ -13,8 +13,9 @@ class Transaction extends Statement_1.default {
         const client = await pool.connect();
         await client.query("BEGIN");
         try {
-            await executor(client);
+            const result = await executor(client);
             await client.query("COMMIT");
+            return result;
         }
         catch (err) {
             await client.query("ROLLBACK");

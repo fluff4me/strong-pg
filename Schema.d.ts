@@ -11,6 +11,7 @@ export declare namespace DatabaseSchema {
         tables: {};
     }
     type ReplaceTable<SCHEMA extends DatabaseSchema, TABLE extends TableName<SCHEMA>, TABLE_SCHEMA_NEW> = ReplaceKey<SCHEMA, "tables", ReplaceKey<SCHEMA["tables"], TABLE, TABLE_SCHEMA_NEW>>;
+    type DropTable<SCHEMA extends DatabaseSchema, TABLE extends TableName<SCHEMA>> = ReplaceKey<SCHEMA, "tables", Pick<SCHEMA["tables"], Exclude<keyof SCHEMA["tables"], TABLE>>>;
 }
 export declare type TableName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["tables"] & string;
 export declare function Schema<SCHEMA extends DatabaseSchema>(schema: SCHEMA): SCHEMA;

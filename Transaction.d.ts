@@ -1,7 +1,7 @@
 import { Pool, PoolClient } from "pg";
 import Statement from "./Statement";
 export default class Transaction extends Statement {
-    static execute(pool: Pool, executor: (client: PoolClient) => Promise<void>): Promise<void>;
+    static execute<R>(pool: Pool, executor: (client: PoolClient) => Promise<R>): Promise<R>;
     protected readonly statements: Statement[];
     add(statement: Statement): this;
     execute(pool: Pool): Promise<void>;

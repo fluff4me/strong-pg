@@ -6,6 +6,6 @@ export default class Database<SCHEMA extends DatabaseSchema> {
     protected readonly pool: Pool;
     protected history?: History<SCHEMA>;
     constructor(schema: SCHEMA, pool: Pool);
-    migrate(): Promise<void>;
+    migrate(): Promise<number | undefined>;
     setHistory(initialiser: (history: History) => History<SCHEMA>): this;
 }

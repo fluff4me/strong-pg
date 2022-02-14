@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const AlterTable_1 = __importDefault(require("./statements/table/AlterTable"));
 const CreateTable_1 = __importDefault(require("./statements/table/CreateTable"));
+const DropTable_1 = __importDefault(require("./statements/table/DropTable"));
 const Transaction_1 = __importDefault(require("./Transaction"));
 class Migration extends Transaction_1.default {
     constructor(schemaStart) {
@@ -19,6 +20,11 @@ class Migration extends Transaction_1.default {
     }
     alterTable(table, initialiser) {
         this.add(initialiser(new AlterTable_1.default(table)));
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return this;
+    }
+    dropTable(table) {
+        this.add(new DropTable_1.default(table));
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
