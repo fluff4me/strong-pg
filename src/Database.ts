@@ -11,7 +11,7 @@ export default class Database<SCHEMA extends DatabaseSchema> {
 	}
 
 	public async migrate () {
-		await this.history?.migrate(this.pool);
+		return this.history?.migrate(this.pool);
 	}
 
 	public setHistory (initialiser: (history: History) => History<SCHEMA>) {

@@ -3,12 +3,13 @@ import Statement from "./Statement";
 
 export default class Transaction extends Statement {
 
-	public static async execute (pool: Pool, executor: (client: PoolClient) => Promise<void>) {
+	public static async execute<R> (pool: Pool, executor: (client: PoolClient) => Promise<R>) {
 		const client = await pool.connect();
 		await client.query("BEGIN");
 		try {
-			await executor(client);
+			const result = await executor(client);
 			await client.query("COMMIT");
+			return result;
 		} catch (err) {
 			await client.query("ROLLBACK");
 			throw err;
