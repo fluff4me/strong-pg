@@ -1,4 +1,4 @@
-import { Merge2, ReplaceKey, TypeString } from "./IStrongPG";
+import { Merge2, SetKey, TypeString } from "./IStrongPG";
 
 interface SpecialKeys<SCHEMA> {
 	PRIMARY_KEY?: keyof SCHEMA | (keyof SCHEMA)[];
@@ -10,6 +10,7 @@ type SchemaBase = Record<string, TypeString>;
 
 export interface DatabaseSchema {
 	tables: Record<string, Record<string, any>>;
+	indices?: Record<string, {}>;
 }
 
 export namespace DatabaseSchema {
@@ -18,10 +19,10 @@ export namespace DatabaseSchema {
 	}
 
 	export type ReplaceTable<SCHEMA extends DatabaseSchema, TABLE extends TableName<SCHEMA>, TABLE_SCHEMA_NEW> =
-		ReplaceKey<SCHEMA, "tables", ReplaceKey<SCHEMA["tables"], TABLE, TABLE_SCHEMA_NEW>>;
+		SetKey<SCHEMA, "tables", SetKey<SCHEMA["tables"], TABLE, TABLE_SCHEMA_NEW>>;
 
 	export type DropTable<SCHEMA extends DatabaseSchema, TABLE extends TableName<SCHEMA>> =
-		ReplaceKey<SCHEMA, "tables", Pick<SCHEMA["tables"], Exclude<keyof SCHEMA["tables"], TABLE>>>;
+		SetKey<SCHEMA, "tables", Pick<SCHEMA["tables"], Exclude<keyof SCHEMA["tables"], TABLE>>>;
 }
 
 export type TableName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["tables"] & string;

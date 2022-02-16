@@ -1,4 +1,4 @@
-import { Initialiser, Merge2, TypeString } from "../../IStrongPG";
+import { Initialiser, Merge2, SetKey, TypeString } from "../../IStrongPG";
 import { Schema } from "../../Schema";
 import Transaction from "../../Transaction";
 
@@ -45,11 +45,11 @@ export default class AlterTable<SCHEMA_START = null, SCHEMA_END = SCHEMA_START e
 		return this as any as AlterTable<SCHEMA_START, SCHEMA_NEW>;
 	}
 
-	public addColumn<NAME extends string, TYPE extends TypeString> (name: NAME, type: TYPE, initialiser?: Initialiser<ColumnAddition<NAME, TYPE>>) {
-		const column = new ColumnAddition(name, type);
-		initialiser?.(column);
+	public addColumn<NAME extends string, TYPE extends TypeString> (name: NAME, type: TYPE, alter?: Initialiser<AlterColumn<NAME, TYPE>>) {
+		const column = new AlterColumn(name, type);
+		alter?.(column);
 
-		return this.do<TableMigration.Operation.ColumnAdd<NAME, TYPE>, Merge2<SCHEMA_END, { [KEY in NAME]: TYPE }>>(
+		return this.do<TableMigration.Operation.ColumnAdd<NAME, TYPE>, SetKey<SCHEMA_END, NAME, TYPE>>(
 			`ADD COLUMN ${name} ${type}`);
 	}
 
@@ -94,7 +94,7 @@ export class ColumnReference<TYPE extends TypeString> {
 	}
 }
 
-export class ColumnAddition<NAME extends string, TYPE extends TypeString> {
+export class AlterColumn<NAME extends string, TYPE extends TypeString> {
 
 	public constructor (public name: NAME, public type: TYPE) {
 

@@ -87,11 +87,11 @@ export namespace DataType {
 	export const DATE = "DATE";
 	export function TIMESTAMP (precision?: number, withoutTimeZone?: true) {
 		const timeZone = withoutTimeZone ? " WITHOUT TIME ZONE" : "" as const;
-		return precision ? `TIMESTAMP(${Math.round(precision)})${timeZone}` : `TIMESTAMP${timeZone}` as typeStrings[DataTypeID.TIMESTAMP];
+		return (precision ? `TIMESTAMP(${Math.round(precision)})${timeZone}` : `TIMESTAMP${timeZone}`) as typeStrings[DataTypeID.TIMESTAMP];
 	}
 	export function TIME (precision?: number, withoutTimeZone?: true) {
 		const timeZone = withoutTimeZone ? " WITHOUT TIME ZONE" : "" as const;
-		return precision ? `TIME(${Math.round(precision)})${timeZone}` : `TIME${timeZone}` as typeStrings[DataTypeID.TIMESTAMP];
+		return (precision ? `TIME(${Math.round(precision)})${timeZone}` : `TIME${timeZone}`) as typeStrings[DataTypeID.TIMESTAMP];
 	}
 	// INTERVAL,
 
@@ -122,8 +122,8 @@ export namespace DataType {
 export type TypeString = typeStrings[DataTypeID];
 export type TypeFromString<STR extends TypeString> = Extract<Value<{ [DATATYPE in DataTypeID as STR extends typeStrings[DATATYPE] ? DATATYPE : never]: DATATYPE }>, DataTypeID>;
 
-export type Initialiser<T> = (value: T) => any;
+export type Initialiser<T, R = any> = (value: T) => R;
 export type Merge2<L, R> = { [P in keyof L | keyof R]: L[P & keyof L] | R[P & keyof R] };
-export type ReplaceKey<OBJECT, KEY extends keyof OBJECT, VALUE> = Merge2<Pick<OBJECT, Exclude<keyof OBJECT, KEY>>, { [key in KEY]: VALUE }>;
+export type SetKey<OBJECT, KEY extends string, VALUE> = Merge2<Pick<OBJECT, Exclude<keyof OBJECT, KEY>>, { [key in KEY]: VALUE }>;
 
 export type Value<T> = T[keyof T];

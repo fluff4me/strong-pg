@@ -1,3 +1,4 @@
+import { Initialiser } from "./IStrongPG";
 import { DatabaseSchema, TableName } from "./Schema";
 import AlterTable from "./statements/table/AlterTable";
 import CreateTable from "./statements/table/CreateTable";
@@ -14,19 +15,19 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 
 	public createTable<NAME extends string, TABLE_SCHEMA_NEW> (
 		table: NAME,
-		initialiser: (statement: AlterTable<SCHEMA_END["tables"][NAME]>) => AlterTable<SCHEMA_END["tables"][NAME], TABLE_SCHEMA_NEW>
+		alter: Initialiser<AlterTable<SCHEMA_END["tables"][NAME]>, AlterTable<SCHEMA_END["tables"][NAME], TABLE_SCHEMA_NEW>>
 	): Migration<SCHEMA_START, DatabaseSchema.ReplaceTable<SCHEMA_END, NAME, TABLE_SCHEMA_NEW>> {
 		this.add(new CreateTable(table));
-		this.add(initialiser(new AlterTable(table)));
+		this.add(alter(new AlterTable(table)));
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
 
 	public alterTable<NAME extends TableName<SCHEMA_END>, TABLE_SCHEMA_NEW> (
 		table: NAME,
-		initialiser: (statement: AlterTable<SCHEMA_END["tables"][NAME]>) => AlterTable<SCHEMA_END["tables"][NAME], TABLE_SCHEMA_NEW>
+		alter: Initialiser<AlterTable<SCHEMA_END["tables"][NAME]>, AlterTable<SCHEMA_END["tables"][NAME], TABLE_SCHEMA_NEW>>
 	): Migration<SCHEMA_START, DatabaseSchema.ReplaceTable<SCHEMA_END, NAME, TABLE_SCHEMA_NEW>> {
-		this.add(initialiser(new AlterTable(table)));
+		this.add(alter(new AlterTable(table)));
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
@@ -36,6 +37,8 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
+
+	// public createIndex<NAME extends string>(index: NAME)
 
 	public schema<SCHEMA_TEST extends SCHEMA_END> (schema: SCHEMA_TEST): SCHEMA_END extends SCHEMA_TEST ? Migration<SCHEMA_START, SCHEMA_TEST> : "Migration does not match schema" {
 		this.schemaEnd = schema;
