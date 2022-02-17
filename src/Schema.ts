@@ -18,14 +18,24 @@ export namespace DatabaseSchema {
 		tables: {};
 	}
 
-	export type ReplaceTable<SCHEMA extends DatabaseSchema, TABLE extends TableName<SCHEMA>, TABLE_SCHEMA_NEW> =
-		SetKey<SCHEMA, "tables", SetKey<SCHEMA["tables"], TABLE, TABLE_SCHEMA_NEW>>;
+	export type TableName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["tables"] & string;
+	export type IndexName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["indices"] & string;
 
-	export type DropTable<SCHEMA extends DatabaseSchema, TABLE extends TableName<SCHEMA>> =
-		SetKey<SCHEMA, "tables", Pick<SCHEMA["tables"], Exclude<keyof SCHEMA["tables"], TABLE>>>;
+	export type Table<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> =
+		SCHEMA["tables"][NAME];
+
+	export type ReplaceTable<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>, TABLE_SCHEMA_NEW> =
+		SetKey<SCHEMA, "tables", SetKey<SCHEMA["tables"], NAME, TABLE_SCHEMA_NEW>>;
+
+	export type DropTable<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> =
+		SetKey<SCHEMA, "tables", Pick<SCHEMA["tables"], Exclude<keyof SCHEMA["tables"], NAME>>>;
+
+	export type CreateIndex<SCHEMA extends DatabaseSchema, NAME extends string> =
+		SetKey<SCHEMA, "indices", SetKey<SCHEMA["indices"], NAME, {}>>;
+
+	export type DropIndex<SCHEMA extends DatabaseSchema, NAME extends IndexName<SCHEMA>> =
+		SetKey<SCHEMA, "indices", Pick<SCHEMA["indices"], Exclude<keyof SCHEMA["indices"], NAME>>>;
 }
-
-export type TableName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["tables"] & string;
 
 export function Schema<SCHEMA extends DatabaseSchema> (schema: SCHEMA): SCHEMA {
 	return schema;

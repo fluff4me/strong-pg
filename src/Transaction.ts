@@ -1,5 +1,5 @@
 import { Pool, PoolClient } from "pg";
-import Statement from "./Statement";
+import Statement from "./statements/Statement";
 
 export default class Transaction extends Statement {
 

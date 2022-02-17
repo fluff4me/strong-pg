@@ -8,7 +8,7 @@ export class History<SCHEMA extends DatabaseSchema | null = null> {
 	private migrations: Migration<DatabaseSchema | null, DatabaseSchema>[] = [];
 
 	public migration<SCHEMA_END extends DatabaseSchema> (migration: Migration<SCHEMA, SCHEMA_END>): History<SCHEMA_END> {
-		this.migrations.push(migration);
+		this.migrations.push(migration as any);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}

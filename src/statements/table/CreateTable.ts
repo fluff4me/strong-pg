@@ -1,4 +1,4 @@
-import Statement from "../../Statement";
+import Statement from "../Statement";
 
 export default class CreateTable<TABLE extends string> extends Statement {
 	public constructor (public readonly table: TABLE) {

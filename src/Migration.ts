@@ -1,5 +1,7 @@
 import { Initialiser } from "./IStrongPG";
-import { DatabaseSchema, TableName } from "./Schema";
+import { DatabaseSchema } from "./Schema";
+import CreateIndex from "./statements/index/CreateIndex";
+import DropIndex from "./statements/index/DropIndex";
 import AlterTable from "./statements/table/AlterTable";
 import CreateTable from "./statements/table/CreateTable";
 import DropTable from "./statements/table/DropTable";
@@ -15,7 +17,7 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 
 	public createTable<NAME extends string, TABLE_SCHEMA_NEW> (
 		table: NAME,
-		alter: Initialiser<AlterTable<SCHEMA_END["tables"][NAME]>, AlterTable<SCHEMA_END["tables"][NAME], TABLE_SCHEMA_NEW>>
+		alter: NAME extends DatabaseSchema.TableName<SCHEMA_END> ? never : Initialiser<AlterTable<SCHEMA_END["tables"][NAME]>, AlterTable<SCHEMA_END["tables"][NAME], TABLE_SCHEMA_NEW>>,
 	): Migration<SCHEMA_START, DatabaseSchema.ReplaceTable<SCHEMA_END, NAME, TABLE_SCHEMA_NEW>> {
 		this.add(new CreateTable(table));
 		this.add(alter(new AlterTable(table)));
@@ -23,22 +25,37 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		return this as any;
 	}
 
-	public alterTable<NAME extends TableName<SCHEMA_END>, TABLE_SCHEMA_NEW> (
+	public alterTable<NAME extends DatabaseSchema.TableName<SCHEMA_END>, TABLE_SCHEMA_NEW> (
 		table: NAME,
-		alter: Initialiser<AlterTable<SCHEMA_END["tables"][NAME]>, AlterTable<SCHEMA_END["tables"][NAME], TABLE_SCHEMA_NEW>>
+		alter: Initialiser<AlterTable<SCHEMA_END["tables"][NAME]>, AlterTable<SCHEMA_END["tables"][NAME], TABLE_SCHEMA_NEW>>,
 	): Migration<SCHEMA_START, DatabaseSchema.ReplaceTable<SCHEMA_END, NAME, TABLE_SCHEMA_NEW>> {
 		this.add(alter(new AlterTable(table)));
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
 
-	public dropTable<NAME extends TableName<SCHEMA_END>> (table: NAME): Migration<SCHEMA_START, DatabaseSchema.DropTable<SCHEMA_END, NAME>> {
+	public dropTable<NAME extends DatabaseSchema.TableName<SCHEMA_END>> (table: NAME): Migration<SCHEMA_START, DatabaseSchema.DropTable<SCHEMA_END, NAME>> {
 		this.add(new DropTable(table));
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
 
-	// public createIndex<NAME extends string>(index: NAME)
+	public createIndex<NAME extends string, TABLE extends DatabaseSchema.TableName<SCHEMA_END>> (
+		name: NAME,
+		on: TABLE,
+		initialiser: NAME extends keyof SCHEMA_END["indices"] ? never : Initialiser<CreateIndex<NAME, DatabaseSchema.Table<SCHEMA_END, TABLE>>, CreateIndex<NAME, SCHEMA_END, true>>,
+	): Migration<SCHEMA_START, DatabaseSchema.CreateIndex<SCHEMA_END, NAME>> {
+		const createIndex = new CreateIndex(name, on);
+		initialiser(createIndex);
+		this.add(createIndex);
+		return this as any;
+	}
+
+	public dropIndex<NAME extends DatabaseSchema.IndexName<SCHEMA_END>> (name: NAME): Migration<SCHEMA_START, DatabaseSchema.DropIndex<SCHEMA_END, NAME>> {
+		this.add(new DropIndex(name));
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+		return this as any;
+	}
 
 	public schema<SCHEMA_TEST extends SCHEMA_END> (schema: SCHEMA_TEST): SCHEMA_END extends SCHEMA_TEST ? Migration<SCHEMA_START, SCHEMA_TEST> : "Migration does not match schema" {
 		this.schemaEnd = schema;
