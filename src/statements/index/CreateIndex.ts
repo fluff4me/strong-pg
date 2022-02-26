@@ -4,10 +4,16 @@ import Statement from "../Statement";
 
 export default class CreateIndex<NAME extends string, SCHEMA extends Record<string, any>, COLUMNS extends boolean = false> extends Statement {
 
+	private isUnique = false;
 	private readonly columns: (string | CreateIndexColumnExpression<SCHEMA>)[] = [];
 
 	public constructor (public readonly name: NAME, public readonly on: string) {
 		super();
+	}
+
+	public unique () {
+		this.isUnique = true;
+		return this;
 	}
 
 	public column<COLUMN extends keyof SCHEMA & string> (column: COLUMN): CreateIndex<NAME, SCHEMA, true> {
@@ -24,7 +30,7 @@ export default class CreateIndex<NAME extends string, SCHEMA extends Record<stri
 
 	public compile () {
 		const columns = this.columns.map(column => typeof column === "string" ? column : `(${column.compile()})`);
-		return `CREATE INDEX ${this.name} ON ${this.on} (${columns.join(", ")})`;
+		return `CREATE${this.isUnique ? " UNIQUE" : ""} INDEX ${this.name} ON ${this.on} (${columns.join(", ")})`;
 	}
 }
 

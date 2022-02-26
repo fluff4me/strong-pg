@@ -25,6 +25,7 @@ export enum DataTypeID {
 	BIT,
 	VARBIT,
 	TEXT,
+	ENUM,
 
 	// other
 	BOOLEAN,
@@ -59,6 +60,7 @@ export interface typeStrings {
 	[DataTypeID.BIT]: `BIT(${bigint})`,
 	[DataTypeID.VARBIT]: "BIT VARYING" | `BIT VARYING(${bigint})`,
 	[DataTypeID.TEXT]: "TEXT",
+	[DataTypeID.ENUM]: `ENUM(${string})`,
 
 	// other
 	[DataTypeID.BOOLEAN]: "BOOLEAN",
@@ -111,6 +113,12 @@ export namespace DataType {
 			: `BIT VARYING(${Math.round(length)})` as typeStrings[DataTypeID.VARBIT];
 	}
 	export const TEXT: typeStrings[DataTypeID.TEXT] = "TEXT";
+	export function ENUM<NAME extends string> (name: NAME) {
+		return `ENUM(${name})` as Enum<NAME>;
+	}
+
+	export type Enum<NAME extends string> = `ENUM(${NAME})`;
+	export type EnumName<ENUM_TYPE extends `ENUM(${string})`> = ENUM_TYPE extends `ENUM(${infer NAME})` ? NAME : never;
 
 	// other
 	export const BOOLEAN = "BOOLEAN";
@@ -123,7 +131,14 @@ export type TypeString = typeStrings[DataTypeID];
 export type TypeFromString<STR extends TypeString> = Extract<Value<{ [DATATYPE in DataTypeID as STR extends typeStrings[DATATYPE] ? DATATYPE : never]: DATATYPE }>, DataTypeID>;
 
 export type Initialiser<T, R = any> = (value: T) => R;
-export type Merge2<L, R> = { [P in keyof L | keyof R]: L[P & keyof L] | R[P & keyof R] };
-export type SetKey<OBJECT, KEY extends string, VALUE> = Merge2<Pick<OBJECT, Exclude<keyof OBJECT, KEY>>, { [key in KEY]: VALUE }>;
+// export type Merge2<L, R> = { [P in keyof L | keyof R]: L[P & keyof L] | R[P & keyof R] };
+// export type Merge2<L, R> = L & R;
+export type SetKey<OBJECT, KEY extends string, VALUE> = Omit<OBJECT, KEY> & { [key in KEY]: VALUE };
+
+export type Key<OBJ, VALUE> = keyof { [KEY in keyof OBJ as OBJ[KEY] extends VALUE ? KEY : never]: VALUE };
+
+export type EnumToTuple<ENUM, LENGTH extends 1[] = []> =
+	Key<ENUM, LENGTH["length"]> extends infer KEY ?
+	[KEY] extends [never] ? [] : [KEY, ...EnumToTuple<ENUM, [...LENGTH, 1]>] : [];
 
 export type Value<T> = T[keyof T];
