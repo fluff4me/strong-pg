@@ -35,7 +35,7 @@ export default class AlterEnum<NAME extends string, VALUES extends string[]> ext
 	}
 
 	private do<NEW_VALUES extends string[]> (...statements: AlterEnumSubStatement[]) {
-		return this.addParallelOperation<AlterEnum<NAME, NEW_VALUES>>(...statements);
+		return this.addStandaloneOperation<AlterEnum<NAME, NEW_VALUES>>(...statements);
 	}
 
 	protected compileOperation (operation: string): string {
@@ -45,7 +45,7 @@ export default class AlterEnum<NAME extends string, VALUES extends string[]> ext
 
 class AlterEnumSubStatement extends Statement {
 	public static addValues (...values: string[]) {
-		return values.map(value => new AlterEnumSubStatement(`ADD VALUE ${value}`));
+		return values.map(value => new AlterEnumSubStatement(`ADD VALUE '${value}'`));
 	}
 
 	public static renameValue (oldValue: string, newValue: string) {

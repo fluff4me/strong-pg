@@ -1,3 +1,4 @@
+
 abstract class Statement {
 	public abstract compile (): string | string[];
 }
@@ -20,8 +21,11 @@ namespace Statement {
 		}
 
 		public compile () {
-			return [this.compileParallelOperations().join(","), ...this.compileStandaloneOperations()]
-				.map(operation => this.compileOperation(operation));
+			const operations = this.compileStandaloneOperations();
+			const parallelOperations = this.compileParallelOperations().join(",");
+			if (parallelOperations)
+				operations.unshift(parallelOperations);
+			return operations.map(operation => this.compileOperation(operation));
 		}
 
 		protected compileParallelOperations (): string[] {

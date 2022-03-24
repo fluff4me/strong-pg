@@ -16,6 +16,7 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 
 	public constructor (schemaStart?: SCHEMA_START) {
 		super();
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		this.schemaStart = schemaStart as any;
 	}
 
@@ -47,11 +48,12 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 	public createIndex<NAME extends string, TABLE extends DatabaseSchema.TableName<SCHEMA_END>> (
 		name: NAME,
 		on: TABLE,
-		initialiser: NAME extends DatabaseSchema.IndexName<SCHEMA_END> ? never : Initialiser<CreateIndex<NAME, DatabaseSchema.Table<SCHEMA_END, TABLE>>, CreateIndex<NAME, SCHEMA_END, true>>,
+		initialiser: NAME extends DatabaseSchema.IndexName<SCHEMA_END> ? never : DatabaseSchema.Table<SCHEMA_END, TABLE> extends infer TABLE_SCHEMA ? Initialiser<CreateIndex<NAME, TABLE_SCHEMA>, CreateIndex<NAME, TABLE_SCHEMA, true>> : never,
 	): Migration<SCHEMA_START, DatabaseSchema.CreateIndex<SCHEMA_END, NAME>> {
 		const createIndex = new CreateIndex(name, on);
 		initialiser(createIndex);
 		this.add(createIndex);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
 
@@ -67,6 +69,7 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 	): Migration<SCHEMA_START, DatabaseSchema.ReplaceEnum<SCHEMA_END, NAME, ENUM_SCHEMA>> {
 		this.add(new CreateEnum(name));
 		this.add(alter(new AlterEnum<NAME, []>(name)));
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
 
@@ -75,6 +78,7 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		alter: Initialiser<AlterEnum<NAME, DatabaseSchema.Enum<SCHEMA_END, NAME>>, AlterEnum<NAME, ENUM_SCHEMA_NEW>>,
 	): Migration<SCHEMA_START, DatabaseSchema.ReplaceEnum<SCHEMA_END, NAME, ENUM_SCHEMA_NEW>> {
 		this.add(alter(new AlterEnum<NAME, []>(name)));
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
 
@@ -85,6 +89,7 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 	}
 
 	public schema<SCHEMA_TEST extends SCHEMA_END> (schema: SCHEMA_TEST): SCHEMA_END extends SCHEMA_TEST ? Migration<SCHEMA_START, SCHEMA_TEST> : "Migration does not match schema" {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		this.schemaEnd = schema as any;
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;

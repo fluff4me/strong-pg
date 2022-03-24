@@ -29,6 +29,11 @@ export namespace DatabaseSchema {
 	export type ReplaceTable<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>, TABLE_SCHEMA_NEW> =
 		SetKey<SCHEMA, "tables", SetKey<SCHEMA["tables"], NAME, TABLE_SCHEMA_NEW>>;
 
+	// export type ReplaceTableOverwrite<SCHEMA_END extends DatabaseSchema, NAME extends TableName<SCHEMA_END>, TABLE_SCHEMA_NEW> =
+	// 	{ [KEY in keyof SCHEMA_END]: KEY extends "tables" ?
+	// 		{ [KEY in keyof SCHEMA_END["tables"] | NAME]: KEY extends NAME ? TABLE_SCHEMA_NEW : SCHEMA_END["tables"][KEY] }
+	// 		: SCHEMA_END[KEY] };
+
 	export type DropTable<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> =
 		SetKey<SCHEMA, "tables", Omit<SCHEMA["tables"], NAME>>;
 
@@ -93,12 +98,14 @@ type ValidateDatabaseSchemaEnumTableColumns<SCHEMA extends DatabaseSchema> =
 class Schema {
 
 	public static database<SCHEMA extends DatabaseSchema | null> (schema: SCHEMA): SCHEMA extends null ? null : ValidateDatabaseSchema<Extract<SCHEMA, DatabaseSchema>> {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return schema as any;
 	}
 
 	public static enum<ENUM extends object> (enm: ENUM) {
 		const result = [];
 		for (let i = 0; ; i++) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 			const value = (enm as any)[i];
 			if (typeof value === "string")
 				result.push(value);

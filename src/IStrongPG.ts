@@ -34,7 +34,7 @@ export enum DataTypeID {
 	TSVECTOR,
 }
 
-export interface typeStrings {
+export interface TypeStringMap {
 	// numeric
 	[DataTypeID.SMALLINT]: "SMALLINT",
 	[DataTypeID.INTEGER]: "INTEGER",
@@ -71,50 +71,50 @@ export interface typeStrings {
 
 export namespace DataType {
 	// numeric
-	export const SMALLINT: typeStrings[DataTypeID.SMALLINT] = "SMALLINT";
-	export const INTEGER: typeStrings[DataTypeID.INTEGER] = "INTEGER";
-	export const BIGINT: typeStrings[DataTypeID.BIGINT] = "BIGINT";
+	export const SMALLINT: TypeStringMap[DataTypeID.SMALLINT] = "SMALLINT";
+	export const INTEGER: TypeStringMap[DataTypeID.INTEGER] = "INTEGER";
+	export const BIGINT: TypeStringMap[DataTypeID.BIGINT] = "BIGINT";
 	export function NUMERIC (precision?: number, scale?: number) {
 		return (precision === undefined ? "NUMERIC" as const
 			: scale === undefined ? `NUMERIC(${Math.round(precision)})` as const
-				: `NUMERIC(${Math.round(precision)},${Math.round(scale)})` as const) as typeStrings[DataTypeID.NUMERIC];
+				: `NUMERIC(${Math.round(precision)},${Math.round(scale)})` as const) as TypeStringMap[DataTypeID.NUMERIC];
 	}
-	export const REAL: typeStrings[DataTypeID.REAL] = "REAL";
-	export const DOUBLE: typeStrings[DataTypeID.DOUBLE] = "DOUBLE PRECISION";
-	export const SMALLSERIAL: typeStrings[DataTypeID.SMALLSERIAL] = "SMALLSERIAL";
-	export const SERIAL: typeStrings[DataTypeID.SERIAL] = "SERIAL";
-	export const BIGSERIAL: typeStrings[DataTypeID.BIGSERIAL] = "BIGSERIAL";
+	export const REAL: TypeStringMap[DataTypeID.REAL] = "REAL";
+	export const DOUBLE: TypeStringMap[DataTypeID.DOUBLE] = "DOUBLE PRECISION";
+	export const SMALLSERIAL: TypeStringMap[DataTypeID.SMALLSERIAL] = "SMALLSERIAL";
+	export const SERIAL: TypeStringMap[DataTypeID.SERIAL] = "SERIAL";
+	export const BIGSERIAL: TypeStringMap[DataTypeID.BIGSERIAL] = "BIGSERIAL";
 
 	// datetime
 	export const DATE = "DATE";
 	export function TIMESTAMP (precision?: number, withoutTimeZone?: true) {
 		const timeZone = withoutTimeZone ? " WITHOUT TIME ZONE" : "" as const;
-		return (precision ? `TIMESTAMP(${Math.round(precision)})${timeZone}` : `TIMESTAMP${timeZone}`) as typeStrings[DataTypeID.TIMESTAMP];
+		return (precision ? `TIMESTAMP(${Math.round(precision)})${timeZone}` : `TIMESTAMP${timeZone}`) as TypeStringMap[DataTypeID.TIMESTAMP];
 	}
 	export function TIME (precision?: number, withoutTimeZone?: true) {
 		const timeZone = withoutTimeZone ? " WITHOUT TIME ZONE" : "" as const;
-		return (precision ? `TIME(${Math.round(precision)})${timeZone}` : `TIME${timeZone}`) as typeStrings[DataTypeID.TIMESTAMP];
+		return (precision ? `TIME(${Math.round(precision)})${timeZone}` : `TIME${timeZone}`) as TypeStringMap[DataTypeID.TIMESTAMP];
 	}
 	// INTERVAL,
 
 	// string
-	export const CHAR: typeStrings[DataTypeID.CHAR] = "CHARACTER";
-	export function VARCHAR (length?: number): typeStrings[DataTypeID.VARCHAR] {
+	export const CHAR: TypeStringMap[DataTypeID.CHAR] = "CHARACTER";
+	export function VARCHAR (length?: number): TypeStringMap[DataTypeID.VARCHAR] {
 		return length === undefined ? "CHARACTER VARYING"
-			: `CHARACTER VARYING(${Math.round(length)})` as typeStrings[DataTypeID.VARCHAR];
+			: `CHARACTER VARYING(${Math.round(length)})` as TypeStringMap[DataTypeID.VARCHAR];
 	}
-	export const BYTECHAR: typeStrings[DataTypeID.BYTECHAR] = "\"CHAR\"";
+	export const BYTECHAR: TypeStringMap[DataTypeID.BYTECHAR] = "\"CHAR\"";
 	export function BIT (length: number) {
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-		return `BIT(${Math.round(length)})` as string as typeStrings[DataTypeID.BIT];
+		return `BIT(${Math.round(length)})` as string as TypeStringMap[DataTypeID.BIT];
 	}
 	export function VARBIT (length?: number) {
 		return length === undefined ? "BIT VARYING"
-			: `BIT VARYING(${Math.round(length)})` as typeStrings[DataTypeID.VARBIT];
+			: `BIT VARYING(${Math.round(length)})` as TypeStringMap[DataTypeID.VARBIT];
 	}
-	export const TEXT: typeStrings[DataTypeID.TEXT] = "TEXT";
-	export function ENUM<NAME extends string> (name: NAME) {
-		return `ENUM(${name})` as Enum<NAME>;
+	export const TEXT: TypeStringMap[DataTypeID.TEXT] = "TEXT";
+	export function ENUM<NAME extends string> (name: NAME): Enum<NAME> {
+		return `ENUM(${name})` as const;
 	}
 
 	export type Enum<NAME extends string> = `ENUM(${NAME})`;
@@ -127,8 +127,61 @@ export namespace DataType {
 	export const TSVECTOR = "TSVECTOR";
 }
 
-export type TypeString = typeStrings[DataTypeID];
-export type TypeFromString<STR extends TypeString> = Extract<Value<{ [DATATYPE in DataTypeID as STR extends typeStrings[DATATYPE] ? DATATYPE : never]: DATATYPE }>, DataTypeID>;
+export type TypeString = TypeStringMap[DataTypeID];
+
+export type DataTypeFromString<STR extends TypeString> =
+	{ [DATATYPE in DataTypeID as STR extends TypeStringMap[DATATYPE] ? DATATYPE : never]: DATATYPE } extends infer DATATYPE_RESULT ?
+	DATATYPE_RESULT[keyof DATATYPE_RESULT] & DataTypeID
+	: never;
+
+export type ValidDate = Date | number | typeof Keyword.CurrentTimestamp;
+
+export interface TypeMap {
+	// numeric
+	[DataTypeID.SMALLINT]: number;
+	[DataTypeID.INTEGER]: number;
+	[DataTypeID.BIGINT]: number;
+	[DataTypeID.NUMERIC]: number;
+	[DataTypeID.REAL]: number;
+	[DataTypeID.DOUBLE]: number;
+	[DataTypeID.SMALLSERIAL]: number;
+	[DataTypeID.SERIAL]: number;
+	[DataTypeID.BIGSERIAL]: number;
+
+	// datetime
+	[DataTypeID.DATE]: ValidDate;
+	[DataTypeID.TIMESTAMP]: ValidDate;
+	[DataTypeID.TIME]: ValidDate;
+	// INTERVAL,
+
+	// string
+	[DataTypeID.CHAR]: string;
+	[DataTypeID.VARCHAR]: string;
+	[DataTypeID.BYTECHAR]: string;
+	[DataTypeID.BIT]: string;
+	[DataTypeID.VARBIT]: string;
+	[DataTypeID.TEXT]: string;
+	[DataTypeID.ENUM]: string;
+
+	// other
+	[DataTypeID.BOOLEAN]: boolean;
+
+	// special
+	[DataTypeID.TSVECTOR]: null;
+}
+
+export type ValidType = string | boolean | number | symbol | Date | undefined | null;
+
+export type TypeFromString<STR extends TypeString> = TypeMap[DataTypeFromString<STR>];
+
+export namespace TypeString {
+	export function resolve (typeString: TypeString) {
+		if (typeString.startsWith("ENUM("))
+			return typeString.slice(5, -1);
+
+		return typeString;
+	}
+}
 
 export type Initialiser<T, R = any> = (value: T) => R;
 // export type Merge2<L, R> = { [P in keyof L | keyof R]: L[P & keyof L] | R[P & keyof R] };
@@ -142,3 +195,7 @@ export type EnumToTuple<ENUM, LENGTH extends 1[] = []> =
 	[KEY] extends [never] ? [] : [KEY, ...EnumToTuple<ENUM, [...LENGTH, 1]>] : [];
 
 export type Value<T> = T[keyof T];
+
+export namespace Keyword {
+	export const CurrentTimestamp = Symbol("CURRENT_TIMESTAMP");
+}
