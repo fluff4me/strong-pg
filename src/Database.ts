@@ -18,4 +18,11 @@ export default class Database<SCHEMA extends DatabaseSchema> {
 		this.history = initialiser(new History());
 		return this;
 	}
+
+	/**
+	 * @deprecated WARNING: This drops and recreates your database!
+	 */
+	public async drop () {
+		return this.pool.query("DROP OWNED BY CURRENT_USER CASCADE");
+	}
 }
