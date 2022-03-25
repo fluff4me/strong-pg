@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DataType = exports.DataTypeID = void 0;
+exports.Keyword = exports.TypeString = exports.DataType = exports.DataTypeID = void 0;
 var DataTypeID;
 (function (DataTypeID) {
     // numeric
@@ -25,10 +25,11 @@ var DataTypeID;
     DataTypeID[DataTypeID["BIT"] = 15] = "BIT";
     DataTypeID[DataTypeID["VARBIT"] = 16] = "VARBIT";
     DataTypeID[DataTypeID["TEXT"] = 17] = "TEXT";
+    DataTypeID[DataTypeID["ENUM"] = 18] = "ENUM";
     // other
-    DataTypeID[DataTypeID["BOOLEAN"] = 18] = "BOOLEAN";
+    DataTypeID[DataTypeID["BOOLEAN"] = 19] = "BOOLEAN";
     // special
-    DataTypeID[DataTypeID["TSVECTOR"] = 19] = "TSVECTOR";
+    DataTypeID[DataTypeID["TSVECTOR"] = 20] = "TSVECTOR";
 })(DataTypeID = exports.DataTypeID || (exports.DataTypeID = {}));
 var DataType;
 (function (DataType) {
@@ -51,12 +52,12 @@ var DataType;
     DataType.DATE = "DATE";
     function TIMESTAMP(precision, withoutTimeZone) {
         const timeZone = withoutTimeZone ? " WITHOUT TIME ZONE" : "";
-        return precision ? `TIMESTAMP(${Math.round(precision)})${timeZone}` : `TIMESTAMP${timeZone}`;
+        return (precision ? `TIMESTAMP(${Math.round(precision)})${timeZone}` : `TIMESTAMP${timeZone}`);
     }
     DataType.TIMESTAMP = TIMESTAMP;
     function TIME(precision, withoutTimeZone) {
         const timeZone = withoutTimeZone ? " WITHOUT TIME ZONE" : "";
-        return precision ? `TIME(${Math.round(precision)})${timeZone}` : `TIME${timeZone}`;
+        return (precision ? `TIME(${Math.round(precision)})${timeZone}` : `TIME${timeZone}`);
     }
     DataType.TIME = TIME;
     // INTERVAL,
@@ -79,8 +80,25 @@ var DataType;
     }
     DataType.VARBIT = VARBIT;
     DataType.TEXT = "TEXT";
+    function ENUM(name) {
+        return `ENUM(${name})`;
+    }
+    DataType.ENUM = ENUM;
     // other
     DataType.BOOLEAN = "BOOLEAN";
     // special
     DataType.TSVECTOR = "TSVECTOR";
 })(DataType = exports.DataType || (exports.DataType = {}));
+var TypeString;
+(function (TypeString) {
+    function resolve(typeString) {
+        if (typeString.startsWith("ENUM("))
+            return typeString.slice(5, -1);
+        return typeString;
+    }
+    TypeString.resolve = resolve;
+})(TypeString = exports.TypeString || (exports.TypeString = {}));
+var Keyword;
+(function (Keyword) {
+    Keyword.CurrentTimestamp = Symbol("CURRENT_TIMESTAMP");
+})(Keyword = exports.Keyword || (exports.Keyword = {}));

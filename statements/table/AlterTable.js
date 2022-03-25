@@ -3,69 +3,118 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ColumnAddition = exports.ColumnReference = void 0;
-const Transaction_1 = __importDefault(require("../../Transaction"));
-class AlterTable extends Transaction_1.default {
+exports.AlterColumn = void 0;
+const Expression_1 = __importDefault(require("../../expressions/Expression"));
+const IStrongPG_1 = require("../../IStrongPG");
+const Statement_1 = __importDefault(require("../Statement"));
+class AlterTable extends Statement_1.default.Super {
     constructor(table) {
         super();
         this.table = table;
-        this.operations = [];
-        this.standaloneOperations = [];
     }
-    do(operation) {
-        this.operations.push(operation);
-        return this;
+    do(...operations) {
+        return this.addParallelOperation(...operations);
     }
-    doStandalone(operation) {
-        this.standaloneOperations.push(operation);
-        return this;
+    doStandalone(...operations) {
+        return this.addStandaloneOperation(...operations);
     }
-    addColumn(name, type, initialiser) {
-        const column = new ColumnAddition(name, type);
-        initialiser?.(column);
-        return this.do(`ADD COLUMN ${name} ${type}`);
+    addColumn(name, type, alter) {
+        return this.do(AlterTableSubStatement.addColumn(name, type), ...alter ? [AlterTableSubStatement.alterColumn(name, alter)] : []);
     }
     dropColumn(name) {
-        return this.do(`DROP COLUMN ${name}`);
+        return this.do(AlterTableSubStatement.dropColumn(name));
     }
     renameColumn(name, newName) {
-        return this.doStandalone(`RENAME COLUMN ${name} TO ${newName}`);
+        return this.doStandalone(AlterTableSubStatement.renameColumn(name, newName));
     }
     addPrimaryKey(...keys) {
-        return this.do(`ADD CONSTRAINT table_pkey PRIMARY KEY (${keys.join(",")})`);
+        return this.do(AlterTableSubStatement.addPrimaryKey(...keys));
     }
     dropPrimaryKey() {
-        return this.do("DROP CONSTRAINT table_pkey");
+        return this.do(AlterTableSubStatement.dropPrimaryKey());
     }
     renameTo(newName) {
-        this.standaloneOperations.push(`RENAME TO ${newName}`);
-        return this;
+        return this.doStandalone(AlterTableSubStatement.renameTo(newName));
     }
     schema() {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
-    compile() {
-        return [this.operations.join(","), ...this.standaloneOperations]
-            .map(operation => `ALTER TABLE ${this.table} ${operation}`);
+    compileOperation(operation) {
+        return `ALTER TABLE ${this.table} ${operation}`;
     }
 }
 exports.default = AlterTable;
-class ColumnReference {
-    constructor(table, column) {
-        this.table = table;
-        this.column = column;
+class AlterTableSubStatement extends Statement_1.default {
+    constructor(compiled) {
+        super();
+        this.compiled = compiled;
+    }
+    static addColumn(column, type) {
+        return new AlterTableSubStatement(`ADD COLUMN ${column} ${IStrongPG_1.TypeString.resolve(type)}`);
+    }
+    static alterColumn(column, initialiser) {
+        const statement = new AlterColumn(column);
+        initialiser(statement);
+        return statement;
+    }
+    static dropColumn(column) {
+        return new AlterTableSubStatement(`DROP COLUMN ${column}`);
+    }
+    static renameColumn(column, newName) {
+        return new AlterTableSubStatement(`RENAME COLUMN ${column} TO ${newName}`);
+    }
+    static addPrimaryKey(...keys) {
+        return new AlterTableSubStatement(`ADD CONSTRAINT table_pkey PRIMARY KEY (${keys.join(",")})`);
+    }
+    static dropPrimaryKey() {
+        return new AlterTableSubStatement("DROP CONSTRAINT table_pkey");
+    }
+    static renameTo(newName) {
+        return new AlterTableSubStatement(`RENAME TO ${newName}`);
+    }
+    compile() {
+        return this.compiled;
     }
 }
-exports.ColumnReference = ColumnReference;
-class ColumnAddition {
-    constructor(name, type) {
+// export class ColumnReference<TYPE extends TypeString> {
+// 	public constructor (public readonly table: string, public readonly column: string) {
+// 	}
+// }
+class AlterColumn extends Statement_1.default.Super {
+    constructor(name) {
+        super();
         this.name = name;
-        this.type = type;
     }
-    setReferences(reference) {
-        this.reference = reference;
-        return this;
+    // public reference?: ColumnReference<TYPE>;
+    // public setReferences (reference: ColumnReference<TYPE>) {
+    // 	this.reference = reference;
+    // 	return this;
+    // }
+    default(value) {
+        return this.addParallelOperation(AlterColumnSubStatement.setDefault(value));
+    }
+    notNull() {
+        return this.addParallelOperation(AlterColumnSubStatement.setNotNull());
+    }
+    compileOperation(operation) {
+        return `ALTER COLUMN ${this.name} ${operation}`;
     }
 }
-exports.ColumnAddition = ColumnAddition;
+exports.AlterColumn = AlterColumn;
+class AlterColumnSubStatement extends Statement_1.default {
+    constructor(compiled) {
+        super();
+        this.compiled = compiled;
+    }
+    static setDefault(value) {
+        const stringifiedValue = typeof value === "function" ? Expression_1.default.stringify(value) : Expression_1.default.stringifyValue(value);
+        return new AlterColumnSubStatement(`SET DEFAULT (${stringifiedValue})`);
+    }
+    static setNotNull() {
+        return new AlterColumnSubStatement("SET NOT NULL");
+    }
+    compile() {
+        return this.compiled;
+    }
+}

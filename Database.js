@@ -13,5 +13,11 @@ class Database {
         this.history = initialiser(new History_1.History());
         return this;
     }
+    /**
+     * @deprecated WARNING: This drops and recreates your database!
+     */
+    async drop() {
+        return this.pool.query("DROP OWNED BY CURRENT_USER CASCADE");
+    }
 }
 exports.default = Database;

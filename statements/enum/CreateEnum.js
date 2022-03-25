@@ -4,13 +4,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Statement_1 = __importDefault(require("../Statement"));
-class DropTable extends Statement_1.default {
-    constructor(table) {
+class CreateEnum extends Statement_1.default {
+    constructor(name) {
         super();
-        this.table = table;
+        this.name = name;
     }
     compile() {
-        return `DROP TABLE ${this.table}`;
+        return `CREATE TYPE ${this.name} AS ENUM ()`;
     }
 }
-exports.default = DropTable;
+exports.default = CreateEnum;
