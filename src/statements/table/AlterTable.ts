@@ -1,4 +1,4 @@
-import Expression from "../../expressions/Expression";
+import Expression, { ExpressionInitialiser } from "../../expressions/Expression";
 import { Initialiser, SetKey, TypeFromString, TypeString } from "../../IStrongPG";
 import Schema from "../../Schema";
 import Statement from "../Statement";
@@ -118,7 +118,7 @@ export class AlterColumn<TYPE extends TypeString> extends Statement.Super<AlterC
 	// 	return this;
 	// }
 
-	public default (value: TypeFromString<TYPE>) {
+	public default (value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>) {
 		return this.addParallelOperation(AlterColumnSubStatement.setDefault(value));
 	}
 
@@ -132,8 +132,9 @@ export class AlterColumn<TYPE extends TypeString> extends Statement.Super<AlterC
 }
 
 class AlterColumnSubStatement extends Statement {
-	public static setDefault<TYPE extends TypeString> (value: TypeFromString<TYPE>) {
-		return new AlterColumnSubStatement(`SET DEFAULT (${Expression.stringifyValue(value)})`);
+	public static setDefault<TYPE extends TypeString> (value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>) {
+		const stringifiedValue = typeof value === "function" ? Expression.stringify(value) : Expression.stringifyValue(value);
+		return new AlterColumnSubStatement(`SET DEFAULT (${stringifiedValue})`);
 	}
 
 	public static setNotNull () {

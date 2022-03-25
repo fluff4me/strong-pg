@@ -51,7 +51,8 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		initialiser: NAME extends DatabaseSchema.IndexName<SCHEMA_END> ? never : DatabaseSchema.Table<SCHEMA_END, TABLE> extends infer TABLE_SCHEMA ? Initialiser<CreateIndex<NAME, TABLE_SCHEMA>, CreateIndex<NAME, TABLE_SCHEMA, true>> : never,
 	): Migration<SCHEMA_START, DatabaseSchema.CreateIndex<SCHEMA_END, NAME>> {
 		const createIndex = new CreateIndex(name, on);
-		initialiser(createIndex);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+		initialiser(createIndex as any);
 		this.add(createIndex);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;

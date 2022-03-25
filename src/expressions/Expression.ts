@@ -1,17 +1,25 @@
-import { Initialiser, ValidType } from "../IStrongPG";
+import { Initialiser, TypeFromString, TypeString, ValidType } from "../IStrongPG";
 
-export interface ExpressionOperations<VARS extends string = never> {
-
+export interface ExpressionOperations<VARS extends Record<string, TypeString> = never, CURRENT_VALUE = null> {
+	greaterThan: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
+	lessThan: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
 }
 
-export interface ExpressionValues<VARS extends string = never> {
-	value (value: string | Initialiser<ExpressionValues<VARS>>): ExpressionOperations<VARS>;
-	var (name: VARS): ExpressionOperations<VARS>;
-	lowercase (value: string | Initialiser<ExpressionValues<VARS>>): ExpressionOperations<VARS>;
-	uppercase (value: string | Initialiser<ExpressionValues<VARS>>): ExpressionOperations<VARS>;
+export interface ExpressionValue<VARS extends Record<string, TypeString> = never, EXPECTED_VALUE = null, RESULT = null> {
+	<VALUE extends (EXPECTED_VALUE extends null ? ValidType : EXPECTED_VALUE)> (value: VALUE): ExpressionOperations<VARS, RESULT extends null ? VALUE : RESULT>;
+	(value: ExpressionInitialiser<VARS, RESULT>): ExpressionOperations<VARS, RESULT>;
 }
 
-export default class Expression<VARS extends string = never> implements ExpressionValues, ExpressionOperations {
+export interface ExpressionValues<VARS extends Record<string, TypeString> = never, VALUE = null, RESULT = null> {
+	value: ExpressionValue<VARS, VALUE, RESULT>;
+	var<VAR extends keyof VARS> (name: VAR): ExpressionOperations<VARS, TypeFromString<VARS[VAR]>>;
+	lowercase: ExpressionValue<VARS, string, string>;
+	uppercase: ExpressionValue<VARS, string, string>;
+}
+
+export type ExpressionInitialiser<VARS extends Record<string, TypeString>, RESULT = any> = Initialiser<ExpressionValues<VARS, null, null>, ExpressionOperations<VARS, RESULT>>;
+
+export default class Expression<VARS extends Record<string, TypeString> = never> {
 
 	/**
 	 * Warning: Do not use outside of migrations
@@ -41,10 +49,29 @@ export default class Expression<VARS extends string = never> implements Expressi
 		}
 	}
 
+	public static stringify (initialiser: ExpressionInitialiser<any, any>) {
+		const expr = new Expression();
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+		initialiser(expr as any);
+		return expr.compile();
+	}
+
 	public readonly parts: (() => string)[] = [];
+
+	private constructor () { }
 
 	public compile () {
 		return this.parts.map(part => part()).join("");
+	}
+
+	public greaterThan (value: ValidType | Initialiser<Expression>) {
+		this.parts.push(() => ">");
+		return this.value(value);
+	}
+
+	public lessThan (value: ValidType | Initialiser<Expression>) {
+		this.parts.push(() => "<");
+		return this.value(value);
 	}
 
 	public value (value: ValidType | Initialiser<Expression>, mapper?: (value: string) => string) {
@@ -64,8 +91,8 @@ export default class Expression<VARS extends string = never> implements Expressi
 		return this;
 	}
 
-	public var (name: VARS) {
-		this.parts.push(() => name);
+	public var (name: keyof VARS) {
+		this.parts.push(() => name as string);
 		return this;
 	}
 
