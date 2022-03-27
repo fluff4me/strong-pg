@@ -8,7 +8,7 @@ export interface DatabaseSchema {
     indices?: Record<string, {}>;
     enums?: Record<string, string[]>;
     triggers?: Record<string, {}>;
-    functions?: Record<string, any>;
+    functions?: Record<string, (...args: any[]) => any>;
 }
 export declare namespace DatabaseSchema {
     interface Empty {
@@ -18,6 +18,7 @@ export declare namespace DatabaseSchema {
     type IndexName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["indices"] & string;
     type EnumName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["enums"] & string;
     type TriggerName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["triggers"] & string;
+    type FunctionName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["functions"] & string;
     type Table<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> = SCHEMA["tables"][NAME];
     type ReplaceTable<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>, TABLE_SCHEMA_NEW> = SetKey<SCHEMA, "tables", SetKey<SCHEMA["tables"], NAME, TABLE_SCHEMA_NEW>>;
     type DropTable<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> = SetKey<SCHEMA, "tables", Omit<SCHEMA["tables"], NAME>>;
@@ -28,6 +29,8 @@ export declare namespace DatabaseSchema {
     type DropEnum<SCHEMA extends DatabaseSchema, NAME extends EnumName<SCHEMA>> = SetKey<SCHEMA, "enums", Omit<SCHEMA["enums"], NAME>>;
     type CreateTrigger<SCHEMA extends DatabaseSchema, NAME extends string> = SetKey<SCHEMA, "triggers", SetKey<SCHEMA["triggers"], NAME, {}>>;
     type DropTrigger<SCHEMA extends DatabaseSchema, NAME extends TriggerName<SCHEMA>> = SetKey<SCHEMA, "triggers", Omit<SCHEMA["triggers"], NAME>>;
+    type CreateFunction<SCHEMA extends DatabaseSchema, NAME extends string, FN extends (...args: any[]) => any> = SetKey<SCHEMA, "functions", SetKey<SCHEMA["functions"], NAME, FN>>;
+    type DropFunction<SCHEMA extends DatabaseSchema, NAME extends FunctionName<SCHEMA>> = SetKey<SCHEMA, "functions", Omit<SCHEMA["functions"], NAME>>;
 }
 declare type ValidateTableSchema<SCHEMA> = SpecialKeys<SCHEMA> extends infer SPECIAL_DATA ? keyof SPECIAL_DATA extends infer SPECIAL_KEYS ? Exclude<keyof SCHEMA, SPECIAL_KEYS> extends infer KEYS ? Pick<SCHEMA, KEYS & keyof SCHEMA> extends infer SCHEMA_CORE ? Pick<SCHEMA, SPECIAL_KEYS & keyof SCHEMA> extends infer SCHEMA_SPECIAL ? SCHEMA_CORE extends SchemaBase ? SCHEMA_SPECIAL extends SPECIAL_DATA ? SCHEMA : "Unknown or invalid special keys in schema" : "Invalid column types" : never : never : never : never : never;
 declare type ValidateDatabaseSchema<SCHEMA extends DatabaseSchema> = ValidateDatabaseSchemaEnumTableColumns<SCHEMA> extends infer RESULT ? Extract<RESULT, string> extends infer ERRORS ? [
@@ -46,6 +49,7 @@ declare class Schema {
     static table<SCHEMA>(schema: SCHEMA): ValidateTableSchema<SCHEMA>;
     static readonly INDEX: {};
     static readonly TRIGGER: {};
+    static readonly FUNCTION: (...args: any[]) => any;
     static primaryKey<KEYS extends string[]>(...keys: KEYS): KEYS[number][];
 }
 export default Schema;

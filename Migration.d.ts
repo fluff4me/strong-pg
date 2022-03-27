@@ -1,5 +1,6 @@
 import { DatabaseSchema } from "./Schema";
 import { AlterEnumInitialiser } from "./statements/enum/AlterEnum";
+import { CreateOrReplaceFunctionInitialiser } from "./statements/function/CreateOrReplaceFunction";
 import { CreateIndexInitialiser } from "./statements/index/CreateIndex";
 import { AlterTableInitialiser } from "./statements/table/AlterTable";
 import { CreateTriggerInitialiser } from "./statements/trigger/CreateTrigger";
@@ -20,5 +21,7 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
     createTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends string>(on: TABLE, name: NAME, initialiser: CreateTriggerInitialiser<DatabaseSchema.Table<SCHEMA_END, TABLE>, Exclude<SCHEMA_END["functions"], undefined>>): Migration<SCHEMA_START, DatabaseSchema.CreateTrigger<SCHEMA_END, NAME>>;
     renameTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends DatabaseSchema.TriggerName<SCHEMA_END>, NEW_NAME extends string>(on: TABLE, name: NAME, newName: NEW_NAME): Migration<SCHEMA_START, DatabaseSchema.DropTrigger<DatabaseSchema.CreateTrigger<SCHEMA_END, NEW_NAME>, NAME>>;
     dropTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends DatabaseSchema.TriggerName<SCHEMA_END>>(on: TABLE, name: NAME): Migration<SCHEMA_START, DatabaseSchema.DropTrigger<SCHEMA_END, NAME> & DatabaseSchema>;
+    createOrReplaceFunction<NAME extends string>(name: NAME, initialiser: CreateOrReplaceFunctionInitialiser): Migration<SCHEMA_START, DatabaseSchema.CreateFunction<SCHEMA_END, NAME, (...args: any[]) => any>>;
+    dropFunction<NAME extends DatabaseSchema.FunctionName<SCHEMA_END>>(name: NAME): Migration<SCHEMA_START, DatabaseSchema.DropFunction<SCHEMA_END, NAME> & DatabaseSchema>;
     schema<SCHEMA_TEST extends SCHEMA_END>(schema: SCHEMA_TEST): SCHEMA_END extends SCHEMA_TEST ? Migration<SCHEMA_START, SCHEMA_TEST> : "Migration does not match schema";
 }

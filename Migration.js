@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const AlterEnum_1 = __importDefault(require("./statements/enum/AlterEnum"));
 const CreateEnum_1 = __importDefault(require("./statements/enum/CreateEnum"));
 const DropEnum_1 = __importDefault(require("./statements/enum/DropEnum"));
+const CreateOrReplaceFunction_1 = __importDefault(require("./statements/function/CreateOrReplaceFunction"));
+const DropFunction_1 = __importDefault(require("./statements/function/DropFunction"));
 const CreateIndex_1 = __importDefault(require("./statements/index/CreateIndex"));
 const DropIndex_1 = __importDefault(require("./statements/index/DropIndex"));
 const AlterTable_1 = __importDefault(require("./statements/table/AlterTable"));
@@ -87,6 +89,16 @@ class Migration extends Transaction_1.default {
     }
     dropTrigger(on, name) {
         this.add(new DropTrigger_1.default(on, name));
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return this;
+    }
+    createOrReplaceFunction(name, initialiser) {
+        this.add(initialiser(new CreateOrReplaceFunction_1.default(name)));
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return this;
+    }
+    dropFunction(name) {
+        this.add(new DropFunction_1.default(name));
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }

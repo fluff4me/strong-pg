@@ -27,4 +27,5 @@ class Schema {
 }
 Schema.INDEX = {};
 Schema.TRIGGER = {};
+Schema.FUNCTION = () => undefined;
 exports.default = Schema;
