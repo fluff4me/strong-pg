@@ -4,13 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Statement_1 = __importDefault(require("../Statement"));
-class DropTable extends Statement_1.default {
-    constructor(table) {
-        super();
-        this.table = table;
-    }
-    compile() {
-        return `DROP TABLE ${this.table}`;
+class DropTable extends Statement_1.default.Basic {
+    constructor(name) {
+        super(`DROP TABLE ${name}`);
     }
 }
 exports.default = DropTable;

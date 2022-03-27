@@ -4,13 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Statement_1 = __importDefault(require("../Statement"));
-class CreateTable extends Statement_1.default {
-    constructor(table) {
-        super();
-        this.table = table;
-    }
-    compile() {
-        return `CREATE TABLE ${this.table} ()`;
+class CreateTable extends Statement_1.default.Basic {
+    constructor(name) {
+        super(`CREATE TABLE ${name} ()`);
     }
 }
 exports.default = CreateTable;

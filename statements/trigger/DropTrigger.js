@@ -4,9 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Statement_1 = __importDefault(require("../Statement"));
-class DropIndex extends Statement_1.default.Basic {
-    constructor(name) {
-        super(`DROP INDEX ${name}`);
+class DropTrigger extends Statement_1.default.Basic {
+    constructor(on, name) {
+        super(`DROP TRIGGER ${name} ON ${on}`);
     }
 }
-exports.default = DropIndex;
+exports.default = DropTrigger;
