@@ -36,11 +36,23 @@ class Expression {
         return this.parts.map(part => part()).join("");
     }
     greaterThan(value) {
-        this.parts.push(() => ">");
+        this.parts.push(() => " > ");
         return this.value(value);
     }
     lessThan(value) {
-        this.parts.push(() => "<");
+        this.parts.push(() => " < ");
+        return this.value(value);
+    }
+    isNull() {
+        this.parts.push(() => " IS NULL");
+        return this;
+    }
+    or(value) {
+        this.parts.push(() => " OR ");
+        return this.value(value);
+    }
+    eq(value) {
+        this.parts.push(() => " = ");
         return this.value(value);
     }
     value(value, mapper) {
@@ -49,7 +61,7 @@ class Expression {
             if (typeof value === "function") {
                 const expr = new Expression();
                 value(expr);
-                result = expr.compile();
+                result = `(${expr.compile()})`;
             }
             else {
                 result = Expression.stringifyValue(value);

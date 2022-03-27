@@ -4,6 +4,16 @@ class Statement {
 }
 exports.default = Statement;
 (function (Statement) {
+    class Basic extends Statement {
+        constructor(compiled) {
+            super();
+            this.compiled = compiled;
+        }
+        compile() {
+            return this.compiled;
+        }
+    }
+    Statement.Basic = Basic;
     class Super extends Statement {
         constructor() {
             super(...arguments);

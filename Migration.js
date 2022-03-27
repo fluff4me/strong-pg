@@ -10,6 +10,8 @@ const DropIndex_1 = __importDefault(require("./statements/index/DropIndex"));
 const AlterTable_1 = __importDefault(require("./statements/table/AlterTable"));
 const CreateTable_1 = __importDefault(require("./statements/table/CreateTable"));
 const DropTable_1 = __importDefault(require("./statements/table/DropTable"));
+const CreateTrigger_1 = __importDefault(require("./statements/trigger/CreateTrigger"));
+const RenameTrigger_1 = __importDefault(require("./statements/trigger/RenameTrigger"));
 const Transaction_1 = __importDefault(require("./Transaction"));
 class Migration extends Transaction_1.default {
     constructor(schemaStart) {
@@ -25,6 +27,11 @@ class Migration extends Transaction_1.default {
     }
     alterTable(table, alter) {
         this.add(alter(new AlterTable_1.default(table)));
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return this;
+    }
+    renameTable(table, newName) {
+        this.add(new AlterTable_1.default(table).renameTo(newName));
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
@@ -59,6 +66,19 @@ class Migration extends Transaction_1.default {
     }
     dropEnum(name) {
         this.add(new DropIndex_1.default(name));
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return this;
+    }
+    createTrigger(on, name, initialiser) {
+        const createTrigger = new CreateTrigger_1.default(name, on);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        initialiser(createTrigger);
+        this.add(createTrigger);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return this;
+    }
+    renameTrigger(on, name, newName) {
+        this.add(new RenameTrigger_1.default(on, name, newName));
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }

@@ -70,7 +70,7 @@ export declare namespace DataType {
     const BOOLEAN = "BOOLEAN";
     const TSVECTOR = "TSVECTOR";
 }
-export declare type TypeString = TypeStringMap[DataTypeID];
+export declare type TypeString = TypeStringMap[DataTypeID] | "*";
 export declare type DataTypeFromString<STR extends TypeString> = {
     [DATATYPE in DataTypeID as STR extends TypeStringMap[DATATYPE] ? DATATYPE : never]: DATATYPE;
 } extends infer DATATYPE_RESULT ? DATATYPE_RESULT[keyof DATATYPE_RESULT] & DataTypeID : never;
@@ -99,7 +99,8 @@ export interface TypeMap {
     [DataTypeID.TSVECTOR]: null;
 }
 export declare type ValidType = string | boolean | number | symbol | Date | undefined | null;
-export declare type TypeFromString<STR extends TypeString> = TypeMap[DataTypeFromString<STR>];
+export declare const SYMBOL_COLUMNS: unique symbol;
+export declare type TypeFromString<STR extends TypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : TypeMap[DataTypeFromString<STR>];
 export declare namespace TypeString {
     function resolve(typeString: TypeString): string;
 }

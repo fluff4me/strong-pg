@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Keyword = exports.TypeString = exports.DataType = exports.DataTypeID = void 0;
+exports.Keyword = exports.TypeString = exports.SYMBOL_COLUMNS = exports.DataType = exports.DataTypeID = void 0;
 var DataTypeID;
 (function (DataTypeID) {
     // numeric
@@ -89,6 +89,7 @@ var DataType;
     // special
     DataType.TSVECTOR = "TSVECTOR";
 })(DataType = exports.DataType || (exports.DataType = {}));
+exports.SYMBOL_COLUMNS = Symbol("COLUMNS");
 var TypeString;
 (function (TypeString) {
     function resolve(typeString) {

@@ -3,6 +3,11 @@ declare abstract class Statement {
 }
 export default Statement;
 declare namespace Statement {
+    class Basic extends Statement {
+        private readonly compiled;
+        constructor(compiled: string | string[]);
+        compile(): string | string[];
+    }
     abstract class Super<SUB_STATEMENT extends Statement> extends Statement {
         protected readonly parallelOperations: SUB_STATEMENT[];
         protected readonly standaloneOperations: SUB_STATEMENT[];
