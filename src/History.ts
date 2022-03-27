@@ -52,7 +52,7 @@ export class History<SCHEMA extends DatabaseSchema | null = null> {
 			await client.query("COMMIT");
 
 			if (process.env.DEBUG_PG)
-				console.log(`Migrated to ${version}`)
+				console.log(`Migrated to v${version}`);
 
 			return version;
 		});

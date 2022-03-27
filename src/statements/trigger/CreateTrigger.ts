@@ -41,7 +41,7 @@ export class TriggerEvents<SCHEMA extends Record<string, any>, VALID extends boo
 
 			let columns: Schema.Column<SCHEMA>[];
 			[event, ...columns] = event;
-			`${event} OF ${columns.join(", ")}`
+			return `${event} OF ${columns.join(", ")}`;
 		})
 			.join(" OR ");
 	}
@@ -88,6 +88,6 @@ export default class CreateTrigger<SCHEMA extends Record<string, any>, FUNCTIONS
 	}
 
 	public compile () {
-		return `CREATE TRIGGER ${this.id} ${this.events} ON ${this.on} FOR EACH ROW ${this.condition ?? ""} EXECUTE FUNCTION ${this.fn}`;
+		return `CREATE TRIGGER ${this.id} ${this.events} ON ${this.on} FOR EACH ROW ${this.condition ?? ""} EXECUTE FUNCTION ${this.fn}()`;
 	}
 }
