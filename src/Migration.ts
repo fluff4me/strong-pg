@@ -7,6 +7,7 @@ import DropIndex from "./statements/index/DropIndex";
 import AlterTable, { AlterTableInitialiser } from "./statements/table/AlterTable";
 import CreateTable from "./statements/table/CreateTable";
 import DropTable from "./statements/table/DropTable";
+import RenameTable from "./statements/table/RenameTable";
 import CreateTrigger, { CreateTriggerInitialiser } from "./statements/trigger/CreateTrigger";
 import DropTrigger from "./statements/trigger/DropTrigger";
 import RenameTrigger from "./statements/trigger/RenameTrigger";
@@ -43,7 +44,7 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 	}
 
 	public renameTable<NAME extends DatabaseSchema.TableName<SCHEMA_END>, NEW_NAME extends string> (table: NAME, newName: NEW_NAME): Migration<SCHEMA_START, DatabaseSchema.DropTable<DatabaseSchema.ReplaceTable<SCHEMA_END, NEW_NAME, DatabaseSchema.Table<SCHEMA_END, NAME>>, NAME>> {
-		this.add(new AlterTable(table).renameTo(newName));
+		this.add(new RenameTable(table, newName));
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}

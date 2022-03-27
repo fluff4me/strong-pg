@@ -49,10 +49,6 @@ export default class AlterTable<SCHEMA_START = null, SCHEMA_END = SCHEMA_START e
 			AlterTableSubStatement.dropPrimaryKey());
 	}
 
-	public renameTo (newName: string) {
-		return this.doStandalone(AlterTableSubStatement.renameTo(newName));
-	}
-
 	public schema<SCHEMA_TEST extends SCHEMA_END> (): SCHEMA_END extends SCHEMA_TEST ? AlterTable<SCHEMA_START, SCHEMA_TEST> : null {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
@@ -88,10 +84,6 @@ class AlterTableSubStatement extends Statement {
 
 	public static dropPrimaryKey () {
 		return new AlterTableSubStatement("DROP CONSTRAINT table_pkey");
-	}
-
-	public static renameTo (newName: string) {
-		return new AlterTableSubStatement(`RENAME TO ${newName}`);
 	}
 
 	private constructor (private readonly compiled: string) {
