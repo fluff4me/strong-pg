@@ -1,11 +1,7 @@
 import Statement from "../Statement";
 
-export default class DropTable<TABLE extends string> extends Statement {
-	public constructor (public readonly table: TABLE) {
-		super();
-	}
-
-	public compile () {
-		return `DROP TABLE ${this.table}`;
+export default class DropTable extends Statement.Basic {
+	public constructor (name: string) {
+		super(`DROP TABLE ${name}`);
 	}
 }

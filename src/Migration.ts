@@ -1,12 +1,14 @@
 import { DatabaseSchema } from "./Schema";
 import AlterEnum, { AlterEnumInitialiser } from "./statements/enum/AlterEnum";
 import CreateEnum from "./statements/enum/CreateEnum";
+import DropEnum from "./statements/enum/DropEnum";
 import CreateIndex, { CreateIndexInitialiser } from "./statements/index/CreateIndex";
 import DropIndex from "./statements/index/DropIndex";
 import AlterTable, { AlterTableInitialiser } from "./statements/table/AlterTable";
 import CreateTable from "./statements/table/CreateTable";
 import DropTable from "./statements/table/DropTable";
 import CreateTrigger, { CreateTriggerInitialiser } from "./statements/trigger/CreateTrigger";
+import DropTrigger from "./statements/trigger/DropTrigger";
 import RenameTrigger from "./statements/trigger/RenameTrigger";
 import Transaction from "./Transaction";
 
@@ -91,7 +93,7 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 	}
 
 	public dropEnum<NAME extends DatabaseSchema.EnumName<SCHEMA_END>> (name: NAME): Migration<SCHEMA_START, DatabaseSchema.DropEnum<SCHEMA_END, NAME> & DatabaseSchema> {
-		this.add(new DropIndex(name));
+		this.add(new DropEnum(name));
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
@@ -107,6 +109,12 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 
 	public renameTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends DatabaseSchema.TriggerName<SCHEMA_END>, NEW_NAME extends string> (on: TABLE, name: NAME, newName: NEW_NAME): Migration<SCHEMA_START, DatabaseSchema.DropTrigger<DatabaseSchema.CreateTrigger<SCHEMA_END, NEW_NAME>, NAME>> {
 		this.add(new RenameTrigger(on, name, newName));
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+		return this as any;
+	}
+
+	public dropTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends DatabaseSchema.TriggerName<SCHEMA_END>> (on: TABLE, name: NAME): Migration<SCHEMA_START, DatabaseSchema.DropTrigger<SCHEMA_END, NAME> & DatabaseSchema> {
+		this.add(new DropTrigger(on, name));
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
