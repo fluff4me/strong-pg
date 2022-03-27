@@ -13,7 +13,7 @@ export interface DatabaseSchema {
 	indices?: Record<string, {}>;
 	enums?: Record<string, string[]>;
 	triggers?: Record<string, {}>;
-	functions?: Record<string, any>;
+	functions?: Record<string, (...args: any[]) => any>;
 }
 
 export namespace DatabaseSchema {
@@ -25,17 +25,13 @@ export namespace DatabaseSchema {
 	export type IndexName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["indices"] & string;
 	export type EnumName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["enums"] & string;
 	export type TriggerName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["triggers"] & string;
+	export type FunctionName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["functions"] & string;
 
 	export type Table<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> =
 		SCHEMA["tables"][NAME];
 
 	export type ReplaceTable<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>, TABLE_SCHEMA_NEW> =
 		SetKey<SCHEMA, "tables", SetKey<SCHEMA["tables"], NAME, TABLE_SCHEMA_NEW>>;
-
-	// export type ReplaceTableOverwrite<SCHEMA_END extends DatabaseSchema, NAME extends TableName<SCHEMA_END>, TABLE_SCHEMA_NEW> =
-	// 	{ [KEY in keyof SCHEMA_END]: KEY extends "tables" ?
-	// 		{ [KEY in keyof SCHEMA_END["tables"] | NAME]: KEY extends NAME ? TABLE_SCHEMA_NEW : SCHEMA_END["tables"][KEY] }
-	// 		: SCHEMA_END[KEY] };
 
 	export type DropTable<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> =
 		SetKey<SCHEMA, "tables", Omit<SCHEMA["tables"], NAME>>;
@@ -60,6 +56,12 @@ export namespace DatabaseSchema {
 
 	export type DropTrigger<SCHEMA extends DatabaseSchema, NAME extends TriggerName<SCHEMA>> =
 		SetKey<SCHEMA, "triggers", Omit<SCHEMA["triggers"], NAME>>;
+
+	export type CreateFunction<SCHEMA extends DatabaseSchema, NAME extends string, FN extends (...args: any[]) => any> =
+		SetKey<SCHEMA, "functions", SetKey<SCHEMA["functions"], NAME, FN>>;
+
+	export type DropFunction<SCHEMA extends DatabaseSchema, NAME extends FunctionName<SCHEMA>> =
+		SetKey<SCHEMA, "functions", Omit<SCHEMA["functions"], NAME>>;
 }
 
 // this is a type function that validates the schema it receives
@@ -131,6 +133,7 @@ class Schema {
 
 	public static readonly INDEX = {};
 	public static readonly TRIGGER = {};
+	public static readonly FUNCTION: (...args: any[]) => any = () => undefined;
 
 	public static primaryKey<KEYS extends string[]> (...keys: KEYS): KEYS[number][] {
 		return keys;

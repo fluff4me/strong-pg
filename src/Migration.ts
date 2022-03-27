@@ -2,6 +2,8 @@ import { DatabaseSchema } from "./Schema";
 import AlterEnum, { AlterEnumInitialiser } from "./statements/enum/AlterEnum";
 import CreateEnum from "./statements/enum/CreateEnum";
 import DropEnum from "./statements/enum/DropEnum";
+import CreateOrReplaceFunction, { CreateOrReplaceFunctionInitialiser } from "./statements/function/CreateOrReplaceFunction";
+import DropFunction from "./statements/function/DropFunction";
 import CreateIndex, { CreateIndexInitialiser } from "./statements/index/CreateIndex";
 import DropIndex from "./statements/index/DropIndex";
 import AlterTable, { AlterTableInitialiser } from "./statements/table/AlterTable";
@@ -116,6 +118,18 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 
 	public dropTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends DatabaseSchema.TriggerName<SCHEMA_END>> (on: TABLE, name: NAME): Migration<SCHEMA_START, DatabaseSchema.DropTrigger<SCHEMA_END, NAME> & DatabaseSchema> {
 		this.add(new DropTrigger(on, name));
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+		return this as any;
+	}
+
+	public createOrReplaceFunction<NAME extends string> (name: NAME, initialiser: CreateOrReplaceFunctionInitialiser): Migration<SCHEMA_START, DatabaseSchema.CreateFunction<SCHEMA_END, NAME, (...args: any[]) => any>> {
+		this.add(initialiser(new CreateOrReplaceFunction(name)));
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+		return this as any;
+	}
+
+	public dropFunction<NAME extends DatabaseSchema.FunctionName<SCHEMA_END>> (name: NAME): Migration<SCHEMA_START, DatabaseSchema.DropFunction<SCHEMA_END, NAME> & DatabaseSchema> {
+		this.add(new DropFunction(name));
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
