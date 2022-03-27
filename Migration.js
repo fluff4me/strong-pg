@@ -11,6 +11,7 @@ const DropIndex_1 = __importDefault(require("./statements/index/DropIndex"));
 const AlterTable_1 = __importDefault(require("./statements/table/AlterTable"));
 const CreateTable_1 = __importDefault(require("./statements/table/CreateTable"));
 const DropTable_1 = __importDefault(require("./statements/table/DropTable"));
+const RenameTable_1 = __importDefault(require("./statements/table/RenameTable"));
 const CreateTrigger_1 = __importDefault(require("./statements/trigger/CreateTrigger"));
 const DropTrigger_1 = __importDefault(require("./statements/trigger/DropTrigger"));
 const RenameTrigger_1 = __importDefault(require("./statements/trigger/RenameTrigger"));
@@ -33,7 +34,7 @@ class Migration extends Transaction_1.default {
         return this;
     }
     renameTable(table, newName) {
-        this.add(new AlterTable_1.default(table).renameTo(newName));
+        this.add(new RenameTable_1.default(table, newName));
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }

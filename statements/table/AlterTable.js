@@ -33,9 +33,6 @@ class AlterTable extends Statement_1.default.Super {
     dropPrimaryKey() {
         return this.do(AlterTableSubStatement.dropPrimaryKey());
     }
-    renameTo(newName) {
-        return this.doStandalone(AlterTableSubStatement.renameTo(newName));
-    }
     schema() {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
@@ -69,9 +66,6 @@ class AlterTableSubStatement extends Statement_1.default {
     }
     static dropPrimaryKey() {
         return new AlterTableSubStatement("DROP CONSTRAINT table_pkey");
-    }
-    static renameTo(newName) {
-        return new AlterTableSubStatement(`RENAME TO ${newName}`);
     }
     compile() {
         return this.compiled;

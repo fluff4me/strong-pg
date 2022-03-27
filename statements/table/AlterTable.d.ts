@@ -15,7 +15,6 @@ export default class AlterTable<SCHEMA_START = null, SCHEMA_END = SCHEMA_START e
     renameColumn<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string, NAME_NEW extends string>(name: NAME, newName: NAME_NEW): AlterTable<SCHEMA_START, Omit<SCHEMA_END, NAME> & { [KEY in NAME_NEW]: SCHEMA_END[NAME]; }>;
     addPrimaryKey<KEYS extends Schema.PrimaryKeyOrNull<SCHEMA_END> extends null ? (keyof SCHEMA_END & string)[] : never[]>(...keys: KEYS): AlterTable<SCHEMA_START, Schema.PrimaryKeyed<SCHEMA_END, KEYS[number][]>>;
     dropPrimaryKey(): AlterTable<SCHEMA_START, Schema.DropPrimaryKey<SCHEMA_END>>;
-    renameTo(newName: string): AlterTable<SCHEMA_START, unknown>;
     schema<SCHEMA_TEST extends SCHEMA_END>(): SCHEMA_END extends SCHEMA_TEST ? AlterTable<SCHEMA_START, SCHEMA_TEST> : null;
     protected compileOperation(operation: string): string;
 }
