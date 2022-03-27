@@ -38,7 +38,7 @@ class TriggerEvents {
                 return event;
             let columns;
             [event, ...columns] = event;
-            `${event} OF ${columns.join(", ")}`;
+            return `${event} OF ${columns.join(", ")}`;
         })
             .join(" OR ");
     }
@@ -70,7 +70,7 @@ class CreateTrigger extends Statement_1.default {
         return this;
     }
     compile() {
-        return `CREATE TRIGGER ${this.id} ${this.events} ON ${this.on} FOR EACH ROW ${this.condition ?? ""} EXECUTE FUNCTION ${this.fn}`;
+        return `CREATE TRIGGER ${this.id} ${this.events} ON ${this.on} FOR EACH ROW ${this.condition ?? ""} EXECUTE FUNCTION ${this.fn}()`;
     }
 }
 exports.default = CreateTrigger;

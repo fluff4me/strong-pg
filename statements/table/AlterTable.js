@@ -86,10 +86,10 @@ class AlterColumn extends Statement_1.default.Super {
     // 	return this;
     // }
     default(value) {
-        return this.addParallelOperation(AlterColumnSubStatement.setDefault(value));
+        return this.addStandaloneOperation(AlterColumnSubStatement.setDefault(value));
     }
     notNull() {
-        return this.addParallelOperation(AlterColumnSubStatement.setNotNull());
+        return this.addStandaloneOperation(AlterColumnSubStatement.setNotNull());
     }
     compileOperation(operation) {
         return `ALTER COLUMN ${this.name} ${operation}`;

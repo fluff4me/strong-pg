@@ -44,7 +44,7 @@ class History {
             await client.query("INSERT INTO migrations VALUES ($1, $2)", [start, version]);
             await client.query("COMMIT");
             if (process.env.DEBUG_PG)
-                console.log(`Migrated to ${version}`);
+                console.log(`Migrated to v${version}`);
             return version;
         });
     }
