@@ -114,11 +114,11 @@ export class AlterColumn<TYPE extends TypeString> extends Statement.Super<AlterC
 	// }
 
 	public default (value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>) {
-		return this.addParallelOperation(AlterColumnSubStatement.setDefault(value));
+		return this.addStandaloneOperation(AlterColumnSubStatement.setDefault(value));
 	}
 
 	public notNull () {
-		return this.addParallelOperation(AlterColumnSubStatement.setNotNull());
+		return this.addStandaloneOperation(AlterColumnSubStatement.setNotNull());
 	}
 
 	protected compileOperation (operation: string) {
