@@ -1,3 +1,4 @@
+import { Initialiser } from "../../IStrongPG";
 import Statement from "../Statement";
 
 type Rename<ENUM extends string[], OLD extends ENUM[number], NEW extends string> = ENUM extends [] ? [] :
@@ -12,9 +13,12 @@ type AddValueAfter<ENUM extends string[], PIVOT extends ENUM[number], NEW extend
 	ENUM extends [infer HEAD, ...infer TAIL] ?
 	HEAD extends PIVOT ? [PIVOT, NEW, ...TAIL] : [HEAD, ...AddValueAfter<TAIL & string[], PIVOT, NEW>] : ENUM;
 
-export default class AlterEnum<NAME extends string, VALUES extends string[]> extends Statement.Super<AlterEnumSubStatement> {
+export type AlterEnumInitialiser<VALUES_START extends string[], VALUES_END extends string[]> =
+	Initialiser<AlterEnum<VALUES_START>, AlterEnum<VALUES_END>>;
 
-	public constructor (public readonly name: NAME) {
+export default class AlterEnum<VALUES extends string[]> extends Statement.Super<AlterEnumSubStatement> {
+
+	public constructor (public readonly name: string) {
 		super();
 	}
 
@@ -35,7 +39,7 @@ export default class AlterEnum<NAME extends string, VALUES extends string[]> ext
 	}
 
 	private do<NEW_VALUES extends string[]> (...statements: AlterEnumSubStatement[]) {
-		return this.addStandaloneOperation<AlterEnum<NAME, NEW_VALUES>>(...statements);
+		return this.addStandaloneOperation<AlterEnum<NEW_VALUES>>(...statements);
 	}
 
 	protected compileOperation (operation: string): string {

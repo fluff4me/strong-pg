@@ -6,6 +6,17 @@ abstract class Statement {
 export default Statement;
 
 namespace Statement {
+
+	export class Basic extends Statement {
+		public constructor (private readonly compiled: string | string[]) {
+			super();
+		}
+
+		public compile () {
+			return this.compiled;
+		}
+	}
+
 	export abstract class Super<SUB_STATEMENT extends Statement> extends Statement {
 		protected readonly parallelOperations: SUB_STATEMENT[] = [];
 		protected readonly standaloneOperations: SUB_STATEMENT[] = [];

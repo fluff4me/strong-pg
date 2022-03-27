@@ -3,6 +3,9 @@ import { Initialiser, TypeFromString, TypeString, ValidType } from "../IStrongPG
 export interface ExpressionOperations<VARS extends Record<string, TypeString> = never, CURRENT_VALUE = null> {
 	greaterThan: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
 	lessThan: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
+	isNull (): ExpressionOperations<VARS, boolean>;
+	eq: ExpressionValue<VARS, CURRENT_VALUE, boolean>;
+	or: ExpressionValue<VARS, boolean, boolean>;
 }
 
 export interface ExpressionValue<VARS extends Record<string, TypeString> = never, EXPECTED_VALUE = null, RESULT = null> {
@@ -19,7 +22,9 @@ export interface ExpressionValues<VARS extends Record<string, TypeString> = neve
 
 export type ExpressionInitialiser<VARS extends Record<string, TypeString>, RESULT = any> = Initialiser<ExpressionValues<VARS, null, null>, ExpressionOperations<VARS, RESULT>>;
 
-export default class Expression<VARS extends Record<string, TypeString> = never> {
+export type ImplementableExpression = { [KEY in keyof ExpressionValues | keyof ExpressionOperations]: any };
+
+export default class Expression<VARS extends Record<string, TypeString> = never> implements ImplementableExpression {
 
 	/**
 	 * Warning: Do not use outside of migrations
@@ -65,12 +70,27 @@ export default class Expression<VARS extends Record<string, TypeString> = never>
 	}
 
 	public greaterThan (value: ValidType | Initialiser<Expression>) {
-		this.parts.push(() => ">");
+		this.parts.push(() => " > ");
 		return this.value(value);
 	}
 
 	public lessThan (value: ValidType | Initialiser<Expression>) {
-		this.parts.push(() => "<");
+		this.parts.push(() => " < ");
+		return this.value(value);
+	}
+
+	public isNull () {
+		this.parts.push(() => " IS NULL");
+		return this;
+	}
+
+	public or (value: ValidType | Initialiser<Expression>) {
+		this.parts.push(() => " OR ");
+		return this.value(value);
+	}
+
+	public eq (value: ValidType | Initialiser<Expression>) {
+		this.parts.push(() => " = ");
 		return this.value(value);
 	}
 
@@ -80,7 +100,7 @@ export default class Expression<VARS extends Record<string, TypeString> = never>
 			if (typeof value === "function") {
 				const expr = new Expression();
 				value(expr);
-				result = expr.compile();
+				result = `(${expr.compile()})`;
 			} else {
 				result = Expression.stringifyValue(value);
 			}

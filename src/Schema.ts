@@ -12,6 +12,8 @@ export interface DatabaseSchema {
 	tables: Record<string, Record<string, any>>;
 	indices?: Record<string, {}>;
 	enums?: Record<string, string[]>;
+	triggers?: Record<string, {}>;
+	functions?: Record<string, any>;
 }
 
 export namespace DatabaseSchema {
@@ -22,6 +24,7 @@ export namespace DatabaseSchema {
 	export type TableName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["tables"] & string;
 	export type IndexName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["indices"] & string;
 	export type EnumName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["enums"] & string;
+	export type TriggerName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["triggers"] & string;
 
 	export type Table<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> =
 		SCHEMA["tables"][NAME];
@@ -51,6 +54,12 @@ export namespace DatabaseSchema {
 
 	export type DropEnum<SCHEMA extends DatabaseSchema, NAME extends EnumName<SCHEMA>> =
 		SetKey<SCHEMA, "enums", Omit<SCHEMA["enums"], NAME>>;
+
+	export type CreateTrigger<SCHEMA extends DatabaseSchema, NAME extends string> =
+		SetKey<SCHEMA, "triggers", SetKey<SCHEMA["triggers"], NAME, {}>>;
+
+	export type DropTrigger<SCHEMA extends DatabaseSchema, NAME extends TriggerName<SCHEMA>> =
+		SetKey<SCHEMA, "triggers", Omit<SCHEMA["triggers"], NAME>>;
 }
 
 // this is a type function that validates the schema it receives
@@ -121,6 +130,7 @@ class Schema {
 	}
 
 	public static readonly INDEX = {};
+	public static readonly TRIGGER = {};
 
 	public static primaryKey<KEYS extends string[]> (...keys: KEYS): KEYS[number][] {
 		return keys;
@@ -140,4 +150,7 @@ namespace Schema {
 		SCHEMA & { PRIMARY_KEY: KEY };
 
 	export type DropPrimaryKey<SCHEMA> = Omit<SCHEMA, "PRIMARY_KEY">;
+
+	export type Column<SCHEMA> = keyof SCHEMA extends infer KEYS ? KEYS extends keyof SpecialKeys<any> ? never : keyof SCHEMA : never;
+	export type Columns<SCHEMA> = { [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN]: SCHEMA[COLUMN] };
 }

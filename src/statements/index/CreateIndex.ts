@@ -1,13 +1,17 @@
 import Expression, { ExpressionInitialiser } from "../../expressions/Expression";
+import { Initialiser } from "../../IStrongPG";
 import Statement from "../Statement";
 
-export default class CreateIndex<NAME extends string, SCHEMA extends Record<string, any>, COLUMNS extends boolean = false> extends Statement {
+export type CreateIndexInitialiser<SCHEMA extends Record<string, any>> =
+	Initialiser<CreateIndex<SCHEMA>, CreateIndex<SCHEMA, true>>;
+
+export default class CreateIndex<SCHEMA extends Record<string, any>, COLUMNS extends boolean = false> extends Statement {
 
 	private isUnique = false;
 	private readonly columns: string[] = [];
-	private readonly valid!: COLUMNS;
+	protected readonly valid!: COLUMNS;
 
-	public constructor (public readonly name: NAME, public readonly on: string) {
+	public constructor (public readonly name: string, public readonly on: string) {
 		super();
 	}
 
@@ -16,13 +20,13 @@ export default class CreateIndex<NAME extends string, SCHEMA extends Record<stri
 		return this;
 	}
 
-	public column<COLUMN extends keyof SCHEMA & string> (column: COLUMN): CreateIndex<NAME, SCHEMA, true> {
+	public column<COLUMN extends keyof SCHEMA & string> (column: COLUMN): CreateIndex<SCHEMA, true> {
 		this.columns.push(column);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
 
-	public expression (initialiser: ExpressionInitialiser<SCHEMA, any>): CreateIndex<NAME, SCHEMA, true> {
+	public expression (initialiser: ExpressionInitialiser<SCHEMA, any>): CreateIndex<SCHEMA, true> {
 		this.columns.push(Expression.stringify(initialiser));
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;

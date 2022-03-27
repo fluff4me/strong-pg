@@ -127,7 +127,7 @@ export namespace DataType {
 	export const TSVECTOR = "TSVECTOR";
 }
 
-export type TypeString = TypeStringMap[DataTypeID];
+export type TypeString = TypeStringMap[DataTypeID] | "*";
 
 export type DataTypeFromString<STR extends TypeString> =
 	{ [DATATYPE in DataTypeID as STR extends TypeStringMap[DATATYPE] ? DATATYPE : never]: DATATYPE } extends infer DATATYPE_RESULT ?
@@ -172,7 +172,8 @@ export interface TypeMap {
 
 export type ValidType = string | boolean | number | symbol | Date | undefined | null;
 
-export type TypeFromString<STR extends TypeString> = TypeMap[DataTypeFromString<STR>];
+export const SYMBOL_COLUMNS = Symbol("COLUMNS");
+export type TypeFromString<STR extends TypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : TypeMap[DataTypeFromString<STR>];
 
 export namespace TypeString {
 	export function resolve (typeString: TypeString) {

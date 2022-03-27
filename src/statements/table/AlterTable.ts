@@ -3,10 +3,13 @@ import { Initialiser, SetKey, TypeFromString, TypeString } from "../../IStrongPG
 import Schema from "../../Schema";
 import Statement from "../Statement";
 
+export type AlterTableInitialiser<SCHEMA_START, SCHEMA_END> =
+	Initialiser<AlterTable<SCHEMA_START>, AlterTable<SCHEMA_START, SCHEMA_END>>;
+
 export default class AlterTable<SCHEMA_START = null, SCHEMA_END = SCHEMA_START extends null ? {} : SCHEMA_START> extends Statement.Super<Statement> {
 
-	private schemaStart!: SCHEMA_START;
-	private schemaEnd!: SCHEMA_END;
+	protected readonly schemaStart!: SCHEMA_START;
+	protected readonly schemaEnd!: SCHEMA_END;
 
 	public constructor (public readonly table: string) {
 		super();
