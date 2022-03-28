@@ -15,18 +15,18 @@ export default class AlterTable<SCHEMA_START = null, SCHEMA_END = SCHEMA_START e
 		super();
 	}
 
-	private do<SCHEMA_NEW> (...operations: Statement[]) {
+	private do<SCHEMA_NEW = SCHEMA_END> (...operations: Statement[]) {
 		return this.addParallelOperation<AlterTable<SCHEMA_START, SCHEMA_NEW>>(...operations);
 	}
 
-	private doStandalone<SCHEMA_NEW> (...operations: Statement[]) {
+	private doStandalone<SCHEMA_NEW = SCHEMA_END> (...operations: Statement[]) {
 		return this.addStandaloneOperation<AlterTable<SCHEMA_START, SCHEMA_NEW>>(...operations);
 	}
 
-	public addColumn<NAME extends string, TYPE extends TypeString> (name: NAME, type: TYPE, alter?: Initialiser<AlterColumn<TYPE>>) {
+	public addColumn<NAME extends string, TYPE extends TypeString> (name: NAME, type: TYPE, alter?: Initialiser<AlterColumn<NAME, TYPE>>) {
 		return this.do<SetKey<SCHEMA_END, NAME, TYPE>>(
 			AlterTableSubStatement.addColumn(name, type),
-			...alter ? [AlterTableSubStatement.alterColumn<TYPE>(name, alter)] : []);
+			...alter ? [AlterTableSubStatement.alterColumn<NAME, TYPE>(name, alter)] : []);
 	}
 
 	public dropColumn<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string> (name: NAME) {
@@ -49,6 +49,10 @@ export default class AlterTable<SCHEMA_START = null, SCHEMA_END = SCHEMA_START e
 			AlterTableSubStatement.dropPrimaryKey(this.table));
 	}
 
+	public check (id: string, value: ExpressionInitialiser<Schema.Columns<SCHEMA_END>, boolean>) {
+		return this.do(AlterTableSubStatement.addCheck(id, value));
+	}
+
 	public schema<SCHEMA_TEST extends SCHEMA_END> (): SCHEMA_END extends SCHEMA_TEST ? AlterTable<SCHEMA_START, SCHEMA_TEST> : null {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
@@ -64,8 +68,8 @@ class AlterTableSubStatement extends Statement {
 		return new AlterTableSubStatement(`ADD COLUMN ${column} ${TypeString.resolve(type)}`);
 	}
 
-	public static alterColumn<TYPE extends TypeString> (column: string, initialiser: Initialiser<AlterColumn<TYPE>>) {
-		const statement = new AlterColumn<TYPE>(column);
+	public static alterColumn<COLUMN extends string, TYPE extends TypeString> (column: COLUMN, initialiser: Initialiser<AlterColumn<COLUMN, TYPE>>) {
+		const statement = new AlterColumn<COLUMN, TYPE>(column);
 		initialiser(statement);
 		return statement;
 	}
@@ -86,6 +90,11 @@ class AlterTableSubStatement extends Statement {
 		return new AlterTableSubStatement(`DROP CONSTRAINT ${table}_pkey`);
 	}
 
+	public static addCheck (id: string, value: ExpressionInitialiser<any, boolean>) {
+		const stringifiedValue = Expression.stringify(value);
+		return new AlterTableSubStatement(`ADD CONSTRAINT ${id}_check CHECK (${stringifiedValue})`);
+	}
+
 	private constructor (private readonly compiled: string) {
 		super();
 	}
@@ -100,9 +109,9 @@ class AlterTableSubStatement extends Statement {
 // 	}
 // }
 
-export class AlterColumn<TYPE extends TypeString> extends Statement.Super<AlterColumnSubStatement> {
+export class AlterColumn<NAME extends string, TYPE extends TypeString> extends Statement.Super<AlterColumnSubStatement> {
 
-	public constructor (public name: string) {
+	public constructor (public name: NAME) {
 		super();
 	}
 

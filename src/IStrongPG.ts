@@ -174,7 +174,7 @@ export interface TypeMap {
 	[DataTypeID.JSON]: null;
 }
 
-export type ValidType = string | boolean | number | symbol | Date | undefined | null;
+export type ValidType = string | boolean | number | symbol | Date | RegExp | undefined | null;
 
 export const SYMBOL_COLUMNS = Symbol("COLUMNS");
 export type TypeFromString<STR extends TypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : TypeMap[DataTypeFromString<STR>];
