@@ -41,12 +41,12 @@ export default class AlterTable<SCHEMA_START = null, SCHEMA_END = SCHEMA_START e
 
 	public addPrimaryKey<KEYS extends Schema.PrimaryKeyOrNull<SCHEMA_END> extends null ? (keyof SCHEMA_END & string)[] : never[]> (...keys: KEYS) {
 		return this.do<Schema.PrimaryKeyed<SCHEMA_END, KEYS[number][]>>(
-			AlterTableSubStatement.addPrimaryKey(...keys));
+			AlterTableSubStatement.addPrimaryKey(this.table, ...keys));
 	}
 
 	public dropPrimaryKey () {
 		return this.do<Schema.DropPrimaryKey<SCHEMA_END>>(
-			AlterTableSubStatement.dropPrimaryKey());
+			AlterTableSubStatement.dropPrimaryKey(this.table));
 	}
 
 	public schema<SCHEMA_TEST extends SCHEMA_END> (): SCHEMA_END extends SCHEMA_TEST ? AlterTable<SCHEMA_START, SCHEMA_TEST> : null {
@@ -78,12 +78,12 @@ class AlterTableSubStatement extends Statement {
 		return new AlterTableSubStatement(`RENAME COLUMN ${column} TO ${newName}`);
 	}
 
-	public static addPrimaryKey (...keys: string[]) {
-		return new AlterTableSubStatement(`ADD CONSTRAINT table_pkey PRIMARY KEY (${keys.join(",")})`);
+	public static addPrimaryKey (table: string, ...keys: string[]) {
+		return new AlterTableSubStatement(`ADD CONSTRAINT ${table}_pkey PRIMARY KEY (${keys.join(",")})`);
 	}
 
-	public static dropPrimaryKey () {
-		return new AlterTableSubStatement("DROP CONSTRAINT table_pkey");
+	public static dropPrimaryKey (table: string) {
+		return new AlterTableSubStatement(`DROP CONSTRAINT ${table}_pkey`);
 	}
 
 	private constructor (private readonly compiled: string) {

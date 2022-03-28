@@ -32,6 +32,7 @@ export enum DataTypeID {
 
 	// special
 	TSVECTOR,
+	JSON,
 }
 
 export interface TypeStringMap {
@@ -67,6 +68,7 @@ export interface TypeStringMap {
 
 	// special
 	[DataTypeID.TSVECTOR]: "TSVECTOR",
+	[DataTypeID.JSON]: "JSON",
 }
 
 export namespace DataType {
@@ -121,10 +123,11 @@ export namespace DataType {
 	export type EnumName<ENUM_TYPE extends `ENUM(${string})`> = ENUM_TYPE extends `ENUM(${infer NAME})` ? NAME : never;
 
 	// other
-	export const BOOLEAN = "BOOLEAN";
+	export const BOOLEAN: TypeStringMap[DataTypeID.BOOLEAN] = "BOOLEAN";
 
 	// special
-	export const TSVECTOR = "TSVECTOR";
+	export const TSVECTOR: TypeStringMap[DataTypeID.TSVECTOR] = "TSVECTOR";
+	export const JSON: TypeStringMap[DataTypeID.JSON] = "JSON";
 }
 
 export type TypeString = TypeStringMap[DataTypeID] | "*";
@@ -168,6 +171,7 @@ export interface TypeMap {
 
 	// special
 	[DataTypeID.TSVECTOR]: null;
+	[DataTypeID.JSON]: null;
 }
 
 export type ValidType = string | boolean | number | symbol | Date | undefined | null;
