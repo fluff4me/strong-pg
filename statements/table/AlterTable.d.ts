@@ -10,17 +10,18 @@ export default class AlterTable<SCHEMA_START = null, SCHEMA_END = SCHEMA_START e
     constructor(table: string);
     private do;
     private doStandalone;
-    addColumn<NAME extends string, TYPE extends TypeString>(name: NAME, type: TYPE, alter?: Initialiser<AlterColumn<TYPE>>): AlterTable<SCHEMA_START, SetKey<SCHEMA_END, NAME, TYPE>>;
+    addColumn<NAME extends string, TYPE extends TypeString>(name: NAME, type: TYPE, alter?: Initialiser<AlterColumn<NAME, TYPE>>): AlterTable<SCHEMA_START, SetKey<SCHEMA_END, NAME, TYPE>>;
     dropColumn<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string>(name: NAME): AlterTable<SCHEMA_START, Omit<SCHEMA_END, NAME>>;
     renameColumn<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string, NAME_NEW extends string>(name: NAME, newName: NAME_NEW): AlterTable<SCHEMA_START, Omit<SCHEMA_END, NAME> & { [KEY in NAME_NEW]: SCHEMA_END[NAME]; }>;
     addPrimaryKey<KEYS extends Schema.PrimaryKeyOrNull<SCHEMA_END> extends null ? (keyof SCHEMA_END & string)[] : never[]>(...keys: KEYS): AlterTable<SCHEMA_START, Schema.PrimaryKeyed<SCHEMA_END, KEYS[number][]>>;
     dropPrimaryKey(): AlterTable<SCHEMA_START, Schema.DropPrimaryKey<SCHEMA_END>>;
+    check(id: string, value: ExpressionInitialiser<Schema.Columns<SCHEMA_END>, boolean>): AlterTable<SCHEMA_START, SCHEMA_END>;
     schema<SCHEMA_TEST extends SCHEMA_END>(): SCHEMA_END extends SCHEMA_TEST ? AlterTable<SCHEMA_START, SCHEMA_TEST> : null;
     protected compileOperation(operation: string): string;
 }
-export declare class AlterColumn<TYPE extends TypeString> extends Statement.Super<AlterColumnSubStatement> {
-    name: string;
-    constructor(name: string);
+export declare class AlterColumn<NAME extends string, TYPE extends TypeString> extends Statement.Super<AlterColumnSubStatement> {
+    name: NAME;
+    constructor(name: NAME);
     default(value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>): this;
     notNull(): this;
     protected compileOperation(operation: string): string;

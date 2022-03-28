@@ -102,7 +102,7 @@ export interface TypeMap {
     [DataTypeID.TSVECTOR]: null;
     [DataTypeID.JSON]: null;
 }
-export declare type ValidType = string | boolean | number | symbol | Date | undefined | null;
+export declare type ValidType = string | boolean | number | symbol | Date | RegExp | undefined | null;
 export declare const SYMBOL_COLUMNS: unique symbol;
 export declare type TypeFromString<STR extends TypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : TypeMap[DataTypeFromString<STR>];
 export declare namespace TypeString {

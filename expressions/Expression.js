@@ -20,6 +20,8 @@ class Expression {
             case "object":
                 if (value === null)
                     return "NULL";
+                else if (value instanceof RegExp)
+                    return `'${value.source.replace(/'/g, "''")}'`;
                 else
                     return value.toISOString();
             case "number":
@@ -43,6 +45,10 @@ class Expression {
         this.parts.push(() => " < ");
         return this.value(value);
     }
+    matches(value) {
+        this.parts.push(() => " ~ ");
+        return this.value(value);
+    }
     isNull() {
         this.parts.push(() => " IS NULL");
         return this;
@@ -51,7 +57,7 @@ class Expression {
         this.parts.push(() => " OR ");
         return this.value(value);
     }
-    eq(value) {
+    equals(value) {
         this.parts.push(() => " = ");
         return this.value(value);
     }

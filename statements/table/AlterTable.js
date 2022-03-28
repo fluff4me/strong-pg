@@ -33,6 +33,9 @@ class AlterTable extends Statement_1.default.Super {
     dropPrimaryKey() {
         return this.do(AlterTableSubStatement.dropPrimaryKey(this.table));
     }
+    check(id, value) {
+        return this.do(AlterTableSubStatement.addCheck(id, value));
+    }
     schema() {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
@@ -66,6 +69,10 @@ class AlterTableSubStatement extends Statement_1.default {
     }
     static dropPrimaryKey(table) {
         return new AlterTableSubStatement(`DROP CONSTRAINT ${table}_pkey`);
+    }
+    static addCheck(id, value) {
+        const stringifiedValue = Expression_1.default.stringify(value);
+        return new AlterTableSubStatement(`ADD CONSTRAINT ${id}_check CHECK (${stringifiedValue})`);
     }
     compile() {
         return this.compiled;
