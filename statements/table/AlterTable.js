@@ -28,10 +28,10 @@ class AlterTable extends Statement_1.default.Super {
         return this.doStandalone(AlterTableSubStatement.renameColumn(name, newName));
     }
     addPrimaryKey(...keys) {
-        return this.do(AlterTableSubStatement.addPrimaryKey(...keys));
+        return this.do(AlterTableSubStatement.addPrimaryKey(this.table, ...keys));
     }
     dropPrimaryKey() {
-        return this.do(AlterTableSubStatement.dropPrimaryKey());
+        return this.do(AlterTableSubStatement.dropPrimaryKey(this.table));
     }
     schema() {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -61,11 +61,11 @@ class AlterTableSubStatement extends Statement_1.default {
     static renameColumn(column, newName) {
         return new AlterTableSubStatement(`RENAME COLUMN ${column} TO ${newName}`);
     }
-    static addPrimaryKey(...keys) {
-        return new AlterTableSubStatement(`ADD CONSTRAINT table_pkey PRIMARY KEY (${keys.join(",")})`);
+    static addPrimaryKey(table, ...keys) {
+        return new AlterTableSubStatement(`ADD CONSTRAINT ${table}_pkey PRIMARY KEY (${keys.join(",")})`);
     }
-    static dropPrimaryKey() {
-        return new AlterTableSubStatement("DROP CONSTRAINT table_pkey");
+    static dropPrimaryKey(table) {
+        return new AlterTableSubStatement(`DROP CONSTRAINT ${table}_pkey`);
     }
     compile() {
         return this.compiled;

@@ -30,6 +30,7 @@ var DataTypeID;
     DataTypeID[DataTypeID["BOOLEAN"] = 19] = "BOOLEAN";
     // special
     DataTypeID[DataTypeID["TSVECTOR"] = 20] = "TSVECTOR";
+    DataTypeID[DataTypeID["JSON"] = 21] = "JSON";
 })(DataTypeID = exports.DataTypeID || (exports.DataTypeID = {}));
 var DataType;
 (function (DataType) {
@@ -88,6 +89,7 @@ var DataType;
     DataType.BOOLEAN = "BOOLEAN";
     // special
     DataType.TSVECTOR = "TSVECTOR";
+    DataType.JSON = "JSON";
 })(DataType = exports.DataType || (exports.DataType = {}));
 exports.SYMBOL_COLUMNS = Symbol("COLUMNS");
 var TypeString;

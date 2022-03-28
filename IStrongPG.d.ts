@@ -20,7 +20,8 @@ export declare enum DataTypeID {
     TEXT = 17,
     ENUM = 18,
     BOOLEAN = 19,
-    TSVECTOR = 20
+    TSVECTOR = 20,
+    JSON = 21
 }
 export interface TypeStringMap {
     [DataTypeID.SMALLINT]: "SMALLINT";
@@ -44,6 +45,7 @@ export interface TypeStringMap {
     [DataTypeID.ENUM]: `ENUM(${string})`;
     [DataTypeID.BOOLEAN]: "BOOLEAN";
     [DataTypeID.TSVECTOR]: "TSVECTOR";
+    [DataTypeID.JSON]: "JSON";
 }
 export declare namespace DataType {
     const SMALLINT: TypeStringMap[DataTypeID.SMALLINT];
@@ -67,8 +69,9 @@ export declare namespace DataType {
     function ENUM<NAME extends string>(name: NAME): Enum<NAME>;
     type Enum<NAME extends string> = `ENUM(${NAME})`;
     type EnumName<ENUM_TYPE extends `ENUM(${string})`> = ENUM_TYPE extends `ENUM(${infer NAME})` ? NAME : never;
-    const BOOLEAN = "BOOLEAN";
-    const TSVECTOR = "TSVECTOR";
+    const BOOLEAN: TypeStringMap[DataTypeID.BOOLEAN];
+    const TSVECTOR: TypeStringMap[DataTypeID.TSVECTOR];
+    const JSON: TypeStringMap[DataTypeID.JSON];
 }
 export declare type TypeString = TypeStringMap[DataTypeID] | "*";
 export declare type DataTypeFromString<STR extends TypeString> = {
@@ -97,6 +100,7 @@ export interface TypeMap {
     [DataTypeID.ENUM]: string;
     [DataTypeID.BOOLEAN]: boolean;
     [DataTypeID.TSVECTOR]: null;
+    [DataTypeID.JSON]: null;
 }
 export declare type ValidType = string | boolean | number | symbol | Date | undefined | null;
 export declare const SYMBOL_COLUMNS: unique symbol;
