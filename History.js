@@ -52,7 +52,7 @@ class History {
             let first = true;
             for (const transaction of transactions) {
                 if (!first)
-                    this.log(color("lightBlue", "Committed"));
+                    this.log(color("lightMagenta", "Committed"));
                 first = false;
                 const statements = transaction.compile();
                 if (!statements.length) {
