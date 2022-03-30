@@ -60,7 +60,7 @@ export class History<SCHEMA extends DatabaseSchema | null = null> {
 			let first = true;
 			for (const transaction of transactions) {
 				if (!first)
-					this.log(color("lightBlue", "Committed"));
+					this.log(color("lightMagenta", "Committed"));
 
 				first = false;
 
