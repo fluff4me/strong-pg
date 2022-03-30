@@ -18,10 +18,39 @@ const CreateTrigger_1 = __importDefault(require("./statements/trigger/CreateTrig
 const DropTrigger_1 = __importDefault(require("./statements/trigger/DropTrigger"));
 const RenameTrigger_1 = __importDefault(require("./statements/trigger/RenameTrigger"));
 const Transaction_1 = __importDefault(require("./Transaction"));
+function getCallerFile() {
+    const originalFunc = Error.prepareStackTrace;
+    let callerfile;
+    try {
+        Error.prepareStackTrace = function (err, stack) { return stack; };
+        const err = new Error();
+        const stack = err.stack;
+        const currentfile = stack.shift()?.getFileName();
+        while (stack.length) {
+            callerfile = stack.shift()?.getFileName();
+            if (currentfile !== callerfile)
+                break;
+        }
+        // eslint-disable-next-line no-empty
+    }
+    catch (e) { }
+    Error.prepareStackTrace = originalFunc;
+    // eslint-disable-next-line @typescript-eslint/no-var-requires 
+    let path;
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        path = require("path");
+        callerfile = callerfile && path?.relative(process.env.DEBUG_PG_ROOT_DIR || process.cwd(), callerfile);
+        // eslint-disable-next-line no-empty
+    }
+    catch { }
+    return callerfile;
+}
 class Migration extends Transaction_1.default {
     constructor(schemaStart) {
         super();
         this.commits = [];
+        this.file = getCallerFile();
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         this.schemaStart = schemaStart;
     }

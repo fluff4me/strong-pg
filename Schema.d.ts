@@ -1,4 +1,4 @@
-import { EnumToTuple, SetKey, TypeString } from "./IStrongPG";
+import { DataTypeID, EnumToTuple, SetKey, TypeString, TypeStringMap } from "./IStrongPG";
 interface SpecialKeys<SCHEMA> {
     PRIMARY_KEY?: keyof SCHEMA | (keyof SCHEMA)[];
 }
@@ -54,16 +54,21 @@ declare class Schema {
 }
 export default Schema;
 declare namespace Schema {
-    type PrimaryKey<SCHEMA> = SCHEMA extends SpecialKeys<any> ? SCHEMA["PRIMARY_KEY"] : never;
-    type PrimaryKeyOrNull<SCHEMA> = SCHEMA extends {
+    export type PrimaryKey<SCHEMA> = SCHEMA extends SpecialKeys<any> ? SCHEMA["PRIMARY_KEY"] : never;
+    export type PrimaryKeyOrNull<SCHEMA> = SCHEMA extends {
         PRIMARY_KEY: infer KEY;
     } ? KEY : null;
-    type PrimaryKeyed<SCHEMA, KEY extends keyof SCHEMA | (keyof SCHEMA)[]> = SCHEMA & {
+    export type PrimaryKeyed<SCHEMA, KEY extends keyof SCHEMA | (keyof SCHEMA)[]> = SCHEMA & {
         PRIMARY_KEY: KEY;
     };
-    type DropPrimaryKey<SCHEMA> = Omit<SCHEMA, "PRIMARY_KEY">;
-    type Column<SCHEMA> = keyof SCHEMA extends infer KEYS ? KEYS extends keyof SpecialKeys<any> ? never : keyof SCHEMA : never;
-    type Columns<SCHEMA> = {
+    export type DropPrimaryKey<SCHEMA> = Omit<SCHEMA, "PRIMARY_KEY">;
+    export type Column<SCHEMA> = keyof SCHEMA extends infer KEYS ? KEYS extends keyof SpecialKeys<any> ? never : keyof SCHEMA : never;
+    export type ColumnTyped<SCHEMA, TYPE> = keyof {
+        [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : SCHEMA[COLUMN] extends Vaguify<TYPE> ? COLUMN : never]: SCHEMA[COLUMN];
+    };
+    export type Columns<SCHEMA> = {
         [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN]: SCHEMA[COLUMN];
     };
+    type Vaguify<T> = T extends TypeStringMap[DataTypeID.BIGINT] ? TypeStringMap[DataTypeID.BIGINT] | TypeStringMap[DataTypeID.BIGSERIAL] : T;
+    export {};
 }

@@ -36,6 +36,10 @@ class AlterTable extends Statement_1.default.Super {
     check(id, value) {
         return this.do(AlterTableSubStatement.addCheck(id, value));
     }
+    foreignKey(column, foreignTable, foreignKey) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        return this.do(AlterTableSubStatement.addForeignKey(column, foreignTable, foreignKey));
+    }
     schema() {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
@@ -73,6 +77,9 @@ class AlterTableSubStatement extends Statement_1.default {
     static addCheck(id, value) {
         const stringifiedValue = Expression_1.default.stringify(value);
         return new AlterTableSubStatement(`ADD CONSTRAINT ${id}_check CHECK (${stringifiedValue})`);
+    }
+    static addForeignKey(column, foreignTable, foreignColumn) {
+        return new AlterTableSubStatement(`ADD CONSTRAINT ${column}_fk FOREIGN KEY (${column}) REFERENCES ${foreignTable} (${foreignColumn})`);
     }
     compile() {
         return this.compiled;
