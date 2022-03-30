@@ -15,12 +15,46 @@ import DropTrigger from "./statements/trigger/DropTrigger";
 import RenameTrigger from "./statements/trigger/RenameTrigger";
 import Transaction from "./Transaction";
 
+function getCallerFile () {
+	const originalFunc = Error.prepareStackTrace;
+
+	let callerfile;
+	try {
+		Error.prepareStackTrace = function (err, stack) { return stack; };
+
+		const err = new Error();
+		const stack = err.stack as any as NodeJS.CallSite[];
+		const currentfile = stack.shift()?.getFileName();
+
+		while (stack.length) {
+			callerfile = stack.shift()?.getFileName();
+			if (currentfile !== callerfile)
+				break;
+		}
+		// eslint-disable-next-line no-empty
+	} catch (e) { }
+
+	Error.prepareStackTrace = originalFunc;
+
+	// eslint-disable-next-line @typescript-eslint/no-var-requires 
+	let path: typeof import("path") | undefined;
+	try {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		path = require("path");
+		callerfile = callerfile && path?.relative(process.env.DEBUG_PG_ROOT_DIR || process.cwd(), callerfile);
+		// eslint-disable-next-line no-empty
+	} catch { }
+
+	return callerfile;
+}
+
 export default class Migration<SCHEMA_START extends DatabaseSchema | null = null, SCHEMA_END extends DatabaseSchema = SCHEMA_START extends null ? DatabaseSchema.Empty : SCHEMA_START> extends Transaction {
 
 	public readonly schemaStart?: SCHEMA_START;
 	public schemaEnd?: SCHEMA_END;
 
 	private commits: Transaction[] = [];
+	public readonly file = getCallerFile();
 
 	public constructor (schemaStart?: SCHEMA_START) {
 		super();
