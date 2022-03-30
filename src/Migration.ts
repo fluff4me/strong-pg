@@ -20,6 +20,8 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 	public readonly schemaStart?: SCHEMA_START;
 	public schemaEnd?: SCHEMA_END;
 
+	private commits: Transaction[] = [];
+
 	public constructor (schemaStart?: SCHEMA_START) {
 		super();
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -132,6 +134,24 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		this.add(new DropFunction(name));
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
+	}
+
+	public commit () {
+		if (!this.statements.length)
+			return this;
+
+		const transaction = new Transaction();
+		for (const statement of this.statements)
+			transaction.add(statement);
+
+		this.statements.splice(0, Infinity);
+		this.commits.push(transaction);
+		return this;
+	}
+
+	public getTransactions () {
+		this.commit();
+		return this.commits;
 	}
 
 	public schema<SCHEMA_TEST extends SCHEMA_END> (schema: SCHEMA_TEST): SCHEMA_END extends SCHEMA_TEST ? Migration<SCHEMA_START, SCHEMA_TEST> : "Migration does not match schema" {
