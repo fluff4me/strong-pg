@@ -7,6 +7,7 @@ export interface ExpressionOperations<VARS = never, CURRENT_VALUE = null> {
 	equals: ExpressionValue<VARS, CURRENT_VALUE, boolean>;
 	or: ExpressionValue<VARS, boolean, boolean>;
 	matches: CURRENT_VALUE extends string ? ExpressionValue<VARS, RegExp, boolean> : never;
+	as<TYPE extends TypeString> (type: TYPE): ExpressionOperations<VARS, TypeFromString<TYPE>>;
 }
 
 export interface ExpressionValue<VARS = never, EXPECTED_VALUE = null, RESULT = null> {
@@ -19,6 +20,8 @@ export interface ExpressionValues<VARS = never, VALUE = null, RESULT = null> {
 	var<VAR extends keyof VARS> (name: VAR): ExpressionOperations<VARS, TypeFromString<VARS[VAR] & TypeString>>;
 	lowercase: ExpressionValue<VARS, string, string>;
 	uppercase: ExpressionValue<VARS, string, string>;
+	nextValue (sequenceId: string): ExpressionOperations<VARS, number>;
+	currentValue (sequenceId: string): ExpressionOperations<VARS, number>;
 }
 
 export type ExpressionInitialiser<VARS, RESULT = any> = Initialiser<ExpressionValues<VARS, null, null>, ExpressionOperations<VARS, RESULT>>;
@@ -72,6 +75,10 @@ export default class Expression<VARS = never> implements ImplementableExpression
 		return this.parts.map(part => part()).join("");
 	}
 
+
+	////////////////////////////////////
+	// Operations
+
 	public greaterThan (value: ValidType | Initialiser<Expression>) {
 		this.parts.push(() => " > ");
 		return this.value(value);
@@ -102,6 +109,15 @@ export default class Expression<VARS = never> implements ImplementableExpression
 		return this.value(value);
 	}
 
+	public as (type: TypeString) {
+		this.parts.push(() => ` :: ${type}`);
+		return this;
+	}
+
+
+	////////////////////////////////////
+	// Values
+
 	public value (value: ValidType | Initialiser<Expression>, mapper?: (value: string) => string) {
 		this.parts.push(() => {
 			let result: string;
@@ -130,5 +146,15 @@ export default class Expression<VARS = never> implements ImplementableExpression
 
 	public uppercase (value: string | Initialiser<Expression>) {
 		return this.value(value, value => `upper(${value})`);
+	}
+
+	public nextValue (sequenceId: string) {
+		this.parts.push(() => `nextval('${sequenceId}')`);
+		return this;
+	}
+
+	public currentValue (sequenceId: string) {
+		this.parts.push(() => `currval('${sequenceId}')`);
+		return this;
 	}
 }
