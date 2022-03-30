@@ -1,4 +1,4 @@
-import { EnumToTuple, SetKey, TypeString } from "./IStrongPG";
+import { DataTypeID, EnumToTuple, SetKey, TypeString, TypeStringMap } from "./IStrongPG";
 
 interface SpecialKeys<SCHEMA> {
 	PRIMARY_KEY?: keyof SCHEMA | (keyof SCHEMA)[];
@@ -155,5 +155,10 @@ namespace Schema {
 	export type DropPrimaryKey<SCHEMA> = Omit<SCHEMA, "PRIMARY_KEY">;
 
 	export type Column<SCHEMA> = keyof SCHEMA extends infer KEYS ? KEYS extends keyof SpecialKeys<any> ? never : keyof SCHEMA : never;
+	export type ColumnTyped<SCHEMA, TYPE> =
+		keyof { [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : SCHEMA[COLUMN] extends Vaguify<TYPE> ? COLUMN : never]: SCHEMA[COLUMN] };
 	export type Columns<SCHEMA> = { [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN]: SCHEMA[COLUMN] };
+
+	type Vaguify<T> = T extends TypeStringMap[DataTypeID.BIGINT] ? TypeStringMap[DataTypeID.BIGINT] | TypeStringMap[DataTypeID.BIGSERIAL]
+		: T;
 }

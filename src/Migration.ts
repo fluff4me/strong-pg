@@ -30,7 +30,7 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 
 	public createTable<NAME extends string, TABLE_SCHEMA_NEW> (
 		table: NAME,
-		alter: NAME extends DatabaseSchema.TableName<SCHEMA_END> ? never : AlterTableInitialiser<null, TABLE_SCHEMA_NEW>,
+		alter: NAME extends DatabaseSchema.TableName<SCHEMA_END> ? never : AlterTableInitialiser<SCHEMA_END, null, TABLE_SCHEMA_NEW>,
 	): Migration<SCHEMA_START, DatabaseSchema.ReplaceTable<SCHEMA_END, NAME, TABLE_SCHEMA_NEW>> {
 		this.add(new CreateTable(table));
 		this.add(alter(new AlterTable(table)));
@@ -40,7 +40,7 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 
 	public alterTable<NAME extends DatabaseSchema.TableName<SCHEMA_END>, TABLE_SCHEMA_NEW> (
 		table: NAME,
-		alter: AlterTableInitialiser<DatabaseSchema.Table<SCHEMA_END, NAME>, TABLE_SCHEMA_NEW>,
+		alter: AlterTableInitialiser<SCHEMA_END, DatabaseSchema.Table<SCHEMA_END, NAME>, TABLE_SCHEMA_NEW>,
 	): Migration<SCHEMA_START, DatabaseSchema.ReplaceTable<SCHEMA_END, NAME, TABLE_SCHEMA_NEW>> {
 		this.add(alter(new AlterTable(table)));
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return

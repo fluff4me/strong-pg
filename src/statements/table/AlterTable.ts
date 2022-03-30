@@ -1,12 +1,12 @@
 import Expression, { ExpressionInitialiser } from "../../expressions/Expression";
 import { Initialiser, SetKey, TypeFromString, TypeString } from "../../IStrongPG";
-import Schema from "../../Schema";
+import Schema, { DatabaseSchema } from "../../Schema";
 import Statement from "../Statement";
 
-export type AlterTableInitialiser<SCHEMA_START, SCHEMA_END> =
-	Initialiser<AlterTable<SCHEMA_START>, AlterTable<SCHEMA_START, SCHEMA_END>>;
+export type AlterTableInitialiser<DB extends DatabaseSchema, SCHEMA_START, SCHEMA_END> =
+	Initialiser<AlterTable<DB, SCHEMA_START>, AlterTable<DB, SCHEMA_START, SCHEMA_END>>;
 
-export default class AlterTable<SCHEMA_START = null, SCHEMA_END = SCHEMA_START extends null ? {} : SCHEMA_START> extends Statement.Super<Statement> {
+export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, SCHEMA_END = SCHEMA_START extends null ? {} : SCHEMA_START> extends Statement.Super<Statement> {
 
 	protected readonly schemaStart!: SCHEMA_START;
 	protected readonly schemaEnd!: SCHEMA_END;
@@ -16,11 +16,11 @@ export default class AlterTable<SCHEMA_START = null, SCHEMA_END = SCHEMA_START e
 	}
 
 	private do<SCHEMA_NEW = SCHEMA_END> (...operations: Statement[]) {
-		return this.addParallelOperation<AlterTable<SCHEMA_START, SCHEMA_NEW>>(...operations);
+		return this.addParallelOperation<AlterTable<DB, SCHEMA_START, SCHEMA_NEW>>(...operations);
 	}
 
 	private doStandalone<SCHEMA_NEW = SCHEMA_END> (...operations: Statement[]) {
-		return this.addStandaloneOperation<AlterTable<SCHEMA_START, SCHEMA_NEW>>(...operations);
+		return this.addStandaloneOperation<AlterTable<DB, SCHEMA_START, SCHEMA_NEW>>(...operations);
 	}
 
 	public addColumn<NAME extends string, TYPE extends TypeString> (name: NAME, type: TYPE, alter?: Initialiser<AlterColumn<NAME, TYPE>>) {
@@ -53,7 +53,12 @@ export default class AlterTable<SCHEMA_START = null, SCHEMA_END = SCHEMA_START e
 		return this.do(AlterTableSubStatement.addCheck(id, value));
 	}
 
-	public schema<SCHEMA_TEST extends SCHEMA_END> (): SCHEMA_END extends SCHEMA_TEST ? AlterTable<SCHEMA_START, SCHEMA_TEST> : null {
+	public foreignKey<COLUMN extends Schema.Column<SCHEMA_END>, FOREIGN_TABLE extends DatabaseSchema.TableName<DB>, FOREIGN_KEY extends Schema.ColumnTyped<DatabaseSchema.Table<DB, FOREIGN_TABLE>, SCHEMA_END[COLUMN]>> (column: COLUMN, foreignTable: FOREIGN_TABLE, foreignKey: FOREIGN_KEY) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+		return this.do(AlterTableSubStatement.addForeignKey(column as string, foreignTable, foreignKey as any));
+	}
+
+	public schema<SCHEMA_TEST extends SCHEMA_END> (): SCHEMA_END extends SCHEMA_TEST ? AlterTable<DB, SCHEMA_START, SCHEMA_TEST> : null {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
@@ -93,6 +98,10 @@ class AlterTableSubStatement extends Statement {
 	public static addCheck (id: string, value: ExpressionInitialiser<any, boolean>) {
 		const stringifiedValue = Expression.stringify(value);
 		return new AlterTableSubStatement(`ADD CONSTRAINT ${id}_check CHECK (${stringifiedValue})`);
+	}
+
+	public static addForeignKey (column: string, foreignTable: string, foreignColumn: string) {
+		return new AlterTableSubStatement(`ADD CONSTRAINT ${column}_fk FOREIGN KEY (${column}) REFERENCES ${foreignTable} (${foreignColumn})`);
 	}
 
 	private constructor (private readonly compiled: string) {
