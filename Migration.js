@@ -21,6 +21,7 @@ const Transaction_1 = __importDefault(require("./Transaction"));
 class Migration extends Transaction_1.default {
     constructor(schemaStart) {
         super();
+        this.commits = [];
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         this.schemaStart = schemaStart;
     }
@@ -101,6 +102,20 @@ class Migration extends Transaction_1.default {
         this.add(new DropFunction_1.default(name));
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
+    }
+    commit() {
+        if (!this.statements.length)
+            return this;
+        const transaction = new Transaction_1.default();
+        for (const statement of this.statements)
+            transaction.add(statement);
+        this.statements.splice(0, Infinity);
+        this.commits.push(transaction);
+        return this;
+    }
+    getTransactions() {
+        this.commit();
+        return this.commits;
     }
     schema(schema) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

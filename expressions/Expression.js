@@ -37,6 +37,8 @@ class Expression {
     compile() {
         return this.parts.map(part => part()).join("");
     }
+    ////////////////////////////////////
+    // Operations
     greaterThan(value) {
         this.parts.push(() => " > ");
         return this.value(value);
@@ -61,6 +63,12 @@ class Expression {
         this.parts.push(() => " = ");
         return this.value(value);
     }
+    as(type) {
+        this.parts.push(() => ` :: ${type}`);
+        return this;
+    }
+    ////////////////////////////////////
+    // Values
     value(value, mapper) {
         this.parts.push(() => {
             let result;
@@ -85,6 +93,14 @@ class Expression {
     }
     uppercase(value) {
         return this.value(value, value => `upper(${value})`);
+    }
+    nextValue(sequenceId) {
+        this.parts.push(() => `nextval('${sequenceId}')`);
+        return this;
+    }
+    currentValue(sequenceId) {
+        this.parts.push(() => `currval('${sequenceId}')`);
+        return this;
     }
 }
 exports.default = Expression;
