@@ -10,6 +10,8 @@ export default class Database<SCHEMA extends DatabaseSchema> {
     setHistory(initialiser: (history: History) => History<SCHEMA>): this;
     /**
      * @deprecated WARNING: This drops and recreates your database!
+     *
+     * Does nothing if `DEBUG_PG_ALLOW_DROP` is not set in your env.
      */
-    drop(): Promise<import("pg").QueryResult<any>>;
+    drop(): Promise<import("pg").QueryResult<any> | undefined>;
 }
