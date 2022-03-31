@@ -40,62 +40,56 @@ export class History<SCHEMA extends DatabaseSchema | null = null> {
 	public async migrate (pool: Pool) {
 
 		await pool.query(`CREATE TABLE IF NOT EXISTS migrations (
-				id_start SMALLINT DEFAULT 0,
-				id_end SMALLINT,
+				migration_index_start SMALLINT DEFAULT 0,
+				migration_index_end SMALLINT,
 				migration_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 			)`);
 
-		const lastMigration = await pool.query("SELECT id_end FROM migrations ORDER BY id_end DESC LIMIT 1");
+		const lastMigration = await pool.query("SELECT migration_index_end FROM migrations ORDER BY migration_index_end DESC LIMIT 1");
 
-		let start = -1;
+		let startCommitIndex = -1;
 		if (lastMigration.rowCount)
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			start = lastMigration.rows[0].id_end as number;
+			startCommitIndex = lastMigration.rows[0].id_end as number;
 
-		const version = this.migrations.length - 1;
-		this.log(color("lightYellow", `Found migrations up to v${version + 1}`));
+		const commits = this.migrations.flatMap((migration, major) => migration.getCommits()
+			.map((commit, minor) => { commit.version = minor ? `${major + 1}.${minor}` : `${major + 1}`; return commit; }));
+
+		const targetCommitIndex = commits.length - 1;
+		const targetVersion = commits[commits.length - 1].version!;
+		this.log(color("lightYellow", `Found migrations up to v${targetVersion}`));
 
 		let migrated = false;
-		for (let i = start + 1; i < this.migrations.length; i++) {
-			const migration = this.migrations[i];
-			this.log(`Beginning migration ${i + 1} ${migration.file ? color("lightBlue", migration.file) : ""}`);
-
+		for (let i = startCommitIndex + 1; i < commits.length; i++) {
 			migrated = true;
 
-			const transactions = migration.getTransactions();
-			let first = true;
-			for (const transaction of transactions) {
-				if (!first)
-					this.log(color("lightMagenta", "Committed"));
+			const commit = commits[i];
+			this.log(`Beginning migration ${commit.version!} ${commit.file ? color("lightBlue", commit.file) : ""}`);
 
-				first = false;
-
-				const statements = transaction.compile();
-
-				if (!statements.length) {
-					this.log("Migration contains no statements");
-					continue;
-				}
-
-				await Transaction.execute(pool, async client => {
-					for (const statement of statements) {
-						this.log("  >", color("darkGray", statement));
-						await client.query(statement);
-					}
-				});
+			const statements = commit.compile();
+			if (!statements.length) {
+				this.log("Migration contains no statements");
+				continue;
 			}
+
+			await Transaction.execute(pool, async client => {
+				for (const statement of statements) {
+					this.log("  >", color("darkGray", statement));
+					await client.query(statement);
+				}
+			});
 		}
 
 		if (!migrated) {
-			this.log(color("lightGreen", `Already on v${version + 1}, no migrations necessary`));
-			return start;
+			this.log(color("lightGreen", `Already on v${targetVersion}, no migrations necessary`));
+			return startCommitIndex;
 		}
 
-		await pool.query("INSERT INTO migrations VALUES ($1, $2)", [start, version]);
+		await pool.query("INSERT INTO migrations VALUES ($1, $2)", [startCommitIndex, targetCommitIndex]);
 
-		this.log(color("lightGreen", `Migrated to v${version + 1}`));
+		this.log(color("lightGreen", `Migrated to v${targetVersion}`));
 
-		return version;
+		return targetCommitIndex;
 	}
 
 	private log (text: string): void;

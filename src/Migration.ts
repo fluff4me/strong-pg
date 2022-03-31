@@ -45,7 +45,7 @@ function getCallerFile () {
 		// eslint-disable-next-line no-empty
 	} catch { }
 
-	return callerfile;
+	return callerfile ?? undefined;
 }
 
 export default class Migration<SCHEMA_START extends DatabaseSchema | null = null, SCHEMA_END extends DatabaseSchema = SCHEMA_START extends null ? DatabaseSchema.Empty : SCHEMA_START> extends Transaction {
@@ -53,7 +53,7 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 	public readonly schemaStart?: SCHEMA_START;
 	public schemaEnd?: SCHEMA_END;
 
-	private commits: Transaction[] = [];
+	private commits: MigrationCommit[] = [];
 	public readonly file = getCallerFile();
 
 	public constructor (schemaStart?: SCHEMA_START) {
@@ -174,7 +174,7 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		if (!this.statements.length)
 			return this;
 
-		const transaction = new Transaction();
+		const transaction = new MigrationCommit(this.file, !!this.commits.length);
 		for (const statement of this.statements)
 			transaction.add(statement);
 
@@ -183,7 +183,7 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		return this;
 	}
 
-	public getTransactions () {
+	public getCommits () {
 		this.commit();
 		return this.commits;
 	}
@@ -193,5 +193,14 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		this.schemaEnd = schema as any;
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
+	}
+}
+
+export class MigrationCommit extends Transaction {
+
+	public version?: `${number}` | `${number}.${number}`;
+
+	public constructor (public readonly file: string | undefined, public readonly virtual: boolean) {
+		super();
 	}
 }
