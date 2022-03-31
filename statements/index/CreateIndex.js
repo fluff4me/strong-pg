@@ -28,7 +28,7 @@ class CreateIndex extends Statement_1.default {
         return this;
     }
     compile() {
-        return `CREATE${this.isUnique ? " UNIQUE" : ""} INDEX ${this.name} ON ${this.on} (${this.columns.join(", ")})`;
+        return this.queryable(`CREATE${this.isUnique ? " UNIQUE" : ""} INDEX ${this.name} ON ${this.on} (${this.columns.join(", ")})`);
     }
 }
 exports.default = CreateIndex;

@@ -36,7 +36,7 @@ class Transaction extends Statement_1.default {
         });
     }
     compile() {
-        return this.statements.flatMap(statement => statement.compile());
+        return this.queryable(this.statements.flatMap(statement => statement.compile()));
     }
 }
 exports.default = Transaction;

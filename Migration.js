@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MigrationCommit = void 0;
+const IStrongPG_1 = require("./IStrongPG");
 const AlterEnum_1 = __importDefault(require("./statements/enum/AlterEnum"));
 const CreateEnum_1 = __importDefault(require("./statements/enum/CreateEnum"));
 const DropEnum_1 = __importDefault(require("./statements/enum/DropEnum"));
@@ -19,65 +20,37 @@ const CreateTrigger_1 = __importDefault(require("./statements/trigger/CreateTrig
 const DropTrigger_1 = __importDefault(require("./statements/trigger/DropTrigger"));
 const RenameTrigger_1 = __importDefault(require("./statements/trigger/RenameTrigger"));
 const Transaction_1 = __importDefault(require("./Transaction"));
-function getCallerFile() {
-    const originalFunc = Error.prepareStackTrace;
-    let callerfile;
-    try {
-        Error.prepareStackTrace = function (err, stack) { return stack; };
-        const err = new Error();
-        const stack = err.stack;
-        const currentfile = stack.shift()?.getFileName();
-        while (stack.length) {
-            callerfile = stack.shift()?.getFileName();
-            if (currentfile !== callerfile)
-                break;
-        }
-        // eslint-disable-next-line no-empty
-    }
-    catch (e) { }
-    Error.prepareStackTrace = originalFunc;
-    // eslint-disable-next-line @typescript-eslint/no-var-requires 
-    let path;
-    try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        path = require("path");
-        callerfile = callerfile && path?.relative(process.env.DEBUG_PG_ROOT_DIR || process.cwd(), callerfile);
-        // eslint-disable-next-line no-empty
-    }
-    catch { }
-    return callerfile ?? undefined;
-}
 class Migration extends Transaction_1.default {
     constructor(schemaStart) {
         super();
         this.commits = [];
-        this.file = getCallerFile();
+        this.file = IStrongPG_1.StackUtil.getCallerFile();
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         this.schemaStart = schemaStart;
     }
     createTable(table, alter) {
-        this.add(new CreateTable_1.default(table));
-        this.add(alter(new AlterTable_1.default(table)));
+        this.add(new CreateTable_1.default(table).setCaller());
+        this.add(alter(new AlterTable_1.default(table)).setCaller());
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
     alterTable(table, alter) {
-        this.add(alter(new AlterTable_1.default(table)));
+        this.add(alter(new AlterTable_1.default(table)).setCaller());
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
     renameTable(table, newName) {
-        this.add(new RenameTable_1.default(table, newName));
+        this.add(new RenameTable_1.default(table, newName).setCaller());
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
     dropTable(table) {
-        this.add(new DropTable_1.default(table));
+        this.add(new DropTable_1.default(table).setCaller());
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
     createIndex(name, on, initialiser) {
-        const createIndex = new CreateIndex_1.default(name, on);
+        const createIndex = new CreateIndex_1.default(name, on).setCaller();
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         initialiser(createIndex);
         this.add(createIndex);
@@ -85,28 +58,28 @@ class Migration extends Transaction_1.default {
         return this;
     }
     dropIndex(name) {
-        this.add(new DropIndex_1.default(name));
+        this.add(new DropIndex_1.default(name).setCaller());
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
     createEnum(name, alter) {
-        this.add(new CreateEnum_1.default(name));
-        this.add(alter(new AlterEnum_1.default(name)));
+        this.add(new CreateEnum_1.default(name).setCaller());
+        this.add(alter(new AlterEnum_1.default(name)).setCaller());
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
     alterEnum(name, alter) {
-        this.add(alter(new AlterEnum_1.default(name)));
+        this.add(alter(new AlterEnum_1.default(name)).setCaller());
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
     dropEnum(name) {
-        this.add(new DropEnum_1.default(name));
+        this.add(new DropEnum_1.default(name).setCaller());
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
     createTrigger(on, name, initialiser) {
-        const createTrigger = new CreateTrigger_1.default(name, on);
+        const createTrigger = new CreateTrigger_1.default(name, on).setCaller();
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         initialiser(createTrigger);
         this.add(createTrigger);
@@ -114,22 +87,22 @@ class Migration extends Transaction_1.default {
         return this;
     }
     renameTrigger(on, name, newName) {
-        this.add(new RenameTrigger_1.default(on, name, newName));
+        this.add(new RenameTrigger_1.default(on, name, newName).setCaller());
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
     dropTrigger(on, name) {
-        this.add(new DropTrigger_1.default(on, name));
+        this.add(new DropTrigger_1.default(on, name).setCaller());
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
     createOrReplaceFunction(name, initialiser) {
-        this.add(initialiser(new CreateOrReplaceFunction_1.default(name)));
+        this.add(initialiser(new CreateOrReplaceFunction_1.default(name)).setCaller());
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
     dropFunction(name) {
-        this.add(new DropFunction_1.default(name));
+        this.add(new DropFunction_1.default(name).setCaller());
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }

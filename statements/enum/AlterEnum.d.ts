@@ -21,6 +21,6 @@ declare class AlterEnumSubStatement extends Statement {
     static addValueBefore(newValue: string, pivotValue: string): AlterEnumSubStatement;
     static addValueAfter(newValue: string, pivotValue: string): AlterEnumSubStatement;
     private constructor();
-    compile(): string;
+    compile(): Statement.Queryable[];
 }
 export {};

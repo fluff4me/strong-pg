@@ -32,5 +32,5 @@ export default class CreateTrigger<SCHEMA extends Record<string, any>, FUNCTIONS
     }>, boolean>): this;
     private fn;
     execute(functionName: keyof FUNCTIONS & string): CreateTrigger<SCHEMA, FUNCTIONS, HAS_EVENTS, true>;
-    compile(): string;
+    compile(): Statement.Queryable[];
 }

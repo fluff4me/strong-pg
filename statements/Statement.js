@@ -1,16 +1,42 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const IStrongPG_1 = require("../IStrongPG");
 class Statement {
+    setCaller(skip = 0) {
+        this.stack = IStrongPG_1.StackUtil.get(skip + 1);
+        return this;
+    }
+    queryable(queryables, stack = this.stack) {
+        if (!Array.isArray(queryables))
+            queryables = [queryables];
+        const result = [];
+        for (const queryable of queryables) {
+            if (typeof queryable === "string")
+                result.push(new Statement.Queryable(queryable, stack));
+            else {
+                queryable.stack ?? (queryable.stack = stack);
+                result.push(queryable);
+            }
+        }
+        return result;
+    }
 }
 exports.default = Statement;
 (function (Statement) {
+    class Queryable {
+        constructor(text, stack) {
+            this.text = text;
+            this.stack = stack;
+        }
+    }
+    Statement.Queryable = Queryable;
     class Basic extends Statement {
-        constructor(compiled) {
+        constructor(queryables) {
             super();
-            this.compiled = compiled;
+            this.queryables = queryables;
         }
         compile() {
-            return this.compiled;
+            return this.queryable(this.queryables);
         }
     }
     Statement.Basic = Basic;
@@ -33,10 +59,10 @@ exports.default = Statement;
             const parallelOperations = this.compileParallelOperations().join(",");
             if (parallelOperations)
                 operations.unshift(parallelOperations);
-            return operations.map(operation => this.compileOperation(operation));
+            return operations.flatMap(operation => this.queryable(this.compileOperation(typeof operation === "string" ? operation : operation.text), typeof operation === "string" ? undefined : operation.stack));
         }
         compileParallelOperations() {
-            return this.parallelOperations.flatMap(operation => operation.compile());
+            return this.parallelOperations.flatMap(operation => operation.compile()).map(operation => operation.text);
         }
         compileStandaloneOperations() {
             return this.standaloneOperations.flatMap(operation => operation.compile());

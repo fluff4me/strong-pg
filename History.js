@@ -40,15 +40,17 @@ class History {
         let startCommitIndex = -1;
         if (lastMigration.rowCount)
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            startCommitIndex = lastMigration.rows[0].id_end;
+            startCommitIndex = lastMigration.rows[0].migration_index_end;
         const commits = this.migrations.flatMap((migration, major) => migration.getCommits()
             .map((commit, minor) => { commit.version = minor ? `${major + 1}.${minor}` : `${major + 1}`; return commit; }));
-        const targetCommitIndex = commits.length - 1;
+        if (!commits.length)
+            return -1;
         const targetVersion = commits[commits.length - 1].version;
         this.log(color("lightYellow", `Found migrations up to v${targetVersion}`));
-        let migrated = false;
+        let migratedVersion;
+        let migratedCommitIndex;
+        let rolledBack = false;
         for (let i = startCommitIndex + 1; i < commits.length; i++) {
-            migrated = true;
             const commit = commits[i];
             this.log(`Beginning migration ${commit.version} ${commit.file ? color("lightBlue", commit.file) : ""}`);
             const statements = commit.compile();
@@ -56,20 +58,40 @@ class History {
                 this.log("Migration contains no statements");
                 continue;
             }
-            await Transaction_1.default.execute(pool, async (client) => {
-                for (const statement of statements) {
-                    this.log("  >", color("darkGray", statement));
-                    await client.query(statement);
-                }
-            });
+            let stack;
+            try {
+                await Transaction_1.default.execute(pool, async (client) => {
+                    for (const statement of statements) {
+                        this.log("  >", color("darkGray", statement.text));
+                        stack = statement.stack;
+                        await client.query(statement);
+                    }
+                });
+                migratedVersion = commit.version;
+                migratedCommitIndex = i;
+            }
+            catch (e) {
+                const err = e;
+                const formattedStack = stack?.format();
+                this.log([
+                    `${color("lightRed", `Encountered an error: ${err.message[0].toUpperCase()}${err.message.slice(1)}`)}`,
+                    err.hint ? `\n  ${err.hint}` : "",
+                    formattedStack ? `\n${formattedStack}` : "",
+                ].join(""));
+                rolledBack = true;
+                break;
+            }
         }
-        if (!migrated) {
-            this.log(color("lightGreen", `Already on v${targetVersion}, no migrations necessary`));
+        const commitIndex = migratedCommitIndex ?? startCommitIndex;
+        const version = commits[commitIndex].version;
+        if (migratedVersion === undefined && !rolledBack) {
+            this.log(color("lightGreen", `Already on v${version}, no migrations necessary`));
             return startCommitIndex;
         }
-        await pool.query("INSERT INTO migrations VALUES ($1, $2)", [startCommitIndex, targetCommitIndex]);
-        this.log(color("lightGreen", `Migrated to v${targetVersion}`));
-        return targetCommitIndex;
+        if (migratedVersion !== undefined)
+            await pool.query("INSERT INTO migrations VALUES ($1, $2)", [startCommitIndex, migratedCommitIndex]);
+        this.log(color(rolledBack ? "lightYellow" : "lightGreen", `${rolledBack ? "Rolled back" : "Migrated"} to v${version}`));
+        return commitIndex;
     }
     log(prefix, text) {
         if (!process.env.DEBUG_PG)

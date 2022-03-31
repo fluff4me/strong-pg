@@ -32,6 +32,6 @@ declare class AlterColumnSubStatement extends Statement {
     static setDefault<TYPE extends TypeString>(value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>): AlterColumnSubStatement;
     static setNotNull(): AlterColumnSubStatement;
     private constructor();
-    compile(): string;
+    compile(): Statement.Queryable[];
 }
 export {};

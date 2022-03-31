@@ -9,5 +9,5 @@ export default class CreateOrReplaceFunction<HAS_CODE extends boolean = false>/*
     constructor(name: string);
     sql(sql: string): CreateOrReplaceFunction<true>;
     plpgsql(plpgsql: string): CreateOrReplaceFunction<true>;
-    compile(): string | string[];
+    compile(): Statement.Queryable[];
 }

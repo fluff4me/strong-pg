@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Keyword = exports.TypeString = exports.SYMBOL_COLUMNS = exports.DataType = exports.DataTypeID = void 0;
+exports.StackUtil = exports.Keyword = exports.TypeString = exports.SYMBOL_COLUMNS = exports.DataType = exports.DataTypeID = void 0;
 var DataTypeID;
 (function (DataTypeID) {
     // numeric
@@ -105,3 +105,113 @@ var Keyword;
 (function (Keyword) {
     Keyword.CurrentTimestamp = Symbol("CURRENT_TIMESTAMP");
 })(Keyword = exports.Keyword || (exports.Keyword = {}));
+let ansicolor;
+function color(color, text) {
+    if (!ansicolor) {
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            ansicolor = require("ansicolor");
+            // eslint-disable-next-line no-empty
+        }
+        catch { }
+        if (!ansicolor)
+            return text;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    return ansicolor[color](text);
+}
+var StackUtil;
+(function (StackUtil) {
+    function get(skip = 0) {
+        skip += 2;
+        const originalFunc = Error.prepareStackTrace;
+        // capture stack trace
+        Error.prepareStackTrace = function (err, stack) { return stack; };
+        const err = new Error();
+        const stack = err.stack;
+        Error.prepareStackTrace = originalFunc;
+        stack.baseFormat = new Error().stack;
+        const lines = stack.baseFormat.split("\n");
+        for (let i = 1; i < lines.length; i++)
+            stack[i - 1].baseFormat = lines[i].trimStart();
+        let currentSite = stack.shift();
+        while (stack.length) {
+            const callerSite = stack.shift();
+            if (currentSite?.getFileName() !== callerSite?.getFileName()) {
+                skip--;
+                currentSite = callerSite;
+                if (skip <= 0) {
+                    if (callerSite)
+                        stack.unshift(callerSite);
+                    break;
+                }
+            }
+        }
+        for (const callSite of stack) {
+            callSite.getAbsoluteFileName = callSite.getFileName;
+            Object.defineProperty(callSite, "getFileName", {
+                value() {
+                    const basenameRegex = /(?<=\()[^)]+(?=:\d+:\d+\))/;
+                    const originalFile = callSite.baseFormat.match(basenameRegex)?.[0];
+                    let callerFile = originalFile ?? callSite.getAbsoluteFileName() ?? undefined;
+                    if (callerFile?.startsWith("internal/"))
+                        return callerFile;
+                    // eslint-disable-next-line @typescript-eslint/no-var-requires 
+                    let path;
+                    try {
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                        path = require("path");
+                        callerFile = callerFile && path?.relative(process.env.DEBUG_PG_ROOT_DIR || process.cwd(), callerFile);
+                        // eslint-disable-next-line no-empty
+                    }
+                    catch { }
+                    return callerFile ?? null;
+                },
+            });
+            const originalGetLineNumber = callSite.getLineNumber;
+            Object.defineProperty(callSite, "getLineNumber", {
+                value() {
+                    const lineNumberRegex = /(?<=[(\\/][^\\/)]+:)\d+(?=[):])/;
+                    const baseLineNumber = callSite.baseFormat.match(lineNumberRegex)?.[0];
+                    const result = +(baseLineNumber ?? originalGetLineNumber.call(callSite) ?? -1);
+                    return result === -1 ? undefined : result;
+                },
+            });
+            const originalGetColumnNumber = callSite.getColumnNumber;
+            Object.defineProperty(callSite, "getColumnNumber", {
+                value() {
+                    const columnNumberRegex = /(?<=[(\\/][^\\/)]+:\d+:)\d+(?=\))/;
+                    const baseColumnNumber = callSite.baseFormat.match(columnNumberRegex)?.[0];
+                    const result = +(baseColumnNumber ?? originalGetColumnNumber.call(callSite) ?? -1);
+                    return result === -1 ? undefined : result;
+                },
+            });
+            callSite.format = () => {
+                const typeName = callSite.getTypeName();
+                const methodName = callSite.getMethodName();
+                const functionName = callSite.getFunctionName();
+                const callName = methodName ?? functionName ?? "<anonymous>";
+                let qualifiedCallName = typeName && (methodName || !functionName) ? `${typeName}.${callName}` : callName;
+                if (typeName && functionName && methodName && methodName !== functionName && !functionName.startsWith(typeName))
+                    qualifiedCallName = `${typeName}.${functionName}${functionName.endsWith(methodName) ? "" : color("darkGray", ` [as ${color("lightGray", methodName)}]`)}`;
+                const asyncModifier = callSite.isAsync() ? "async " : "";
+                const constructorModifier = callSite.isConstructor() ? "new " : "";
+                const evalModifier = callSite.isEval() ? color("lightRed", "eval ") : "";
+                const fileName = callSite.getFileName();
+                const lineNumber = callSite.getLineNumber();
+                const columnNumber = callSite.getColumnNumber();
+                const location = color("lightBlue", fileName ? `${fileName}:${lineNumber}:${columnNumber}` : "<anonymous>");
+                return `${evalModifier}${color("darkGray", "at")} ${asyncModifier}${constructorModifier}${qualifiedCallName} ${color("darkGray", `(${location})`)}`;
+            };
+        }
+        stack.format = (indent = "    ") => stack
+            .map(callSite => `${indent}${callSite.format()}`)
+            .join("\n");
+        return stack;
+    }
+    StackUtil.get = get;
+    function getCallerFile(skip) {
+        return get(skip)?.[0].getFileName() ?? undefined;
+    }
+    StackUtil.getCallerFile = getCallerFile;
+})(StackUtil = exports.StackUtil || (exports.StackUtil = {}));

@@ -12,5 +12,5 @@ export default class CreateIndex<SCHEMA extends Record<string, any>, COLUMNS ext
     unique(): this;
     column<COLUMN extends keyof SCHEMA & string>(column: COLUMN): CreateIndex<SCHEMA, true>;
     expression(initialiser: ExpressionInitialiser<SCHEMA, any>): CreateIndex<SCHEMA, true>;
-    compile(): string;
+    compile(): Statement.Queryable[];
 }

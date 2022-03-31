@@ -28,7 +28,7 @@ class CreateOrReplaceFunction/*<IN extends [TypeString, string?][], INOUT extend
         return this;
     }
     compile() {
-        return `CREATE OR REPLACE FUNCTION ${this.name}() RETURNS trigger AS $$ BEGIN ${this.code} END $$ LANGUAGE ${this.lang}`;
+        return this.queryable(`CREATE OR REPLACE FUNCTION ${this.name}() RETURNS trigger AS $$ BEGIN ${this.code} END $$ LANGUAGE ${this.lang}`);
     }
 }
 exports.default = CreateOrReplaceFunction;

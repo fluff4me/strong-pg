@@ -47,6 +47,6 @@ class AlterEnumSubStatement extends Statement_1.default {
         return new AlterEnumSubStatement(`ADD VALUE ${newValue} AFTER ${pivotValue}`);
     }
     compile() {
-        return this.compiled;
+        return this.queryable(this.compiled);
     }
 }

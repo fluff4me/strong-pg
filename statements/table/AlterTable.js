@@ -82,7 +82,7 @@ class AlterTableSubStatement extends Statement_1.default {
         return new AlterTableSubStatement(`ADD CONSTRAINT ${column}_fk FOREIGN KEY (${column}) REFERENCES ${foreignTable} (${foreignColumn})`);
     }
     compile() {
-        return this.compiled;
+        return this.queryable(this.compiled);
     }
 }
 // export class ColumnReference<TYPE extends TypeString> {
@@ -123,6 +123,6 @@ class AlterColumnSubStatement extends Statement_1.default {
         return new AlterColumnSubStatement("SET NOT NULL");
     }
     compile() {
-        return this.compiled;
+        return this.queryable(this.compiled);
     }
 }

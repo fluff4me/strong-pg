@@ -29,9 +29,10 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
     getCommits(): MigrationCommit[];
     schema<SCHEMA_TEST extends SCHEMA_END>(schema: SCHEMA_TEST): SCHEMA_END extends SCHEMA_TEST ? Migration<SCHEMA_START, SCHEMA_TEST> : "Migration does not match schema";
 }
+export declare type MigrationVersion = `${number}` | `${number}.${number}`;
 export declare class MigrationCommit extends Transaction {
     readonly file: string | undefined;
     readonly virtual: boolean;
-    version?: `${number}` | `${number}.${number}`;
+    version?: MigrationVersion;
     constructor(file: string | undefined, virtual: boolean);
 }

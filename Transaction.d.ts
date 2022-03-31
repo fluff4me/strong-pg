@@ -5,5 +5,5 @@ export default class Transaction extends Statement {
     protected readonly statements: Statement[];
     add(statement: Statement): this;
     execute(pool: Pool): Promise<void>;
-    compile(): string[];
+    compile(): Statement.Queryable[];
 }

@@ -1,3 +1,4 @@
+/// <reference types="node" />
 export declare type Type = DataTypeID;
 export declare enum DataTypeID {
     SMALLINT = 0,
@@ -121,4 +122,18 @@ export declare type EnumToTuple<ENUM, LENGTH extends 1[] = []> = Key<ENUM, LENGT
 export declare type Value<T> = T[keyof T];
 export declare namespace Keyword {
     const CurrentTimestamp: unique symbol;
+}
+export declare namespace StackUtil {
+    interface CallSite extends NodeJS.CallSite {
+        baseFormat: string;
+        format(): string;
+        isAsync(): boolean;
+        getAbsoluteFileName(): string | null;
+    }
+    interface Stack extends Array<CallSite> {
+        baseFormat: string;
+        format(indent?: string): string;
+    }
+    function get(skip?: number): Stack;
+    function getCallerFile(skip?: number): string | undefined;
 }
