@@ -9,7 +9,7 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
     readonly schemaStart?: SCHEMA_START;
     schemaEnd?: SCHEMA_END;
     private commits;
-    readonly file: string | null | undefined;
+    readonly file: string | undefined;
     constructor(schemaStart?: SCHEMA_START);
     createTable<NAME extends string, TABLE_SCHEMA_NEW>(table: NAME, alter: NAME extends DatabaseSchema.TableName<SCHEMA_END> ? never : AlterTableInitialiser<SCHEMA_END, null, TABLE_SCHEMA_NEW>): Migration<SCHEMA_START, DatabaseSchema.ReplaceTable<SCHEMA_END, NAME, TABLE_SCHEMA_NEW>>;
     alterTable<NAME extends DatabaseSchema.TableName<SCHEMA_END>, TABLE_SCHEMA_NEW>(table: NAME, alter: AlterTableInitialiser<SCHEMA_END, DatabaseSchema.Table<SCHEMA_END, NAME>, TABLE_SCHEMA_NEW>): Migration<SCHEMA_START, DatabaseSchema.ReplaceTable<SCHEMA_END, NAME, TABLE_SCHEMA_NEW>>;
@@ -26,6 +26,12 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
     createOrReplaceFunction<NAME extends string>(name: NAME, initialiser: CreateOrReplaceFunctionInitialiser): Migration<SCHEMA_START, DatabaseSchema.CreateFunction<SCHEMA_END, NAME, (...args: any[]) => any>>;
     dropFunction<NAME extends DatabaseSchema.FunctionName<SCHEMA_END>>(name: NAME): Migration<SCHEMA_START, DatabaseSchema.DropFunction<SCHEMA_END, NAME> & DatabaseSchema>;
     commit(): this;
-    getTransactions(): Transaction[];
+    getCommits(): MigrationCommit[];
     schema<SCHEMA_TEST extends SCHEMA_END>(schema: SCHEMA_TEST): SCHEMA_END extends SCHEMA_TEST ? Migration<SCHEMA_START, SCHEMA_TEST> : "Migration does not match schema";
+}
+export declare class MigrationCommit extends Transaction {
+    readonly file: string | undefined;
+    readonly virtual: boolean;
+    version?: `${number}` | `${number}.${number}`;
+    constructor(file: string | undefined, virtual: boolean);
 }

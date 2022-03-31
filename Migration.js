@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.MigrationCommit = void 0;
 const AlterEnum_1 = __importDefault(require("./statements/enum/AlterEnum"));
 const CreateEnum_1 = __importDefault(require("./statements/enum/CreateEnum"));
 const DropEnum_1 = __importDefault(require("./statements/enum/DropEnum"));
@@ -44,7 +45,7 @@ function getCallerFile() {
         // eslint-disable-next-line no-empty
     }
     catch { }
-    return callerfile;
+    return callerfile ?? undefined;
 }
 class Migration extends Transaction_1.default {
     constructor(schemaStart) {
@@ -135,14 +136,14 @@ class Migration extends Transaction_1.default {
     commit() {
         if (!this.statements.length)
             return this;
-        const transaction = new Transaction_1.default();
+        const transaction = new MigrationCommit(this.file, !!this.commits.length);
         for (const statement of this.statements)
             transaction.add(statement);
         this.statements.splice(0, Infinity);
         this.commits.push(transaction);
         return this;
     }
-    getTransactions() {
+    getCommits() {
         this.commit();
         return this.commits;
     }
@@ -154,3 +155,11 @@ class Migration extends Transaction_1.default {
     }
 }
 exports.default = Migration;
+class MigrationCommit extends Transaction_1.default {
+    constructor(file, virtual) {
+        super();
+        this.file = file;
+        this.virtual = virtual;
+    }
+}
+exports.MigrationCommit = MigrationCommit;
