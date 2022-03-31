@@ -33,6 +33,6 @@ export default class CreateIndex<SCHEMA extends Record<string, any>, COLUMNS ext
 	}
 
 	public compile () {
-		return `CREATE${this.isUnique ? " UNIQUE" : ""} INDEX ${this.name} ON ${this.on} (${this.columns.join(", ")})`;
+		return this.queryable(`CREATE${this.isUnique ? " UNIQUE" : ""} INDEX ${this.name} ON ${this.on} (${this.columns.join(", ")})`);
 	}
 }

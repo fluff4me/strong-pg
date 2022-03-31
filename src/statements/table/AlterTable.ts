@@ -109,7 +109,7 @@ class AlterTableSubStatement extends Statement {
 	}
 
 	public compile () {
-		return this.compiled;
+		return this.queryable(this.compiled);
 	}
 }
 
@@ -159,6 +159,6 @@ class AlterColumnSubStatement extends Statement {
 	}
 
 	public compile () {
-		return this.compiled;
+		return this.queryable(this.compiled);
 	}
 }

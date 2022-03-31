@@ -38,7 +38,7 @@ export default class CreateOrReplaceFunction<HAS_CODE extends boolean = false>/*
 		return this as any;
 	}
 
-	public compile (): string | string[] {
-		return `CREATE OR REPLACE FUNCTION ${this.name}() RETURNS trigger AS $$ BEGIN ${this.code} END $$ LANGUAGE ${this.lang}`
+	public compile () {
+		return this.queryable(`CREATE OR REPLACE FUNCTION ${this.name}() RETURNS trigger AS $$ BEGIN ${this.code} END $$ LANGUAGE ${this.lang}`);
 	}
 }

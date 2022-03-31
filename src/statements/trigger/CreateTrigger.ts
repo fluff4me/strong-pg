@@ -88,6 +88,6 @@ export default class CreateTrigger<SCHEMA extends Record<string, any>, FUNCTIONS
 	}
 
 	public compile () {
-		return `CREATE TRIGGER ${this.id} ${this.events} ON ${this.on} FOR EACH ROW ${this.condition ?? ""} EXECUTE FUNCTION ${this.fn}()`;
+		return this.queryable(`CREATE TRIGGER ${this.id} ${this.events} ON ${this.on} FOR EACH ROW ${this.condition ?? ""} EXECUTE FUNCTION ${this.fn}()`);
 	}
 }

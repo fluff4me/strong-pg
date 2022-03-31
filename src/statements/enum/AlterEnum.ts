@@ -69,7 +69,7 @@ class AlterEnumSubStatement extends Statement {
 	}
 
 	public compile () {
-		return this.compiled;
+		return this.queryable(this.compiled);
 	}
 }
 

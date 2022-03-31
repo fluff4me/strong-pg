@@ -1,19 +1,49 @@
+import { StackUtil } from "../IStrongPG";
 
 abstract class Statement {
-	public abstract compile (): string | string[];
+
+	public stack?: StackUtil.Stack;
+	public setCaller (skip = 0) {
+		this.stack = StackUtil.get(skip + 1);
+		return this;
+	}
+
+	public abstract compile (): Statement.Queryable[];
+
+	protected queryable (queryables: string | Statement.Queryable | (string | Statement.Queryable)[], stack = this.stack) {
+		if (!Array.isArray(queryables))
+			queryables = [queryables as string];
+
+		const result: Statement.Queryable[] = [];
+
+		for (const queryable of queryables) {
+			if (typeof queryable === "string")
+				result.push(new Statement.Queryable(queryable, stack));
+			else {
+				queryable.stack ??= stack;
+				result.push(queryable);
+			}
+		}
+
+		return result;
+	}
 }
 
 export default Statement;
 
 namespace Statement {
 
+	export class Queryable {
+		public constructor (public readonly text: string, public stack?: StackUtil.Stack) { }
+	}
+
 	export class Basic extends Statement {
-		public constructor (private readonly compiled: string | string[]) {
+		public constructor (private readonly queryables: string | string[] | Queryable | Queryable[]) {
 			super();
 		}
 
 		public compile () {
-			return this.compiled;
+			return this.queryable(this.queryables);
 		}
 	}
 
@@ -32,18 +62,20 @@ namespace Statement {
 		}
 
 		public compile () {
-			const operations = this.compileStandaloneOperations();
+			const operations: (string | Queryable)[] = this.compileStandaloneOperations();
 			const parallelOperations = this.compileParallelOperations().join(",");
 			if (parallelOperations)
 				operations.unshift(parallelOperations);
-			return operations.map(operation => this.compileOperation(operation));
+			return operations.flatMap(operation => this.queryable(this.compileOperation(
+				typeof operation === "string" ? operation : operation.text),
+				typeof operation === "string" ? undefined : operation.stack));
 		}
 
 		protected compileParallelOperations (): string[] {
-			return this.parallelOperations.flatMap(operation => operation.compile());
+			return this.parallelOperations.flatMap(operation => operation.compile()).map(operation => operation.text);
 		}
 
-		protected compileStandaloneOperations (): string[] {
+		protected compileStandaloneOperations () {
 			return this.standaloneOperations.flatMap(operation => operation.compile());
 		}
 

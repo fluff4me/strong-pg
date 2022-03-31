@@ -33,6 +33,6 @@ export default class Transaction extends Statement {
 	}
 
 	public override compile () {
-		return this.statements.flatMap(statement => statement.compile());
+		return this.queryable(this.statements.flatMap(statement => statement.compile()));
 	}
 }
