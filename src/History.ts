@@ -23,8 +23,14 @@ function color (color: keyof typeof import("ansicolor"), text: string) {
 export class History<SCHEMA extends DatabaseSchema | null = null> {
 
 	private migrations: Migration<DatabaseSchema | null, DatabaseSchema>[] = [];
+	protected readonly schema!: SCHEMA;
 
-	public migration<SCHEMA_END extends DatabaseSchema> (migration: Migration<SCHEMA, SCHEMA_END>): History<SCHEMA_END> {
+	public migration<MIGRATION extends Migration<any, any>> (migration: MIGRATION):
+		MIGRATION extends Migration<infer SCHEMA_START, infer SCHEMA_END> ?
+		SCHEMA_START extends SCHEMA ? SCHEMA extends SCHEMA_START ?
+		History<SCHEMA_END>
+		: null : null
+		: null {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		this.migrations.push(migration as any);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
