@@ -106,6 +106,10 @@ type ValidateDatabaseSchemaEnumTableColumns<SCHEMA extends DatabaseSchema> =
 
 	: never : never : never;
 
+export interface SchemaEnum<ENUM> {
+	VALUES: ENUM;
+}
+
 class Schema {
 
 	public static database<SCHEMA extends DatabaseSchema | null> (schema: SCHEMA): SCHEMA extends null ? null : ValidateDatabaseSchema<Extract<SCHEMA, DatabaseSchema>> {
@@ -114,16 +118,20 @@ class Schema {
 	}
 
 	public static enum<ENUM extends object> (enm: ENUM) {
-		const result = [];
+		const schema = {
+			VALUES: [],
+		} as SchemaEnum<EnumToTuple<ENUM>> & { [KEY in keyof ENUM as ENUM[KEY] extends number ? KEY : never]: KEY };
 		for (let i = 0; ; i++) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 			const value = (enm as any)[i];
-			if (typeof value === "string")
-				result.push(value);
-			else
+			if (typeof value !== "string")
 				break;
+
+			(schema.VALUES as string[]).push(value);
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			(schema as any)[value] = value;
 		}
-		return result as EnumToTuple<ENUM>;
+		return schema;
 	}
 
 	public static table<SCHEMA> (schema: SCHEMA): ValidateTableSchema<SCHEMA> {
