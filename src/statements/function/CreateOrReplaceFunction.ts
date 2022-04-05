@@ -31,14 +31,21 @@ export default class CreateOrReplaceFunction<HAS_CODE extends boolean = false>/*
 		return this as any;
 	}
 
-	public plpgsql (plpgsql: string): CreateOrReplaceFunction<true> {
-		this.code = plpgsql;
+	public plpgsql (plpgsql: string): CreateOrReplaceFunction<true>;
+	public plpgsql (declarations: Record<string, string>, plpgsql: string): CreateOrReplaceFunction<true>;
+	public plpgsql (declarations: Record<string, string> | string, plpgsql?: string): CreateOrReplaceFunction<true> {
+		if (typeof declarations === "string")
+			plpgsql = declarations, declarations = {};
+
+		const declare = Object.entries(declarations).map(([name, type]) => `${name} ${type}`).join(";")
+
+		this.code = `${declare ? `DECLARE ${declare}; ` : ""}BEGIN ${plpgsql!} END`;
 		this.lang = "plpgsql";
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
 
 	public compile () {
-		return this.queryable(`CREATE OR REPLACE FUNCTION ${this.name}() RETURNS trigger AS $$ BEGIN ${this.code} END $$ LANGUAGE ${this.lang}`);
+		return this.queryable(`CREATE OR REPLACE FUNCTION ${this.name}() RETURNS trigger AS $$ ${this.code} $$ LANGUAGE ${this.lang}`);
 	}
 }
