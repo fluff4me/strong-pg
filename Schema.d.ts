@@ -43,9 +43,12 @@ declare type ValidateDatabaseSchemaEnumTableColumns<SCHEMA extends DatabaseSchem
 } ? Extract<ENUM_TABLE_COLUMNS, `ENUM(${string})`> extends infer ENUMS ? [
     ENUMS
 ] extends [never] ? SCHEMA : Extract<ENUM_TABLE_COLUMNS, `ENUM(${string})`> extends `ENUM(${infer ENUM})` ? ENUM extends keyof SCHEMA["enums"] ? SCHEMA : `Enum ${ENUM} does not exist in the database` : never : never : never;
+export interface SchemaEnum<ENUM> {
+    VALUES: ENUM;
+}
 declare class Schema {
     static database<SCHEMA extends DatabaseSchema | null>(schema: SCHEMA): SCHEMA extends null ? null : ValidateDatabaseSchema<Extract<SCHEMA, DatabaseSchema>>;
-    static enum<ENUM extends object>(enm: ENUM): EnumToTuple<ENUM, []>;
+    static enum<ENUM extends object>(enm: ENUM): SchemaEnum<EnumToTuple<ENUM, []>> & { [KEY in keyof ENUM as ENUM[KEY] extends number ? KEY : never]: KEY; };
     static table<SCHEMA>(schema: SCHEMA): ValidateTableSchema<SCHEMA>;
     static readonly INDEX: {};
     static readonly TRIGGER: {};

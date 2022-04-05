@@ -6,16 +6,19 @@ class Schema {
         return schema;
     }
     static enum(enm) {
-        const result = [];
+        const schema = {
+            VALUES: [],
+        };
         for (let i = 0;; i++) {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
             const value = enm[i];
-            if (typeof value === "string")
-                result.push(value);
-            else
+            if (typeof value !== "string")
                 break;
+            schema.VALUES.push(value);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            schema[value] = value;
         }
-        return result;
+        return schema;
     }
     static table(schema) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return

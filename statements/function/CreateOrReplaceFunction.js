@@ -21,14 +21,17 @@ class CreateOrReplaceFunction/*<IN extends [TypeString, string?][], INOUT extend
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
-    plpgsql(plpgsql) {
-        this.code = plpgsql;
+    plpgsql(declarations, plpgsql) {
+        if (typeof declarations === "string")
+            plpgsql = declarations, declarations = {};
+        const declare = Object.entries(declarations).map(([name, type]) => `${name} ${type}`).join(";");
+        this.code = `${declare ? `DECLARE ${declare}; ` : ""}BEGIN ${plpgsql} END`;
         this.lang = "plpgsql";
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
     compile() {
-        return this.queryable(`CREATE OR REPLACE FUNCTION ${this.name}() RETURNS trigger AS $$ BEGIN ${this.code} END $$ LANGUAGE ${this.lang}`);
+        return this.queryable(`CREATE OR REPLACE FUNCTION ${this.name}() RETURNS trigger AS $$ ${this.code} $$ LANGUAGE ${this.lang}`);
     }
 }
 exports.default = CreateOrReplaceFunction;
