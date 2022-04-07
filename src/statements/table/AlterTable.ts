@@ -23,10 +23,8 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
 		return this.addStandaloneOperation<AlterTable<DB, SCHEMA_START, SCHEMA_NEW>>(...operations);
 	}
 
-	public addColumn<NAME extends string, TYPE extends TypeString> (name: NAME, type: TYPE, alter?: Initialiser<AlterColumn<NAME, TYPE>>) {
-		return this.do<SetKey<SCHEMA_END, NAME, TYPE>>(
-			AlterTableSubStatement.addColumn(name, type),
-			...alter ? [AlterTableSubStatement.alterColumn<NAME, TYPE>(name, alter)] : []);
+	public addColumn<NAME extends string, TYPE extends TypeString> (name: NAME, type: TYPE, initialiser?: Initialiser<CreateColumn<DB, TYPE>>) {
+		return this.do<SetKey<SCHEMA_END, NAME, TYPE>>(AlterTableSubStatement.addColumn(name, type, initialiser));
 	}
 
 	public dropColumn<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string> (name: NAME) {
@@ -58,6 +56,11 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
 		return this.do(AlterTableSubStatement.addForeignKey(column as string, foreignTable, foreignKey as any));
 	}
 
+	public unique (name: string, index: DatabaseSchema.IndexName<DB>) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+		return this.do(AlterTableSubStatement.addUnique(name, index));
+	}
+
 	public schema<SCHEMA_TEST extends SCHEMA_END> (): SCHEMA_END extends SCHEMA_TEST ? AlterTable<DB, SCHEMA_START, SCHEMA_TEST> : null {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
@@ -69,8 +72,11 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
 }
 
 class AlterTableSubStatement extends Statement {
-	public static addColumn (column: string, type: TypeString) {
-		return new AlterTableSubStatement(`ADD COLUMN ${column} ${TypeString.resolve(type)}`);
+	public static addColumn<NAME extends string, TYPE extends TypeString> (column: NAME, type: TYPE, initialiser?: Initialiser<CreateColumn<any, TYPE>>) {
+		const createColumn = new CreateColumn<any, TYPE>();
+		initialiser?.(createColumn);
+		const columnStuffs = !initialiser ? "" : ` ${createColumn.compile().map(query => query.text).join(" ")}`;
+		return new AlterTableSubStatement(`ADD COLUMN ${column} ${TypeString.resolve(type)}${columnStuffs}`);
 	}
 
 	public static alterColumn<COLUMN extends string, TYPE extends TypeString> (column: COLUMN, initialiser: Initialiser<AlterColumn<COLUMN, TYPE>>) {
@@ -104,6 +110,10 @@ class AlterTableSubStatement extends Statement {
 		return new AlterTableSubStatement(`ADD CONSTRAINT ${column}_fk FOREIGN KEY (${column}) REFERENCES ${foreignTable} (${foreignColumn})`);
 	}
 
+	public static addUnique (name: string, index: string) {
+		return new AlterTableSubStatement(`ADD CONSTRAINT ${name} UNIQUE USING INDEX ${index}`);
+	}
+
 	private constructor (private readonly compiled: string) {
 		super();
 	}
@@ -117,6 +127,48 @@ class AlterTableSubStatement extends Statement {
 // 	public constructor (public readonly table: string, public readonly column: string) {
 // 	}
 // }
+
+export class CreateColumn<DB extends DatabaseSchema, TYPE extends TypeString> extends Statement.Super<CreateColumnSubStatement> {
+	public default (value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>) {
+		return this.addStandaloneOperation(CreateColumnSubStatement.setDefault(value));
+	}
+
+	public notNull () {
+		return this.addStandaloneOperation(CreateColumnSubStatement.setNotNull());
+	}
+
+	public collate (collation: DatabaseSchema.CollationName<DB>) {
+		// put it first
+		return this.standaloneOperations.unshift(CreateColumnSubStatement.setCollation(collation));
+	}
+
+	protected compileOperation (operation: string) {
+		return operation;
+	}
+}
+
+class CreateColumnSubStatement extends Statement {
+	public static setDefault<TYPE extends TypeString> (value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>) {
+		const stringifiedValue = typeof value === "function" ? Expression.stringify(value) : Expression.stringifyValue(value);
+		return new CreateColumnSubStatement(`DEFAULT (${stringifiedValue})`);
+	}
+
+	public static setNotNull () {
+		return new CreateColumnSubStatement("NOT NULL");
+	}
+
+	public static setCollation (collation: string) {
+		return new CreateColumnSubStatement(`COLLATE ${collation}`);
+	}
+
+	private constructor (private readonly compiled: string) {
+		super();
+	}
+
+	public compile () {
+		return this.queryable(this.compiled);
+	}
+}
 
 export class AlterColumn<NAME extends string, TYPE extends TypeString> extends Statement.Super<AlterColumnSubStatement> {
 

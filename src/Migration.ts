@@ -1,5 +1,7 @@
 import { StackUtil } from "./IStrongPG";
 import { DatabaseSchema } from "./Schema";
+import CreateCollation from "./statements/collation/CreateCollation";
+import DropCollation from "./statements/collation/DropCollation";
 import AlterEnum, { AlterEnumInitialiser } from "./statements/enum/AlterEnum";
 import CreateEnum from "./statements/enum/CreateEnum";
 import DropEnum from "./statements/enum/DropEnum";
@@ -134,6 +136,18 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 
 	public dropFunction<NAME extends DatabaseSchema.FunctionName<SCHEMA_END>> (name: NAME): Migration<SCHEMA_START, DatabaseSchema.DropFunction<SCHEMA_END, NAME> & DatabaseSchema> {
 		this.add(new DropFunction(name).setCaller());
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+		return this as any;
+	}
+
+	public createCollation<NAME extends string> (name: NAME, provider: "icu" | "libc", locale: string, deterministic: boolean): Migration<SCHEMA_START, DatabaseSchema.CreateCollation<SCHEMA_END, NAME>> {
+		this.add(new CreateCollation(name, provider, locale, deterministic).setCaller());
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+		return this as any;
+	}
+
+	public dropCollation<NAME extends DatabaseSchema.CollationName<SCHEMA_END>> (name: NAME): Migration<SCHEMA_START, DatabaseSchema.DropCollation<SCHEMA_END, NAME> & DatabaseSchema> {
+		this.add(new DropCollation(name).setCaller());
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}

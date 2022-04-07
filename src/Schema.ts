@@ -14,6 +14,7 @@ export interface DatabaseSchema {
 	enums?: Record<string, string[]>;
 	triggers?: Record<string, {}>;
 	functions?: Record<string, (...args: any[]) => any>;
+	collations?: Record<string, {}>;
 }
 
 export namespace DatabaseSchema {
@@ -26,6 +27,7 @@ export namespace DatabaseSchema {
 	export type EnumName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["enums"] & string;
 	export type TriggerName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["triggers"] & string;
 	export type FunctionName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["functions"] & string;
+	export type CollationName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["collations"] & string;
 
 	export type Table<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> =
 		SCHEMA["tables"][NAME];
@@ -62,6 +64,12 @@ export namespace DatabaseSchema {
 
 	export type DropFunction<SCHEMA extends DatabaseSchema, NAME extends FunctionName<SCHEMA>> =
 		SetKey<SCHEMA, "functions", Omit<SCHEMA["functions"], NAME>>;
+
+	export type CreateCollation<SCHEMA extends DatabaseSchema, NAME extends string> =
+		SetKey<SCHEMA, "collations", SetKey<SCHEMA["collations"], NAME, {}>>;
+
+	export type DropCollation<SCHEMA extends DatabaseSchema, NAME extends CollationName<SCHEMA>> =
+		SetKey<SCHEMA, "collations", Omit<SCHEMA["collations"], NAME>>;
 }
 
 // this is a type function that validates the schema it receives
@@ -142,6 +150,7 @@ class Schema {
 	public static readonly INDEX = {};
 	public static readonly TRIGGER = {};
 	public static readonly FUNCTION: (...args: any[]) => any = () => undefined;
+	public static readonly COLLATION = {};
 
 	public static primaryKey<KEYS extends string[]> (...keys: KEYS): KEYS[number][] {
 		return keys;
