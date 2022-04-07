@@ -31,4 +31,5 @@ class Schema {
 Schema.INDEX = {};
 Schema.TRIGGER = {};
 Schema.FUNCTION = () => undefined;
+Schema.COLLATION = {};
 exports.default = Schema;

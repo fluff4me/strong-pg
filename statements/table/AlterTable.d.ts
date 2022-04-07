@@ -10,15 +10,30 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
     constructor(table: string);
     private do;
     private doStandalone;
-    addColumn<NAME extends string, TYPE extends TypeString>(name: NAME, type: TYPE, alter?: Initialiser<AlterColumn<NAME, TYPE>>): AlterTable<DB, SCHEMA_START, SetKey<SCHEMA_END, NAME, TYPE>>;
+    addColumn<NAME extends string, TYPE extends TypeString>(name: NAME, type: TYPE, initialiser?: Initialiser<CreateColumn<DB, TYPE>>): AlterTable<DB, SCHEMA_START, SetKey<SCHEMA_END, NAME, TYPE>>;
     dropColumn<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string>(name: NAME): AlterTable<DB, SCHEMA_START, Omit<SCHEMA_END, NAME>>;
     renameColumn<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string, NAME_NEW extends string>(name: NAME, newName: NAME_NEW): AlterTable<DB, SCHEMA_START, Omit<SCHEMA_END, NAME> & { [KEY in NAME_NEW]: SCHEMA_END[NAME]; }>;
     addPrimaryKey<KEYS extends Schema.PrimaryKeyOrNull<SCHEMA_END> extends null ? (keyof SCHEMA_END & string)[] : never[]>(...keys: KEYS): AlterTable<DB, SCHEMA_START, Schema.PrimaryKeyed<SCHEMA_END, KEYS[number][]>>;
     dropPrimaryKey(): AlterTable<DB, SCHEMA_START, Schema.DropPrimaryKey<SCHEMA_END>>;
     check(id: string, value: ExpressionInitialiser<Schema.Columns<SCHEMA_END>, boolean>): AlterTable<DB, SCHEMA_START, SCHEMA_END>;
     foreignKey<COLUMN extends Schema.Column<SCHEMA_END>, FOREIGN_TABLE extends DatabaseSchema.TableName<DB>, FOREIGN_KEY extends Schema.ColumnTyped<DatabaseSchema.Table<DB, FOREIGN_TABLE>, SCHEMA_END[COLUMN]>>(column: COLUMN, foreignTable: FOREIGN_TABLE, foreignKey: FOREIGN_KEY): AlterTable<DB, SCHEMA_START, SCHEMA_END>;
+    unique(name: string, index: DatabaseSchema.IndexName<DB>): AlterTable<DB, SCHEMA_START, SCHEMA_END>;
     schema<SCHEMA_TEST extends SCHEMA_END>(): SCHEMA_END extends SCHEMA_TEST ? AlterTable<DB, SCHEMA_START, SCHEMA_TEST> : null;
     protected compileOperation(operation: string): string;
+}
+export declare class CreateColumn<DB extends DatabaseSchema, TYPE extends TypeString> extends Statement.Super<CreateColumnSubStatement> {
+    default(value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>): this;
+    notNull(): this;
+    collate(collation: DatabaseSchema.CollationName<DB>): number;
+    protected compileOperation(operation: string): string;
+}
+declare class CreateColumnSubStatement extends Statement {
+    private readonly compiled;
+    static setDefault<TYPE extends TypeString>(value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>): CreateColumnSubStatement;
+    static setNotNull(): CreateColumnSubStatement;
+    static setCollation(collation: string): CreateColumnSubStatement;
+    private constructor();
+    compile(): Statement.Queryable[];
 }
 export declare class AlterColumn<NAME extends string, TYPE extends TypeString> extends Statement.Super<AlterColumnSubStatement> {
     name: NAME;

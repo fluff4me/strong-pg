@@ -5,6 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MigrationCommit = void 0;
 const IStrongPG_1 = require("./IStrongPG");
+const CreateCollation_1 = __importDefault(require("./statements/collation/CreateCollation"));
+const DropCollation_1 = __importDefault(require("./statements/collation/DropCollation"));
 const AlterEnum_1 = __importDefault(require("./statements/enum/AlterEnum"));
 const CreateEnum_1 = __importDefault(require("./statements/enum/CreateEnum"));
 const DropEnum_1 = __importDefault(require("./statements/enum/DropEnum"));
@@ -103,6 +105,16 @@ class Migration extends Transaction_1.default {
     }
     dropFunction(name) {
         this.add(new DropFunction_1.default(name).setCaller());
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return this;
+    }
+    createCollation(name, provider, locale, deterministic) {
+        this.add(new CreateCollation_1.default(name, provider, locale, deterministic).setCaller());
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return this;
+    }
+    dropCollation(name) {
+        this.add(new DropCollation_1.default(name).setCaller());
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
