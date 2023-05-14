@@ -1,9 +1,9 @@
 import { spawn } from "child_process";
-import fs from "mz/fs";
+import fs from "fs/promises";
 import Task from "./utilities/Task";
 
 export default Task("meta", async () => {
-	await fs.mkdir("build");
+	await fs.mkdir("build", { recursive: true });
 
 	const packageJson = JSON.parse(await fs.readFile("package.json", "utf8")) as Partial<typeof import("../package.json")>;
 	delete packageJson.private;

@@ -269,7 +269,7 @@ export namespace StackUtil {
 		}
 
 		for (const callSite of stack) {
-			callSite.getAbsoluteFileName = callSite.getFileName;
+			callSite.getAbsoluteFileName = callSite.getFileName as () => string | null;
 
 			Object.defineProperty(callSite, "getFileName", {
 				value () {

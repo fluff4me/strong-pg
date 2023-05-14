@@ -42,7 +42,7 @@ export namespace DatabaseSchema {
 		SetKey<SCHEMA, "indices", SetKey<SCHEMA["indices"], NAME, {}>>;
 
 	export type DropIndex<SCHEMA extends DatabaseSchema, NAME extends IndexName<SCHEMA>> =
-		SetKey<SCHEMA, "indices", Omit<SCHEMA["indices"], NAME>>;
+		SetKey<SCHEMA, "indices", Omit<SCHEMA["indices"], NAME>> & DatabaseSchema;
 
 	export type Enum<SCHEMA extends DatabaseSchema, NAME extends EnumName<SCHEMA>> =
 		SCHEMA["enums"][NAME] & string[];
