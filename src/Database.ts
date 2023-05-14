@@ -20,11 +20,9 @@ export default class Database<SCHEMA extends DatabaseSchema> {
 	}
 
 	/**
-	 * @deprecated WARNING: This drops and recreates your database!
-	 * 
-	 * Does nothing if `DEBUG_PG_ALLOW_DROP` is not set in your env.
+	 * Drops the database if the environment variable `DEBUG_PG_ALLOW_DROP` is set
 	 */
-	public async drop () {
+	public async dropIfShould () {
 		if (!process.env.DEBUG_PG_ALLOW_DROP)
 			return;
 
