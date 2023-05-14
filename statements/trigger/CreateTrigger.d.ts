@@ -11,12 +11,12 @@ export declare class TriggerEvents<SCHEMA extends Record<string, any>, VALID ext
     get delete(): TriggerEvents<SCHEMA, true>;
     compile(): string;
 }
-export declare type NewAndOldColumns<SCHEMA extends Record<string, any>> = {
+export type NewAndOldColumns<SCHEMA extends Record<string, any>> = {
     [KEY in keyof SCHEMA as `OLD.${KEY & string}`]: SCHEMA[KEY];
 } & {
     [KEY in keyof SCHEMA as `NEW.${KEY & string}`]: SCHEMA[KEY];
 };
-export declare type CreateTriggerInitialiser<SCHEMA extends Record<string, any>, FUNCTIONS extends Record<string, any>> = Initialiser<CreateTrigger<SCHEMA, FUNCTIONS>, CreateTrigger<SCHEMA, FUNCTIONS, true, true>>;
+export type CreateTriggerInitialiser<SCHEMA extends Record<string, any>, FUNCTIONS extends Record<string, any>> = Initialiser<CreateTrigger<SCHEMA, FUNCTIONS>, CreateTrigger<SCHEMA, FUNCTIONS, true, true>>;
 export default class CreateTrigger<SCHEMA extends Record<string, any>, FUNCTIONS extends Record<string, any>, HAS_EVENTS extends boolean = false, HAS_PROCEDURE extends boolean = false> extends Statement {
     private readonly id;
     private readonly on;

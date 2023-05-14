@@ -1,9 +1,9 @@
 import { Initialiser } from "../../IStrongPG";
 import Statement from "../Statement";
-declare type Rename<ENUM extends string[], OLD extends ENUM[number], NEW extends string> = ENUM extends [] ? [] : ENUM extends [infer HEAD, ...infer TAIL] ? HEAD extends OLD ? TAIL : [HEAD, ...Rename<TAIL & string[], OLD, NEW>] : ENUM;
-declare type AddValueBefore<ENUM extends string[], PIVOT extends ENUM[number], NEW extends string> = ENUM extends [] ? [] : ENUM extends [infer HEAD, ...infer TAIL] ? HEAD extends PIVOT ? [NEW, PIVOT, ...TAIL] : [HEAD, ...AddValueBefore<TAIL & string[], PIVOT, NEW>] : ENUM;
-declare type AddValueAfter<ENUM extends string[], PIVOT extends ENUM[number], NEW extends string> = ENUM extends [] ? [] : ENUM extends [infer HEAD, ...infer TAIL] ? HEAD extends PIVOT ? [PIVOT, NEW, ...TAIL] : [HEAD, ...AddValueAfter<TAIL & string[], PIVOT, NEW>] : ENUM;
-export declare type AlterEnumInitialiser<VALUES_START extends string[], VALUES_END extends string[]> = Initialiser<AlterEnum<VALUES_START>, AlterEnum<VALUES_END>>;
+type Rename<ENUM extends string[], OLD extends ENUM[number], NEW extends string> = ENUM extends [] ? [] : ENUM extends [infer HEAD, ...infer TAIL] ? HEAD extends OLD ? TAIL : [HEAD, ...Rename<TAIL & string[], OLD, NEW>] : ENUM;
+type AddValueBefore<ENUM extends string[], PIVOT extends ENUM[number], NEW extends string> = ENUM extends [] ? [] : ENUM extends [infer HEAD, ...infer TAIL] ? HEAD extends PIVOT ? [NEW, PIVOT, ...TAIL] : [HEAD, ...AddValueBefore<TAIL & string[], PIVOT, NEW>] : ENUM;
+type AddValueAfter<ENUM extends string[], PIVOT extends ENUM[number], NEW extends string> = ENUM extends [] ? [] : ENUM extends [infer HEAD, ...infer TAIL] ? HEAD extends PIVOT ? [PIVOT, NEW, ...TAIL] : [HEAD, ...AddValueAfter<TAIL & string[], PIVOT, NEW>] : ENUM;
+export type AlterEnumInitialiser<VALUES_START extends string[], VALUES_END extends string[]> = Initialiser<AlterEnum<VALUES_START>, AlterEnum<VALUES_END>>;
 export default class AlterEnum<VALUES extends string[]> extends Statement.Super<AlterEnumSubStatement> {
     readonly name: string;
     constructor(name: string);

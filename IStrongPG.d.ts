@@ -1,5 +1,5 @@
 /// <reference types="node" />
-export declare type Type = DataTypeID;
+export type Type = DataTypeID;
 export declare enum DataTypeID {
     SMALLINT = 0,
     INTEGER = 1,
@@ -74,11 +74,11 @@ export declare namespace DataType {
     const TSVECTOR: TypeStringMap[DataTypeID.TSVECTOR];
     const JSON: TypeStringMap[DataTypeID.JSON];
 }
-export declare type TypeString = TypeStringMap[DataTypeID] | "*";
-export declare type DataTypeFromString<STR extends TypeString> = {
+export type TypeString = TypeStringMap[DataTypeID] | "*";
+export type DataTypeFromString<STR extends TypeString> = {
     [DATATYPE in DataTypeID as STR extends TypeStringMap[DATATYPE] ? DATATYPE : never]: DATATYPE;
 } extends infer DATATYPE_RESULT ? DATATYPE_RESULT[keyof DATATYPE_RESULT] & DataTypeID : never;
-export declare type ValidDate = Date | number | typeof Keyword.CurrentTimestamp;
+export type ValidDate = Date | number | typeof Keyword.CurrentTimestamp;
 export interface TypeMap {
     [DataTypeID.SMALLINT]: number;
     [DataTypeID.INTEGER]: number;
@@ -103,23 +103,23 @@ export interface TypeMap {
     [DataTypeID.TSVECTOR]: null;
     [DataTypeID.JSON]: null;
 }
-export declare type ValidType = string | boolean | number | symbol | Date | RegExp | undefined | null;
+export type ValidType = string | boolean | number | symbol | Date | RegExp | undefined | null;
 export declare const SYMBOL_COLUMNS: unique symbol;
-export declare type TypeFromString<STR extends TypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : TypeMap[DataTypeFromString<STR>];
+export type TypeFromString<STR extends TypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : TypeMap[DataTypeFromString<STR>];
 export declare namespace TypeString {
     function resolve(typeString: TypeString): string;
 }
-export declare type Initialiser<T, R = any> = (value: T) => R;
-export declare type SetKey<OBJECT, KEY extends string, VALUE> = Omit<OBJECT, KEY> & {
+export type Initialiser<T, R = any> = (value: T) => R;
+export type SetKey<OBJECT, KEY extends string, VALUE> = Omit<OBJECT, KEY> & {
     [key in KEY]: VALUE;
 };
-export declare type Key<OBJ, VALUE> = keyof {
+export type Key<OBJ, VALUE> = keyof {
     [KEY in keyof OBJ as OBJ[KEY] extends VALUE ? KEY : never]: VALUE;
 };
-export declare type EnumToTuple<ENUM, LENGTH extends 1[] = []> = Key<ENUM, LENGTH["length"]> extends infer KEY ? [
+export type EnumToTuple<ENUM, LENGTH extends 1[] = []> = Key<ENUM, LENGTH["length"]> extends infer KEY ? [
     KEY
 ] extends [never] ? [] : [KEY, ...EnumToTuple<ENUM, [...LENGTH, 1]>] : [];
-export declare type Value<T> = T[keyof T];
+export type Value<T> = T[keyof T];
 export declare namespace Keyword {
     const CurrentTimestamp: unique symbol;
 }

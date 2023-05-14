@@ -1,9 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class Expression {
-    constructor() {
-        this.parts = [];
-    }
     /**
      * Warning: Do not use outside of migrations
      */
@@ -33,6 +30,9 @@ class Expression {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         initialiser(expr);
         return expr.compile();
+    }
+    constructor() {
+        this.parts = [];
     }
     compile() {
         return this.parts.map(part => part()).join("");

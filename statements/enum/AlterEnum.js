@@ -30,10 +30,6 @@ class AlterEnum extends Statement_1.default.Super {
 }
 exports.default = AlterEnum;
 class AlterEnumSubStatement extends Statement_1.default {
-    constructor(compiled) {
-        super();
-        this.compiled = compiled;
-    }
     static addValues(...values) {
         return values.map(value => new AlterEnumSubStatement(`ADD VALUE '${value}'`));
     }
@@ -45,6 +41,10 @@ class AlterEnumSubStatement extends Statement_1.default {
     }
     static addValueAfter(newValue, pivotValue) {
         return new AlterEnumSubStatement(`ADD VALUE ${newValue} AFTER ${pivotValue}`);
+    }
+    constructor(compiled) {
+        super();
+        this.compiled = compiled;
     }
     compile() {
         return this.queryable(this.compiled);

@@ -2,7 +2,7 @@ import { ExpressionInitialiser } from "../../expressions/Expression";
 import { Initialiser, SetKey, TypeFromString, TypeString } from "../../IStrongPG";
 import Schema, { DatabaseSchema } from "../../Schema";
 import Statement from "../Statement";
-export declare type AlterTableInitialiser<DB extends DatabaseSchema, SCHEMA_START, SCHEMA_END> = Initialiser<AlterTable<DB, SCHEMA_START>, AlterTable<DB, SCHEMA_START, SCHEMA_END>>;
+export type AlterTableInitialiser<DB extends DatabaseSchema, SCHEMA_START, SCHEMA_END> = Initialiser<AlterTable<DB, SCHEMA_START>, AlterTable<DB, SCHEMA_START, SCHEMA_END>>;
 export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, SCHEMA_END = SCHEMA_START extends null ? {} : SCHEMA_START> extends Statement.Super<Statement> {
     readonly table: string;
     protected readonly schemaStart: SCHEMA_START;

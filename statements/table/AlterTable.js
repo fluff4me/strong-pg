@@ -54,10 +54,6 @@ class AlterTable extends Statement_1.default.Super {
 }
 exports.default = AlterTable;
 class AlterTableSubStatement extends Statement_1.default {
-    constructor(compiled) {
-        super();
-        this.compiled = compiled;
-    }
     static addColumn(column, type, initialiser) {
         const createColumn = new CreateColumn();
         initialiser?.(createColumn);
@@ -91,6 +87,10 @@ class AlterTableSubStatement extends Statement_1.default {
     static addUnique(name, index) {
         return new AlterTableSubStatement(`ADD CONSTRAINT ${name} UNIQUE USING INDEX ${index}`);
     }
+    constructor(compiled) {
+        super();
+        this.compiled = compiled;
+    }
     compile() {
         return this.queryable(this.compiled);
     }
@@ -116,10 +116,6 @@ class CreateColumn extends Statement_1.default.Super {
 }
 exports.CreateColumn = CreateColumn;
 class CreateColumnSubStatement extends Statement_1.default {
-    constructor(compiled) {
-        super();
-        this.compiled = compiled;
-    }
     static setDefault(value) {
         const stringifiedValue = typeof value === "function" ? Expression_1.default.stringify(value) : Expression_1.default.stringifyValue(value);
         return new CreateColumnSubStatement(`DEFAULT (${stringifiedValue})`);
@@ -129,6 +125,10 @@ class CreateColumnSubStatement extends Statement_1.default {
     }
     static setCollation(collation) {
         return new CreateColumnSubStatement(`COLLATE ${collation}`);
+    }
+    constructor(compiled) {
+        super();
+        this.compiled = compiled;
     }
     compile() {
         return this.queryable(this.compiled);
@@ -156,16 +156,16 @@ class AlterColumn extends Statement_1.default.Super {
 }
 exports.AlterColumn = AlterColumn;
 class AlterColumnSubStatement extends Statement_1.default {
-    constructor(compiled) {
-        super();
-        this.compiled = compiled;
-    }
     static setDefault(value) {
         const stringifiedValue = typeof value === "function" ? Expression_1.default.stringify(value) : Expression_1.default.stringifyValue(value);
         return new AlterColumnSubStatement(`SET DEFAULT (${stringifiedValue})`);
     }
     static setNotNull() {
         return new AlterColumnSubStatement("SET NOT NULL");
+    }
+    constructor(compiled) {
+        super();
+        this.compiled = compiled;
     }
     compile() {
         return this.queryable(this.compiled);

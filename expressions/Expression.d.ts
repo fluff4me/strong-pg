@@ -20,8 +20,8 @@ export interface ExpressionValues<VARS = never, VALUE = null, RESULT = null> {
     nextValue(sequenceId: string): ExpressionOperations<VARS, number>;
     currentValue(sequenceId: string): ExpressionOperations<VARS, number>;
 }
-export declare type ExpressionInitialiser<VARS, RESULT = any> = Initialiser<ExpressionValues<VARS, null, null>, ExpressionOperations<VARS, RESULT>>;
-export declare type ImplementableExpression = {
+export type ExpressionInitialiser<VARS, RESULT = any> = Initialiser<ExpressionValues<VARS, null, null>, ExpressionOperations<VARS, RESULT>>;
+export type ImplementableExpression = {
     [KEY in keyof ExpressionValues | keyof ExpressionOperations]: any;
 };
 export default class Expression<VARS = never> implements ImplementableExpression {

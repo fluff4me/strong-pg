@@ -2,7 +2,7 @@ import { DataTypeID, EnumToTuple, SetKey, TypeString, TypeStringMap } from "./IS
 interface SpecialKeys<SCHEMA> {
     PRIMARY_KEY?: keyof SCHEMA | (keyof SCHEMA)[];
 }
-declare type SchemaBase = Record<string, TypeString>;
+type SchemaBase = Record<string, TypeString>;
 export interface DatabaseSchema {
     tables: Record<string, Record<string, any>>;
     indices?: Record<string, {}>;
@@ -25,7 +25,7 @@ export declare namespace DatabaseSchema {
     type ReplaceTable<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>, TABLE_SCHEMA_NEW> = SetKey<SCHEMA, "tables", SetKey<SCHEMA["tables"], NAME, TABLE_SCHEMA_NEW>>;
     type DropTable<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> = SetKey<SCHEMA, "tables", Omit<SCHEMA["tables"], NAME>>;
     type CreateIndex<SCHEMA extends DatabaseSchema, NAME extends string> = SetKey<SCHEMA, "indices", SetKey<SCHEMA["indices"], NAME, {}>>;
-    type DropIndex<SCHEMA extends DatabaseSchema, NAME extends IndexName<SCHEMA>> = SetKey<SCHEMA, "indices", Omit<SCHEMA["indices"], NAME>>;
+    type DropIndex<SCHEMA extends DatabaseSchema, NAME extends IndexName<SCHEMA>> = SetKey<SCHEMA, "indices", Omit<SCHEMA["indices"], NAME>> & DatabaseSchema;
     type Enum<SCHEMA extends DatabaseSchema, NAME extends EnumName<SCHEMA>> = SCHEMA["enums"][NAME] & string[];
     type ReplaceEnum<SCHEMA extends DatabaseSchema, NAME extends string, ENUM extends string[]> = SetKey<SCHEMA, "enums", SetKey<SCHEMA["enums"], NAME, ENUM>>;
     type DropEnum<SCHEMA extends DatabaseSchema, NAME extends EnumName<SCHEMA>> = SetKey<SCHEMA, "enums", Omit<SCHEMA["enums"], NAME>>;
@@ -36,11 +36,11 @@ export declare namespace DatabaseSchema {
     type CreateCollation<SCHEMA extends DatabaseSchema, NAME extends string> = SetKey<SCHEMA, "collations", SetKey<SCHEMA["collations"], NAME, {}>>;
     type DropCollation<SCHEMA extends DatabaseSchema, NAME extends CollationName<SCHEMA>> = SetKey<SCHEMA, "collations", Omit<SCHEMA["collations"], NAME>>;
 }
-declare type ValidateTableSchema<SCHEMA> = SpecialKeys<SCHEMA> extends infer SPECIAL_DATA ? keyof SPECIAL_DATA extends infer SPECIAL_KEYS ? Exclude<keyof SCHEMA, SPECIAL_KEYS> extends infer KEYS ? Pick<SCHEMA, KEYS & keyof SCHEMA> extends infer SCHEMA_CORE ? Pick<SCHEMA, SPECIAL_KEYS & keyof SCHEMA> extends infer SCHEMA_SPECIAL ? SCHEMA_CORE extends SchemaBase ? SCHEMA_SPECIAL extends SPECIAL_DATA ? SCHEMA : "Unknown or invalid special keys in schema" : "Invalid column types" : never : never : never : never : never;
-declare type ValidateDatabaseSchema<SCHEMA extends DatabaseSchema> = ValidateDatabaseSchemaEnumTableColumns<SCHEMA> extends infer RESULT ? Extract<RESULT, string> extends infer ERRORS ? [
+type ValidateTableSchema<SCHEMA> = SpecialKeys<SCHEMA> extends infer SPECIAL_DATA ? keyof SPECIAL_DATA extends infer SPECIAL_KEYS ? Exclude<keyof SCHEMA, SPECIAL_KEYS> extends infer KEYS ? Pick<SCHEMA, KEYS & keyof SCHEMA> extends infer SCHEMA_CORE ? Pick<SCHEMA, SPECIAL_KEYS & keyof SCHEMA> extends infer SCHEMA_SPECIAL ? SCHEMA_CORE extends SchemaBase ? SCHEMA_SPECIAL extends SPECIAL_DATA ? SCHEMA : "Unknown or invalid special keys in schema" : "Invalid column types" : never : never : never : never : never;
+type ValidateDatabaseSchema<SCHEMA extends DatabaseSchema> = ValidateDatabaseSchemaEnumTableColumns<SCHEMA> extends infer RESULT ? Extract<RESULT, string> extends infer ERRORS ? [
     ERRORS
 ] extends [never] ? SCHEMA : ERRORS : never : never;
-declare type ValidateDatabaseSchemaEnumTableColumns<SCHEMA extends DatabaseSchema> = SCHEMA["tables"] extends {
+type ValidateDatabaseSchemaEnumTableColumns<SCHEMA extends DatabaseSchema> = SCHEMA["tables"] extends {
     [key: string]: {
         [key: string]: infer ENUM_TABLE_COLUMNS;
     };
@@ -52,7 +52,7 @@ export interface SchemaEnum<ENUM> {
 }
 declare class Schema {
     static database<SCHEMA extends DatabaseSchema | null>(schema: SCHEMA): SCHEMA extends null ? null : ValidateDatabaseSchema<Extract<SCHEMA, DatabaseSchema>>;
-    static enum<ENUM extends object>(enm: ENUM): SchemaEnum<EnumToTuple<ENUM, []>> & { [KEY in keyof ENUM as ENUM[KEY] extends number ? KEY : never]: KEY; };
+    static enum<ENUM extends object>(enm: ENUM): SchemaEnum<EnumToTuple<ENUM>> & { [KEY in keyof ENUM as ENUM[KEY] extends number ? KEY : never]: KEY; };
     static table<SCHEMA>(schema: SCHEMA): ValidateTableSchema<SCHEMA>;
     static readonly INDEX: {};
     static readonly TRIGGER: {};
