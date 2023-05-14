@@ -14,11 +14,9 @@ class Database {
         return this;
     }
     /**
-     * @deprecated WARNING: This drops and recreates your database!
-     *
-     * Does nothing if `DEBUG_PG_ALLOW_DROP` is not set in your env.
+     * Drops the database if the environment variable `DEBUG_PG_ALLOW_DROP` is set
      */
-    async drop() {
+    async dropIfShould() {
         if (!process.env.DEBUG_PG_ALLOW_DROP)
             return;
         return this.pool.query("DROP OWNED BY CURRENT_USER CASCADE");
