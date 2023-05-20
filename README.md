@@ -63,13 +63,13 @@ m3 = new Migration(SCHEMA_V2)
 
 	.createCollation("ci", "icu", "und-u-ks-level2", false)
 
-	.createTable<"tag_categories", typeof TAG_CATEGORIES_SCHEMA_V3>("tag_categories", table => table
+	.createTable("tag_categories", table => table
 		.addColumn("id", DataType.BIGSERIAL)
 		.addPrimaryKey("id")
 		.addColumn("name", DataType.VARCHAR(TAG_MAX_LENGTHS_V3.name), c => c.notNull().collate("ci"))
 		.addColumn("description", DataType.VARCHAR(TAG_MAX_LENGTHS_V3.description)))
 
-	.createTable<"tags", typeof TAGS_SCHEMA_V3>("tags", table => table
+	.createTable("tags", table => table
 		.addColumn("id", DataType.BIGSERIAL)
 		.addPrimaryKey("id")
 		.addColumn("name", DataType.VARCHAR(TAG_MAX_LENGTHS_V3.name), c => c.notNull().collate("ci"))
@@ -109,7 +109,7 @@ export interface ISchema extends Schema { }
 
 let pool: Pool | Promise<Pool> | undefined;
 export default async function getPool () {
-	return pool ??= new Promise<Pool>(async resolve => {
+	return pool ??= (async () => {
 		const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 		const database = new Database<ISchema>(SCHEMA_V5, pool);
 
@@ -126,7 +126,7 @@ export default async function getPool () {
 
 		await database.migrate();
 
-		resolve(pool);
-	});
+		return pool;
+	})();
 }
 ```
