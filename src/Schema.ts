@@ -1,4 +1,4 @@
-import { DataTypeID, EnumToTuple, SetKey, TypeString, TypeStringMap } from "./IStrongPG";
+import { DataTypeID, EnumToTuple, TypeString, TypeStringMap } from "./IStrongPG";
 
 interface SpecialKeys<SCHEMA> {
 	PRIMARY_KEY?: keyof SCHEMA | (keyof SCHEMA)[];
@@ -10,16 +10,21 @@ type SchemaBase = Record<string, TypeString>;
 
 export interface DatabaseSchema {
 	tables: Record<string, Record<string, any>>;
-	indices?: Record<string, {}>;
-	enums?: Record<string, string[]>;
-	triggers?: Record<string, {}>;
-	functions?: Record<string, (...args: any[]) => any>;
-	collations?: Record<string, {}>;
+	indices: Record<string, {}>;
+	enums: Record<string, string[]>;
+	triggers: Record<string, {}>;
+	functions: Record<string, (...args: any[]) => any>;
+	collations: Record<string, {}>;
 }
 
 export namespace DatabaseSchema {
 	export interface Empty {
 		tables: {};
+		indices: {};
+		enums: {};
+		triggers: {};
+		functions: {};
+		collations: {};
 	}
 
 	export type TableName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["tables"] & string;
@@ -32,44 +37,8 @@ export namespace DatabaseSchema {
 	export type Table<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> =
 		SCHEMA["tables"][NAME];
 
-	export type ReplaceTable<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>, TABLE_SCHEMA_NEW> =
-		SetKey<SCHEMA, "tables", SetKey<SCHEMA["tables"], NAME, TABLE_SCHEMA_NEW>>;
-
-	export type DropTable<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> =
-		SetKey<SCHEMA, "tables", Omit<SCHEMA["tables"], NAME>>;
-
-	export type CreateIndex<SCHEMA extends DatabaseSchema, NAME extends string> =
-		SetKey<SCHEMA, "indices", SetKey<SCHEMA["indices"], NAME, {}>>;
-
-	export type DropIndex<SCHEMA extends DatabaseSchema, NAME extends IndexName<SCHEMA>> =
-		SetKey<SCHEMA, "indices", Omit<SCHEMA["indices"], NAME>> & DatabaseSchema;
-
 	export type Enum<SCHEMA extends DatabaseSchema, NAME extends EnumName<SCHEMA>> =
 		SCHEMA["enums"][NAME] & string[];
-
-	export type ReplaceEnum<SCHEMA extends DatabaseSchema, NAME extends string, ENUM extends string[]> =
-		SetKey<SCHEMA, "enums", SetKey<SCHEMA["enums"], NAME, ENUM>>;
-
-	export type DropEnum<SCHEMA extends DatabaseSchema, NAME extends EnumName<SCHEMA>> =
-		SetKey<SCHEMA, "enums", Omit<SCHEMA["enums"], NAME>>;
-
-	export type CreateTrigger<SCHEMA extends DatabaseSchema, NAME extends string> =
-		SetKey<SCHEMA, "triggers", SetKey<SCHEMA["triggers"], NAME, {}>>;
-
-	export type DropTrigger<SCHEMA extends DatabaseSchema, NAME extends TriggerName<SCHEMA>> =
-		SetKey<SCHEMA, "triggers", Omit<SCHEMA["triggers"], NAME>>;
-
-	export type CreateFunction<SCHEMA extends DatabaseSchema, NAME extends string, FN extends (...args: any[]) => any> =
-		SetKey<SCHEMA, "functions", SetKey<SCHEMA["functions"], NAME, FN>>;
-
-	export type DropFunction<SCHEMA extends DatabaseSchema, NAME extends FunctionName<SCHEMA>> =
-		SetKey<SCHEMA, "functions", Omit<SCHEMA["functions"], NAME>>;
-
-	export type CreateCollation<SCHEMA extends DatabaseSchema, NAME extends string> =
-		SetKey<SCHEMA, "collations", SetKey<SCHEMA["collations"], NAME, {}>>;
-
-	export type DropCollation<SCHEMA extends DatabaseSchema, NAME extends CollationName<SCHEMA>> =
-		SetKey<SCHEMA, "collations", Omit<SCHEMA["collations"], NAME>>;
 }
 
 // this is a type function that validates the schema it receives
@@ -120,7 +89,14 @@ export interface SchemaEnum<ENUM> {
 
 class Schema {
 
-	public static database<SCHEMA extends DatabaseSchema | null> (schema: SCHEMA): SCHEMA extends null ? null : ValidateDatabaseSchema<Extract<SCHEMA, DatabaseSchema>> {
+	public static database<SCHEMA extends Partial<DatabaseSchema> | null> (schema: SCHEMA): SCHEMA extends null ? null : SCHEMA extends infer S extends Partial<DatabaseSchema> ? ValidateDatabaseSchema<{
+		tables: S["tables"] extends undefined ? {} : S["tables"] & {};
+		indices: S["indices"] extends undefined ? {} : S["indices"] & {};
+		enums: S["enums"] extends undefined ? {} : S["enums"] & {};
+		triggers: S["triggers"] extends undefined ? {} : S["triggers"] & {};
+		functions: S["functions"] extends undefined ? {} : S["functions"] & {};
+		collations: S["collations"] extends undefined ? {} : S["collations"] & {};
+	}> : never {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return schema as any;
 	}

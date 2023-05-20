@@ -1,5 +1,5 @@
 import Expression, { ExpressionInitialiser } from "../../expressions/Expression";
-import { Initialiser, SetKey, TypeFromString, TypeString } from "../../IStrongPG";
+import { Initialiser, TypeFromString, TypeString } from "../../IStrongPG";
 import Schema, { DatabaseSchema } from "../../Schema";
 import Statement from "../Statement";
 
@@ -24,7 +24,7 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
 	}
 
 	public addColumn<NAME extends string, TYPE extends TypeString> (name: NAME, type: TYPE, initialiser?: Initialiser<CreateColumn<DB, TYPE>>) {
-		return this.do<SetKey<SCHEMA_END, NAME, TYPE>>(AlterTableSubStatement.addColumn(name, type, initialiser));
+		return this.do<{ [KEY in NAME | keyof SCHEMA_END]: KEY extends NAME ? TYPE : SCHEMA_END[KEY & keyof SCHEMA_END] }>(AlterTableSubStatement.addColumn(name, type, initialiser));
 	}
 
 	public dropColumn<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string> (name: NAME) {
@@ -33,7 +33,7 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
 	}
 
 	public renameColumn<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string, NAME_NEW extends string> (name: NAME, newName: NAME_NEW) {
-		return this.doStandalone<Omit<SCHEMA_END, NAME> & { [KEY in NAME_NEW]: SCHEMA_END[NAME] }>(
+		return this.doStandalone<{ [KEY in NAME_NEW | Exclude<keyof SCHEMA_END, NAME>]: KEY extends NAME_NEW ? SCHEMA_END[NAME] : SCHEMA_END[KEY & keyof SCHEMA_END] }>(
 			AlterTableSubStatement.renameColumn(name, newName));
 	}
 

@@ -35,7 +35,11 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 	public createTable<NAME extends string, TABLE_SCHEMA_NEW> (
 		table: NAME,
 		alter: NAME extends DatabaseSchema.TableName<SCHEMA_END> ? never : AlterTableInitialiser<SCHEMA_END, null, TABLE_SCHEMA_NEW>,
-	): Migration<SCHEMA_START, DatabaseSchema.ReplaceTable<SCHEMA_END, NAME, TABLE_SCHEMA_NEW>> {
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "tables"
+		? ({ [TABLE_NAME in NAME | keyof SCHEMA_END["tables"]]: TABLE_NAME extends NAME ? TABLE_SCHEMA_NEW & Record<string, any> : SCHEMA_END["tables"][TABLE_NAME] })
+		: SCHEMA_END[KEY]
+	}> {
 		this.add(new CreateTable(table).setCaller());
 		this.add(alter(new AlterTable(table)).setCaller());
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -45,19 +49,36 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 	public alterTable<NAME extends DatabaseSchema.TableName<SCHEMA_END>, TABLE_SCHEMA_NEW> (
 		table: NAME,
 		alter: AlterTableInitialiser<SCHEMA_END, DatabaseSchema.Table<SCHEMA_END, NAME>, TABLE_SCHEMA_NEW>,
-	): Migration<SCHEMA_START, DatabaseSchema.ReplaceTable<SCHEMA_END, NAME, TABLE_SCHEMA_NEW>> {
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "tables"
+		? ({ [TABLE_NAME in NAME | keyof SCHEMA_END["tables"]]: TABLE_NAME extends NAME ? TABLE_SCHEMA_NEW & Record<string, any> : SCHEMA_END["tables"][TABLE_NAME] })
+		: SCHEMA_END[KEY]
+	}> {
 		this.add(alter(new AlterTable(table)).setCaller());
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
 
-	public renameTable<NAME extends DatabaseSchema.TableName<SCHEMA_END>, NEW_NAME extends string> (table: NAME, newName: NEW_NAME): Migration<SCHEMA_START, DatabaseSchema.DropTable<DatabaseSchema.ReplaceTable<SCHEMA_END, NEW_NAME, DatabaseSchema.Table<SCHEMA_END, NAME>>, NAME>> {
+	public renameTable<NAME extends DatabaseSchema.TableName<SCHEMA_END>, NEW_NAME extends string> (
+		table: NAME,
+		newName: NEW_NAME,
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "tables"
+		? ({ [TABLE_NAME in NEW_NAME | Exclude<keyof SCHEMA_END["tables"], NAME>]: TABLE_NAME extends NEW_NAME ? SCHEMA_END["tables"][NAME] : SCHEMA_END["tables"][TABLE_NAME] })
+		: SCHEMA_END[KEY]
+	}> {
 		this.add(new RenameTable(table, newName).setCaller());
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
 
-	public dropTable<NAME extends DatabaseSchema.TableName<SCHEMA_END>> (table: NAME): Migration<SCHEMA_START, DatabaseSchema.DropTable<SCHEMA_END, NAME>> {
+	public dropTable<NAME extends DatabaseSchema.TableName<SCHEMA_END>> (
+		table: NAME,
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "tables"
+		? ({ [TABLE_NAME in Exclude<keyof SCHEMA_END["tables"], NAME>]: SCHEMA_END["tables"][TABLE_NAME] })
+		: SCHEMA_END[KEY]
+	}> {
 		this.add(new DropTable(table).setCaller());
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
@@ -67,7 +88,11 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		name: NAME,
 		on: TABLE,
 		initialiser: NAME extends DatabaseSchema.IndexName<SCHEMA_END> ? never : DatabaseSchema.Table<SCHEMA_END, TABLE> extends infer TABLE_SCHEMA extends Record<string, any> ? CreateIndexInitialiser<TABLE_SCHEMA> : never,
-	): Migration<SCHEMA_START, DatabaseSchema.CreateIndex<SCHEMA_END, NAME>> {
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "indices"
+		? ({ [INDEX_NAME in NAME | keyof SCHEMA_END["indices"]]: {} })
+		: SCHEMA_END[KEY]
+	}> {
 		const createIndex = new CreateIndex(name, on).setCaller();
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		initialiser(createIndex as any);
@@ -76,7 +101,13 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		return this as any;
 	}
 
-	public dropIndex<NAME extends DatabaseSchema.IndexName<SCHEMA_END>> (name: NAME): Migration<SCHEMA_START, DatabaseSchema.DropIndex<SCHEMA_END, NAME>> {
+	public dropIndex<NAME extends DatabaseSchema.IndexName<SCHEMA_END>> (
+		name: NAME,
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "indices"
+		? ({ [INDEX_NAME in Exclude<keyof SCHEMA_END["indices"], NAME>]: {} })
+		: SCHEMA_END[KEY]
+	}> {
 		this.add(new DropIndex(name).setCaller());
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
@@ -85,7 +116,11 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 	public createEnum<NAME extends string, ENUM_SCHEMA extends string[]> (
 		name: NAME,
 		alter: NAME extends DatabaseSchema.EnumName<SCHEMA_END> ? never : AlterEnumInitialiser<[], ENUM_SCHEMA>,
-	): Migration<SCHEMA_START, DatabaseSchema.ReplaceEnum<SCHEMA_END, NAME, ENUM_SCHEMA>> {
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "enums"
+		? ({ [ENUM_NAME in NAME | keyof SCHEMA_END["enums"]]: ENUM_NAME extends NAME ? ENUM_SCHEMA : SCHEMA_END["enums"][ENUM_NAME] })
+		: SCHEMA_END[KEY]
+	}> {
 		this.add(new CreateEnum(name).setCaller());
 		this.add(alter(new AlterEnum<[]>(name)).setCaller());
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -95,19 +130,37 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 	public alterEnum<NAME extends DatabaseSchema.EnumName<SCHEMA_END>, ENUM_SCHEMA_NEW extends string[]> (
 		name: NAME,
 		alter: AlterEnumInitialiser<DatabaseSchema.Enum<SCHEMA_END, NAME>, ENUM_SCHEMA_NEW>,
-	): Migration<SCHEMA_START, DatabaseSchema.ReplaceEnum<SCHEMA_END, NAME, ENUM_SCHEMA_NEW>> {
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "enums"
+		? ({ [ENUM_NAME in NAME | keyof SCHEMA_END["enums"]]: ENUM_NAME extends NAME ? ENUM_SCHEMA_NEW : SCHEMA_END["enums"][ENUM_NAME] })
+		: SCHEMA_END[KEY]
+	}> {
 		this.add(alter(new AlterEnum<[]>(name)).setCaller());
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
 
-	public dropEnum<NAME extends DatabaseSchema.EnumName<SCHEMA_END>> (name: NAME): Migration<SCHEMA_START, DatabaseSchema.DropEnum<SCHEMA_END, NAME> & DatabaseSchema> {
+	public dropEnum<NAME extends DatabaseSchema.EnumName<SCHEMA_END>> (
+		name: NAME,
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "enums"
+		? ({ [ENUM_NAME in Exclude<keyof SCHEMA_END["enums"], NAME>]: SCHEMA_END["enums"][ENUM_NAME] })
+		: SCHEMA_END[KEY]
+	}> {
 		this.add(new DropEnum(name).setCaller());
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
 
-	public createTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends string> (on: TABLE, name: NAME, initialiser: CreateTriggerInitialiser<DatabaseSchema.Table<SCHEMA_END, TABLE>, Exclude<SCHEMA_END["functions"], undefined>>): Migration<SCHEMA_START, DatabaseSchema.CreateTrigger<SCHEMA_END, NAME>> {
+	public createTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends string> (
+		on: TABLE,
+		name: NAME,
+		initialiser: CreateTriggerInitialiser<DatabaseSchema.Table<SCHEMA_END, TABLE>, Exclude<SCHEMA_END["functions"], undefined>>,
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "triggers"
+		? ({ [TRIGGER_NAME in NAME | keyof SCHEMA_END["triggers"]]: {} })
+		: SCHEMA_END[KEY]
+	}> {
 		const createTrigger = new CreateTrigger(name, on).setCaller();
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		initialiser(createTrigger as any)
@@ -116,37 +169,80 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		return this as any;
 	}
 
-	public renameTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends DatabaseSchema.TriggerName<SCHEMA_END>, NEW_NAME extends string> (on: TABLE, name: NAME, newName: NEW_NAME): Migration<SCHEMA_START, DatabaseSchema.DropTrigger<DatabaseSchema.CreateTrigger<SCHEMA_END, NEW_NAME>, NAME>> {
+	public renameTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends DatabaseSchema.TriggerName<SCHEMA_END>, NEW_NAME extends string> (
+		on: TABLE,
+		name: NAME,
+		newName: NEW_NAME,
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "triggers"
+		? ({ [TRIGGER_NAME in NEW_NAME | Exclude<keyof SCHEMA_END["triggers"], NAME>]: {} })
+		: SCHEMA_END[KEY]
+	}> {
 		this.add(new RenameTrigger(on, name, newName).setCaller());
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
 
-	public dropTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends DatabaseSchema.TriggerName<SCHEMA_END>> (on: TABLE, name: NAME): Migration<SCHEMA_START, DatabaseSchema.DropTrigger<SCHEMA_END, NAME> & DatabaseSchema> {
+	public dropTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends DatabaseSchema.TriggerName<SCHEMA_END>> (
+		on: TABLE,
+		name: NAME,
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "triggers"
+		? ({ [TRIGGER_NAME in Exclude<keyof SCHEMA_END["triggers"], NAME>]: {} })
+		: SCHEMA_END[KEY]
+	}> {
 		this.add(new DropTrigger(on, name).setCaller());
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
 
-	public createOrReplaceFunction<NAME extends string> (name: NAME, initialiser: CreateOrReplaceFunctionInitialiser): Migration<SCHEMA_START, DatabaseSchema.CreateFunction<SCHEMA_END, NAME, (...args: any[]) => any>> {
+	public createOrReplaceFunction<NAME extends string> (
+		name: NAME,
+		initialiser: CreateOrReplaceFunctionInitialiser,
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "functions"
+		? ({ [FUNCTION_NAME in NAME | keyof SCHEMA_END["functions"]]: FUNCTION_NAME extends NAME ? (...args: any[]) => any : SCHEMA_END["functions"][FUNCTION_NAME] })
+		: SCHEMA_END[KEY]
+	}> {
 		this.add(initialiser(new CreateOrReplaceFunction(name)).setCaller());
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
 
-	public dropFunction<NAME extends DatabaseSchema.FunctionName<SCHEMA_END>> (name: NAME): Migration<SCHEMA_START, DatabaseSchema.DropFunction<SCHEMA_END, NAME> & DatabaseSchema> {
+	public dropFunction<NAME extends DatabaseSchema.FunctionName<SCHEMA_END>> (
+		name: NAME,
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "functions"
+		? ({ [FUNCTION_NAME in Exclude<keyof SCHEMA_END["functions"], NAME>]: SCHEMA_END["functions"][FUNCTION_NAME] })
+		: SCHEMA_END[KEY]
+	}> {
 		this.add(new DropFunction(name).setCaller());
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
 
-	public createCollation<NAME extends string> (name: NAME, provider: "icu" | "libc", locale: string, deterministic: boolean): Migration<SCHEMA_START, DatabaseSchema.CreateCollation<SCHEMA_END, NAME>> {
+	public createCollation<NAME extends string> (
+		name: NAME,
+		provider: "icu" | "libc",
+		locale: string,
+		deterministic: boolean,
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "collations"
+		? ({ [COLLATION_NAME in NAME | keyof SCHEMA_END["collations"]]: {} })
+		: SCHEMA_END[KEY]
+	}> {
 		this.add(new CreateCollation(name, provider, locale, deterministic).setCaller());
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
 
-	public dropCollation<NAME extends DatabaseSchema.CollationName<SCHEMA_END>> (name: NAME): Migration<SCHEMA_START, DatabaseSchema.DropCollation<SCHEMA_END, NAME> & DatabaseSchema> {
+	public dropCollation<NAME extends DatabaseSchema.CollationName<SCHEMA_END>> (
+		name: NAME,
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "collations"
+		? ({ [FUNCTION_NAME in Exclude<keyof SCHEMA_END["collations"], NAME>]: SCHEMA_END["collations"][FUNCTION_NAME] })
+		: SCHEMA_END[KEY]
+	}> {
 		this.add(new DropCollation(name).setCaller());
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;

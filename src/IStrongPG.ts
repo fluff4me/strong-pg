@@ -189,9 +189,6 @@ export namespace TypeString {
 }
 
 export type Initialiser<T, R = any> = (value: T) => R;
-// export type Merge2<L, R> = { [P in keyof L | keyof R]: L[P & keyof L] | R[P & keyof R] };
-// export type Merge2<L, R> = L & R;
-export type SetKey<OBJECT, KEY extends string, VALUE> = Omit<OBJECT, KEY> & { [key in KEY]: VALUE };
 
 export type Key<OBJ, VALUE> = keyof { [KEY in keyof OBJ as OBJ[KEY] extends VALUE ? KEY : never]: VALUE };
 
