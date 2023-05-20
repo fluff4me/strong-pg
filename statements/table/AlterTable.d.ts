@@ -1,5 +1,5 @@
 import { ExpressionInitialiser } from "../../expressions/Expression";
-import { Initialiser, SetKey, TypeFromString, TypeString } from "../../IStrongPG";
+import { Initialiser, TypeFromString, TypeString } from "../../IStrongPG";
 import Schema, { DatabaseSchema } from "../../Schema";
 import Statement from "../Statement";
 export type AlterTableInitialiser<DB extends DatabaseSchema, SCHEMA_START, SCHEMA_END> = Initialiser<AlterTable<DB, SCHEMA_START>, AlterTable<DB, SCHEMA_START, SCHEMA_END>>;
@@ -10,9 +10,9 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
     constructor(table: string);
     private do;
     private doStandalone;
-    addColumn<NAME extends string, TYPE extends TypeString>(name: NAME, type: TYPE, initialiser?: Initialiser<CreateColumn<DB, TYPE>>): AlterTable<DB, SCHEMA_START, SetKey<SCHEMA_END, NAME, TYPE>>;
+    addColumn<NAME extends string, TYPE extends TypeString>(name: NAME, type: TYPE, initialiser?: Initialiser<CreateColumn<DB, TYPE>>): AlterTable<DB, SCHEMA_START, { [KEY in NAME | keyof SCHEMA_END]: KEY extends NAME ? TYPE : SCHEMA_END[KEY & keyof SCHEMA_END]; }>;
     dropColumn<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string>(name: NAME): AlterTable<DB, SCHEMA_START, Omit<SCHEMA_END, NAME>>;
-    renameColumn<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string, NAME_NEW extends string>(name: NAME, newName: NAME_NEW): AlterTable<DB, SCHEMA_START, Omit<SCHEMA_END, NAME> & { [KEY in NAME_NEW]: SCHEMA_END[NAME]; }>;
+    renameColumn<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string, NAME_NEW extends string>(name: NAME, newName: NAME_NEW): AlterTable<DB, SCHEMA_START, { [KEY in NAME_NEW | Exclude<keyof SCHEMA_END, NAME>]: KEY extends NAME_NEW ? SCHEMA_END[NAME] : SCHEMA_END[KEY & keyof SCHEMA_END]; }>;
     addPrimaryKey<KEYS extends Schema.PrimaryKeyOrNull<SCHEMA_END> extends null ? (keyof SCHEMA_END & string)[] : never[]>(...keys: KEYS): AlterTable<DB, SCHEMA_START, Schema.PrimaryKeyed<SCHEMA_END, KEYS[number][]>>;
     dropPrimaryKey(): AlterTable<DB, SCHEMA_START, Schema.DropPrimaryKey<SCHEMA_END>>;
     check(id: string, value: ExpressionInitialiser<Schema.Columns<SCHEMA_END>, boolean>): AlterTable<DB, SCHEMA_START, SCHEMA_END>;

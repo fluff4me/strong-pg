@@ -110,9 +110,6 @@ export declare namespace TypeString {
     function resolve(typeString: TypeString): string;
 }
 export type Initialiser<T, R = any> = (value: T) => R;
-export type SetKey<OBJECT, KEY extends string, VALUE> = Omit<OBJECT, KEY> & {
-    [key in KEY]: VALUE;
-};
 export type Key<OBJ, VALUE> = keyof {
     [KEY in keyof OBJ as OBJ[KEY] extends VALUE ? KEY : never]: VALUE;
 };

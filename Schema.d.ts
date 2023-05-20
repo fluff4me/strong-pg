@@ -1,19 +1,24 @@
-import { DataTypeID, EnumToTuple, SetKey, TypeString, TypeStringMap } from "./IStrongPG";
+import { DataTypeID, EnumToTuple, TypeString, TypeStringMap } from "./IStrongPG";
 interface SpecialKeys<SCHEMA> {
     PRIMARY_KEY?: keyof SCHEMA | (keyof SCHEMA)[];
 }
 type SchemaBase = Record<string, TypeString>;
 export interface DatabaseSchema {
     tables: Record<string, Record<string, any>>;
-    indices?: Record<string, {}>;
-    enums?: Record<string, string[]>;
-    triggers?: Record<string, {}>;
-    functions?: Record<string, (...args: any[]) => any>;
-    collations?: Record<string, {}>;
+    indices: Record<string, {}>;
+    enums: Record<string, string[]>;
+    triggers: Record<string, {}>;
+    functions: Record<string, (...args: any[]) => any>;
+    collations: Record<string, {}>;
 }
 export declare namespace DatabaseSchema {
     interface Empty {
         tables: {};
+        indices: {};
+        enums: {};
+        triggers: {};
+        functions: {};
+        collations: {};
     }
     type TableName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["tables"] & string;
     type IndexName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["indices"] & string;
@@ -22,19 +27,7 @@ export declare namespace DatabaseSchema {
     type FunctionName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["functions"] & string;
     type CollationName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["collations"] & string;
     type Table<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> = SCHEMA["tables"][NAME];
-    type ReplaceTable<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>, TABLE_SCHEMA_NEW> = SetKey<SCHEMA, "tables", SetKey<SCHEMA["tables"], NAME, TABLE_SCHEMA_NEW>>;
-    type DropTable<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> = SetKey<SCHEMA, "tables", Omit<SCHEMA["tables"], NAME>>;
-    type CreateIndex<SCHEMA extends DatabaseSchema, NAME extends string> = SetKey<SCHEMA, "indices", SetKey<SCHEMA["indices"], NAME, {}>>;
-    type DropIndex<SCHEMA extends DatabaseSchema, NAME extends IndexName<SCHEMA>> = SetKey<SCHEMA, "indices", Omit<SCHEMA["indices"], NAME>> & DatabaseSchema;
     type Enum<SCHEMA extends DatabaseSchema, NAME extends EnumName<SCHEMA>> = SCHEMA["enums"][NAME] & string[];
-    type ReplaceEnum<SCHEMA extends DatabaseSchema, NAME extends string, ENUM extends string[]> = SetKey<SCHEMA, "enums", SetKey<SCHEMA["enums"], NAME, ENUM>>;
-    type DropEnum<SCHEMA extends DatabaseSchema, NAME extends EnumName<SCHEMA>> = SetKey<SCHEMA, "enums", Omit<SCHEMA["enums"], NAME>>;
-    type CreateTrigger<SCHEMA extends DatabaseSchema, NAME extends string> = SetKey<SCHEMA, "triggers", SetKey<SCHEMA["triggers"], NAME, {}>>;
-    type DropTrigger<SCHEMA extends DatabaseSchema, NAME extends TriggerName<SCHEMA>> = SetKey<SCHEMA, "triggers", Omit<SCHEMA["triggers"], NAME>>;
-    type CreateFunction<SCHEMA extends DatabaseSchema, NAME extends string, FN extends (...args: any[]) => any> = SetKey<SCHEMA, "functions", SetKey<SCHEMA["functions"], NAME, FN>>;
-    type DropFunction<SCHEMA extends DatabaseSchema, NAME extends FunctionName<SCHEMA>> = SetKey<SCHEMA, "functions", Omit<SCHEMA["functions"], NAME>>;
-    type CreateCollation<SCHEMA extends DatabaseSchema, NAME extends string> = SetKey<SCHEMA, "collations", SetKey<SCHEMA["collations"], NAME, {}>>;
-    type DropCollation<SCHEMA extends DatabaseSchema, NAME extends CollationName<SCHEMA>> = SetKey<SCHEMA, "collations", Omit<SCHEMA["collations"], NAME>>;
 }
 type ValidateTableSchema<SCHEMA> = SpecialKeys<SCHEMA> extends infer SPECIAL_DATA ? keyof SPECIAL_DATA extends infer SPECIAL_KEYS ? Exclude<keyof SCHEMA, SPECIAL_KEYS> extends infer KEYS ? Pick<SCHEMA, KEYS & keyof SCHEMA> extends infer SCHEMA_CORE ? Pick<SCHEMA, SPECIAL_KEYS & keyof SCHEMA> extends infer SCHEMA_SPECIAL ? SCHEMA_CORE extends SchemaBase ? SCHEMA_SPECIAL extends SPECIAL_DATA ? SCHEMA : "Unknown or invalid special keys in schema" : "Invalid column types" : never : never : never : never : never;
 type ValidateDatabaseSchema<SCHEMA extends DatabaseSchema> = ValidateDatabaseSchemaEnumTableColumns<SCHEMA> extends infer RESULT ? Extract<RESULT, string> extends infer ERRORS ? [
@@ -51,7 +44,14 @@ export interface SchemaEnum<ENUM> {
     VALUES: ENUM;
 }
 declare class Schema {
-    static database<SCHEMA extends DatabaseSchema | null>(schema: SCHEMA): SCHEMA extends null ? null : ValidateDatabaseSchema<Extract<SCHEMA, DatabaseSchema>>;
+    static database<SCHEMA extends Partial<DatabaseSchema> | null>(schema: SCHEMA): SCHEMA extends null ? null : SCHEMA extends infer S extends Partial<DatabaseSchema> ? ValidateDatabaseSchema<{
+        tables: S["tables"] extends undefined ? {} : S["tables"] & {};
+        indices: S["indices"] extends undefined ? {} : S["indices"] & {};
+        enums: S["enums"] extends undefined ? {} : S["enums"] & {};
+        triggers: S["triggers"] extends undefined ? {} : S["triggers"] & {};
+        functions: S["functions"] extends undefined ? {} : S["functions"] & {};
+        collations: S["collations"] extends undefined ? {} : S["collations"] & {};
+    }> : never;
     static enum<ENUM extends object>(enm: ENUM): SchemaEnum<EnumToTuple<ENUM>> & { [KEY in keyof ENUM as ENUM[KEY] extends number ? KEY : never]: KEY; };
     static table<SCHEMA>(schema: SCHEMA): ValidateTableSchema<SCHEMA>;
     static readonly INDEX: {};
