@@ -2,6 +2,8 @@
 	"private": true,
 	"name": "strong-pg",
 	"version": "1.1.0",
+	"repository": "github:ChiriVulpes/strong-pg",
+	"license": "MIT",
 	"main": "Database.js",
 	"dependencies": {
 		"pg": "8.10.0"
