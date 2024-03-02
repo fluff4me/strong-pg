@@ -1,17 +1,18 @@
-import { Pool } from "pg";
+import { Pool, PoolClient } from "pg";
 import { History } from "./History";
 import { DatabaseSchema } from "./Schema";
+import Table from "./Table";
 
 export default class Database<SCHEMA extends DatabaseSchema> {
 
 	protected history?: History<SCHEMA>;
 
-	public constructor (protected readonly schema: SCHEMA, protected readonly pool: Pool) {
+	public constructor (protected readonly schema: SCHEMA) {
 
 	}
 
-	public async migrate () {
-		return this.history?.migrate(this.pool);
+	public async migrate (pool: Pool | PoolClient) {
+		return this.history?.migrate(pool);
 	}
 
 	public setHistory (initialiser: (history: History) => History<SCHEMA>) {
@@ -22,10 +23,14 @@ export default class Database<SCHEMA extends DatabaseSchema> {
 	/**
 	 * Drops the database if the environment variable `DEBUG_PG_ALLOW_DROP` is set
 	 */
-	public async dropIfShould () {
+	public async dropIfShould (pool: Pool | PoolClient) {
 		if (!process.env.DEBUG_PG_ALLOW_DROP)
 			return;
 
-		return this.pool.query("DROP OWNED BY CURRENT_USER CASCADE");
+		return pool.query("DROP OWNED BY CURRENT_USER CASCADE");
+	}
+
+	public table<TABLE_NAME extends DatabaseSchema.TableName<SCHEMA>> (tableName: TABLE_NAME) {
+		return new Table(tableName as string, this.schema.tables[tableName as string] as DatabaseSchema.Table<SCHEMA, TABLE_NAME>);
 	}
 }

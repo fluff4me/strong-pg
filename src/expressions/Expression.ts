@@ -1,4 +1,5 @@
 import { Initialiser, TypeFromString, TypeString, ValidType } from "../IStrongPG";
+import Statement from "../statements/Statement";
 
 export interface ExpressionOperations<VARS = never, CURRENT_VALUE = null> {
 	greaterThan: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
@@ -60,16 +61,16 @@ export default class Expression<VARS = never> implements ImplementableExpression
 		}
 	}
 
-	public static stringify (initialiser: ExpressionInitialiser<any, any>) {
-		const expr = new Expression();
+	public static compile (initialiser: ExpressionInitialiser<any, any>, enableStringConcatenation = false) {
+		const expr = new Expression(undefined, enableStringConcatenation);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		initialiser(expr as any);
-		return expr.compile();
+		return new Statement.Queryable(expr.compile(), undefined, expr.vars);
 	}
 
 	public readonly parts: (() => string)[] = [];
 
-	private constructor () { }
+	private constructor (public vars?: any[], private readonly enableStringConcatenation = false) { }
 
 	public compile () {
 		return this.parts.map(part => part()).join("");
@@ -122,9 +123,13 @@ export default class Expression<VARS = never> implements ImplementableExpression
 		this.parts.push(() => {
 			let result: string;
 			if (typeof value === "function") {
-				const expr = new Expression();
+				const expr = new Expression(this.vars, this.enableStringConcatenation);
 				value(expr);
 				result = `(${expr.compile()})`;
+			} else if (typeof value === "string" && !this.enableStringConcatenation) {
+				this.vars ??= [];
+				this.vars.push(value);
+				result = `$${this.vars.length}`;
 			} else {
 				result = Expression.stringifyValue(value);
 			}

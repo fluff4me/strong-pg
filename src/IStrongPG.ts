@@ -171,7 +171,7 @@ export interface TypeMap {
 
 	// special
 	[DataTypeID.TSVECTOR]: null;
-	[DataTypeID.JSON]: null;
+	[DataTypeID.JSON]: any;
 }
 
 export type ValidType = string | boolean | number | symbol | Date | RegExp | undefined | null;

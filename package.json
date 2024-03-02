@@ -18,8 +18,8 @@
 	},
 	"devDependencies": {
 		"@types/pg": "8.6.6",
-		"ts-node": "10.9.1",
-		"typescript": "5.0.4",
+		"ts-node": "10.9.2",
+		"typescript": "5.3.3",
 		"del": "6.1.1",
 		"ansicolor": "1.1.100",
 		"eslint": "8.40.0",

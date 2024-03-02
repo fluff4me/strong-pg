@@ -1,10 +1,14 @@
 import { Pool, PoolClient } from "pg";
 import Statement from "./statements/Statement";
 
-export default class Transaction extends Statement {
+export default class Transaction {
 
-	public static async execute<R> (pool: Pool, executor: (client: PoolClient) => Promise<R>) {
-		const client = await pool.connect();
+	public static async execute<R> (pool: Pool | PoolClient, executor: (client: PoolClient) => Promise<R>) {
+		if ((pool as PoolClient).release)
+			// already in a transaction
+			return await executor(pool as PoolClient);
+
+		const client = await (pool as Pool).connect();
 		await client.query("BEGIN");
 		try {
 			const result = await executor(client);
@@ -32,7 +36,9 @@ export default class Transaction extends Statement {
 		});
 	}
 
-	public override compile () {
-		return this.queryable(this.statements.flatMap(statement => statement.compile()));
+	public compile () {
+		return this.statements.flatMap(statement => statement.compile());
 	}
 }
+
+Statement["Transaction"] = Transaction;

@@ -76,7 +76,8 @@ export default class CreateTrigger<SCHEMA extends Record<string, any>, FUNCTIONS
 
 	private condition?: string;
 	public when (initialiser: ExpressionInitialiser<NewAndOldColumns<Schema.Columns<SCHEMA> & { "*": "*" }>, boolean>) {
-		this.condition = `WHEN (${Expression.stringify(initialiser)})`;
+		const expr = Expression.compile(initialiser, true);
+		this.condition = `WHEN (${expr.text})`;
 		return this;
 	}
 

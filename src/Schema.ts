@@ -8,8 +8,10 @@ type SchemaBase = Record<string, TypeString>;
 
 // type Schema<SCHEMA extends SchemaBase = SchemaBase> = { PRIMARY_KEY?: keyof SCHEMA } & SCHEMA;
 
+export type TableSchema = Record<string, any>;
+
 export interface DatabaseSchema {
-	tables: Record<string, Record<string, any>>;
+	tables: Record<string, TableSchema>;
 	indices: Record<string, {}>;
 	enums: Record<string, string[]>;
 	triggers: Record<string, {}>;
@@ -35,7 +37,7 @@ export namespace DatabaseSchema {
 	export type CollationName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["collations"] & string;
 
 	export type Table<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> =
-		SCHEMA["tables"][NAME];
+		SCHEMA["tables"][NAME] extends infer TABLE ? TABLE extends TableSchema ? TABLE : never : never;
 
 	export type Enum<SCHEMA extends DatabaseSchema, NAME extends EnumName<SCHEMA>> =
 		SCHEMA["enums"][NAME] & string[];

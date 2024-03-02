@@ -1,4 +1,4 @@
-import { DatabaseError, Pool } from "pg";
+import { DatabaseError, Pool, PoolClient } from "pg";
 import { StackUtil } from "./IStrongPG";
 import Migration, { MigrationVersion } from "./Migration";
 import { DatabaseSchema } from "./Schema";
@@ -38,7 +38,7 @@ export class History<SCHEMA extends DatabaseSchema | null = null> {
 		return this as any;
 	}
 
-	public async migrate (pool: Pool) {
+	public async migrate (pool: Pool | PoolClient) {
 
 		await pool.query(`CREATE TABLE IF NOT EXISTS migrations (
 				migration_index_start SMALLINT DEFAULT 0,

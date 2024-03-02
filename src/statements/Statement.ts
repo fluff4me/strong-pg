@@ -1,6 +1,10 @@
+import { Pool, PoolClient, QueryResult } from "pg";
 import { StackUtil } from "../IStrongPG";
+import Transaction from "../Transaction";
 
-abstract class Statement {
+abstract class Statement<RESULT = void> {
+
+	private static Transaction: typeof Transaction;
 
 	public stack?: StackUtil.Stack;
 	public setCaller (skip = 0) {
@@ -10,7 +14,21 @@ abstract class Statement {
 
 	public abstract compile (): Statement.Queryable[];
 
-	protected queryable (queryables: string | Statement.Queryable | (string | Statement.Queryable)[], stack = this.stack) {
+	public query (pool: Pool | PoolClient) {
+		let result: QueryResult;
+		return Statement.Transaction.execute(pool, async client => {
+			for (const statement of this.compile())
+				result = await pool.query(statement);
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			return this.resolveQueryOutput(result);
+		});
+	}
+
+	protected resolveQueryOutput (output: QueryResult): RESULT {
+		return undefined!;
+	}
+
+	protected queryable (queryables: string | Statement.Queryable | (string | Statement.Queryable)[], stack = this.stack, vars?: any[]) {
 		if (!Array.isArray(queryables))
 			queryables = [queryables as string];
 
@@ -18,7 +36,7 @@ abstract class Statement {
 
 		for (const queryable of queryables) {
 			if (typeof queryable === "string")
-				result.push(new Statement.Queryable(queryable, stack));
+				result.push(new Statement.Queryable(queryable, stack, vars));
 			else {
 				queryable.stack ??= stack;
 				result.push(queryable);
@@ -34,7 +52,7 @@ export default Statement;
 namespace Statement {
 
 	export class Queryable {
-		public constructor (public readonly text: string, public stack?: StackUtil.Stack) { }
+		public constructor (public readonly text: string, public stack?: StackUtil.Stack, public values?: any[]) { }
 	}
 
 	export class Basic extends Statement {

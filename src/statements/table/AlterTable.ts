@@ -102,8 +102,8 @@ class AlterTableSubStatement extends Statement {
 	}
 
 	public static addCheck (id: string, value: ExpressionInitialiser<any, boolean>) {
-		const stringifiedValue = Expression.stringify(value);
-		return new AlterTableSubStatement(`ADD CONSTRAINT ${id}_check CHECK (${stringifiedValue})`);
+		const expr = Expression.compile(value);
+		return new AlterTableSubStatement(`ADD CONSTRAINT ${id}_check CHECK (${expr.text})`, expr.values);
 	}
 
 	public static addForeignKey (column: string, foreignTable: string, foreignColumn: string) {
@@ -114,12 +114,12 @@ class AlterTableSubStatement extends Statement {
 		return new AlterTableSubStatement(`ADD CONSTRAINT ${name} UNIQUE USING INDEX ${index}`);
 	}
 
-	private constructor (private readonly compiled: string) {
+	private constructor (private readonly compiled: string, private readonly vars?: any[]) {
 		super();
 	}
 
 	public compile () {
-		return this.queryable(this.compiled);
+		return this.queryable(this.compiled, undefined, this.vars);
 	}
 }
 
@@ -148,9 +148,13 @@ export class CreateColumn<DB extends DatabaseSchema, TYPE extends TypeString> ex
 }
 
 class CreateColumnSubStatement extends Statement {
+	/**
+	 * Warning: Do not use this outside of migrations
+	 */
 	public static setDefault<TYPE extends TypeString> (value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>) {
-		const stringifiedValue = typeof value === "function" ? Expression.stringify(value) : Expression.stringifyValue(value);
-		return new CreateColumnSubStatement(`DEFAULT (${stringifiedValue})`);
+		const expr = typeof value === "function" ? Expression.compile(value) : undefined;
+		const stringifiedValue = expr?.text ?? Expression.stringifyValue(value as TypeFromString<TYPE>);
+		return new CreateColumnSubStatement(`DEFAULT (${stringifiedValue})`, expr?.values);
 	}
 
 	public static setNotNull () {
@@ -161,12 +165,12 @@ class CreateColumnSubStatement extends Statement {
 		return new CreateColumnSubStatement(`COLLATE ${collation}`);
 	}
 
-	private constructor (private readonly compiled: string) {
+	private constructor (private readonly compiled: string, private readonly vars?: any[]) {
 		super();
 	}
 
 	public compile () {
-		return this.queryable(this.compiled);
+		return this.queryable(this.compiled, undefined, this.vars);
 	}
 }
 
@@ -197,20 +201,24 @@ export class AlterColumn<NAME extends string, TYPE extends TypeString> extends S
 }
 
 class AlterColumnSubStatement extends Statement {
+	/**
+	 * Warning: Do not use this outside of migrations
+	 */
 	public static setDefault<TYPE extends TypeString> (value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>) {
-		const stringifiedValue = typeof value === "function" ? Expression.stringify(value) : Expression.stringifyValue(value);
-		return new AlterColumnSubStatement(`SET DEFAULT (${stringifiedValue})`);
+		const expr = typeof value === "function" ? Expression.compile(value) : undefined;
+		const stringifiedValue = expr?.text ?? Expression.stringifyValue(value as TypeFromString<TYPE>);
+		return new AlterColumnSubStatement(`SET DEFAULT (${stringifiedValue})`, expr?.values);
 	}
 
 	public static setNotNull () {
 		return new AlterColumnSubStatement("SET NOT NULL");
 	}
 
-	private constructor (private readonly compiled: string) {
+	private constructor (private readonly compiled: string, private readonly vars?: any[]) {
 		super();
 	}
 
 	public compile () {
-		return this.queryable(this.compiled);
+		return this.queryable(this.compiled, undefined, this.vars);
 	}
 }

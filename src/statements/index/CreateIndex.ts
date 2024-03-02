@@ -27,7 +27,7 @@ export default class CreateIndex<SCHEMA extends Record<string, any>, COLUMNS ext
 	}
 
 	public expression (initialiser: ExpressionInitialiser<SCHEMA, any>): CreateIndex<SCHEMA, true> {
-		this.columns.push(Expression.stringify(initialiser));
+		this.columns.push(Expression.compile(initialiser).text);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
