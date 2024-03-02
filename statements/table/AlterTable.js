@@ -78,8 +78,8 @@ class AlterTableSubStatement extends Statement_1.default {
         return new AlterTableSubStatement(`DROP CONSTRAINT ${table}_pkey`);
     }
     static addCheck(id, value) {
-        const stringifiedValue = Expression_1.default.stringify(value);
-        return new AlterTableSubStatement(`ADD CONSTRAINT ${id}_check CHECK (${stringifiedValue})`);
+        const expr = Expression_1.default.compile(value);
+        return new AlterTableSubStatement(`ADD CONSTRAINT ${id}_check CHECK (${expr.text})`, expr.values);
     }
     static addForeignKey(column, foreignTable, foreignColumn) {
         return new AlterTableSubStatement(`ADD CONSTRAINT ${column}_fk FOREIGN KEY (${column}) REFERENCES ${foreignTable} (${foreignColumn})`);
@@ -87,12 +87,13 @@ class AlterTableSubStatement extends Statement_1.default {
     static addUnique(name, index) {
         return new AlterTableSubStatement(`ADD CONSTRAINT ${name} UNIQUE USING INDEX ${index}`);
     }
-    constructor(compiled) {
+    constructor(compiled, vars) {
         super();
         this.compiled = compiled;
+        this.vars = vars;
     }
     compile() {
-        return this.queryable(this.compiled);
+        return this.queryable(this.compiled, undefined, this.vars);
     }
 }
 // export class ColumnReference<TYPE extends TypeString> {
@@ -116,9 +117,13 @@ class CreateColumn extends Statement_1.default.Super {
 }
 exports.CreateColumn = CreateColumn;
 class CreateColumnSubStatement extends Statement_1.default {
+    /**
+     * Warning: Do not use this outside of migrations
+     */
     static setDefault(value) {
-        const stringifiedValue = typeof value === "function" ? Expression_1.default.stringify(value) : Expression_1.default.stringifyValue(value);
-        return new CreateColumnSubStatement(`DEFAULT (${stringifiedValue})`);
+        const expr = typeof value === "function" ? Expression_1.default.compile(value) : undefined;
+        const stringifiedValue = expr?.text ?? Expression_1.default.stringifyValue(value);
+        return new CreateColumnSubStatement(`DEFAULT (${stringifiedValue})`, expr?.values);
     }
     static setNotNull() {
         return new CreateColumnSubStatement("NOT NULL");
@@ -126,12 +131,13 @@ class CreateColumnSubStatement extends Statement_1.default {
     static setCollation(collation) {
         return new CreateColumnSubStatement(`COLLATE ${collation}`);
     }
-    constructor(compiled) {
+    constructor(compiled, vars) {
         super();
         this.compiled = compiled;
+        this.vars = vars;
     }
     compile() {
-        return this.queryable(this.compiled);
+        return this.queryable(this.compiled, undefined, this.vars);
     }
 }
 class AlterColumn extends Statement_1.default.Super {
@@ -156,18 +162,23 @@ class AlterColumn extends Statement_1.default.Super {
 }
 exports.AlterColumn = AlterColumn;
 class AlterColumnSubStatement extends Statement_1.default {
+    /**
+     * Warning: Do not use this outside of migrations
+     */
     static setDefault(value) {
-        const stringifiedValue = typeof value === "function" ? Expression_1.default.stringify(value) : Expression_1.default.stringifyValue(value);
-        return new AlterColumnSubStatement(`SET DEFAULT (${stringifiedValue})`);
+        const expr = typeof value === "function" ? Expression_1.default.compile(value) : undefined;
+        const stringifiedValue = expr?.text ?? Expression_1.default.stringifyValue(value);
+        return new AlterColumnSubStatement(`SET DEFAULT (${stringifiedValue})`, expr?.values);
     }
     static setNotNull() {
         return new AlterColumnSubStatement("SET NOT NULL");
     }
-    constructor(compiled) {
+    constructor(compiled, vars) {
         super();
         this.compiled = compiled;
+        this.vars = vars;
     }
     compile() {
-        return this.queryable(this.compiled);
+        return this.queryable(this.compiled, undefined, this.vars);
     }
 }

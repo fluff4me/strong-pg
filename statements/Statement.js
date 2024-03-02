@@ -6,13 +6,25 @@ class Statement {
         this.stack = IStrongPG_1.StackUtil.get(skip + 1);
         return this;
     }
-    queryable(queryables, stack = this.stack) {
+    query(pool) {
+        let result;
+        return Statement.Transaction.execute(pool, async (client) => {
+            for (const statement of this.compile())
+                result = await pool.query(statement);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            return this.resolveQueryOutput(result);
+        });
+    }
+    resolveQueryOutput(output) {
+        return undefined;
+    }
+    queryable(queryables, stack = this.stack, vars) {
         if (!Array.isArray(queryables))
             queryables = [queryables];
         const result = [];
         for (const queryable of queryables) {
             if (typeof queryable === "string")
-                result.push(new Statement.Queryable(queryable, stack));
+                result.push(new Statement.Queryable(queryable, stack, vars));
             else {
                 queryable.stack ?? (queryable.stack = stack);
                 result.push(queryable);
@@ -24,9 +36,10 @@ class Statement {
 exports.default = Statement;
 (function (Statement) {
     class Queryable {
-        constructor(text, stack) {
+        constructor(text, stack, values) {
             this.text = text;
             this.stack = stack;
+            this.values = values;
         }
     }
     Statement.Queryable = Queryable;

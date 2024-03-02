@@ -1,16 +1,21 @@
+import { Pool, PoolClient, QueryResult } from "pg";
 import { StackUtil } from "../IStrongPG";
-declare abstract class Statement {
+declare abstract class Statement<RESULT = void> {
+    private static Transaction;
     stack?: StackUtil.Stack;
     setCaller(skip?: number): this;
     abstract compile(): Statement.Queryable[];
-    protected queryable(queryables: string | Statement.Queryable | (string | Statement.Queryable)[], stack?: StackUtil.Stack | undefined): Statement.Queryable[];
+    query(pool: Pool | PoolClient): Promise<RESULT>;
+    protected resolveQueryOutput(output: QueryResult): RESULT;
+    protected queryable(queryables: string | Statement.Queryable | (string | Statement.Queryable)[], stack?: StackUtil.Stack | undefined, vars?: any[]): Statement.Queryable[];
 }
 export default Statement;
 declare namespace Statement {
     class Queryable {
         readonly text: string;
         stack?: StackUtil.Stack | undefined;
-        constructor(text: string, stack?: StackUtil.Stack | undefined);
+        values?: any[] | undefined;
+        constructor(text: string, stack?: StackUtil.Stack | undefined, values?: any[] | undefined);
     }
     class Basic extends Statement {
         private readonly queryables;

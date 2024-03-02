@@ -4,12 +4,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Statement_1 = __importDefault(require("./statements/Statement"));
-class Transaction extends Statement_1.default {
+class Transaction {
     constructor() {
-        super(...arguments);
         this.statements = [];
     }
     static async execute(pool, executor) {
+        if (pool.release)
+            // already in a transaction
+            return await executor(pool);
         const client = await pool.connect();
         await client.query("BEGIN");
         try {
@@ -36,7 +38,8 @@ class Transaction extends Statement_1.default {
         });
     }
     compile() {
-        return this.queryable(this.statements.flatMap(statement => statement.compile()));
+        return this.statements.flatMap(statement => statement.compile());
     }
 }
 exports.default = Transaction;
+Statement_1.default["Transaction"] = Transaction;

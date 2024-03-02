@@ -1,4 +1,5 @@
 import { Initialiser, TypeFromString, TypeString, ValidType } from "../IStrongPG";
+import Statement from "../statements/Statement";
 export interface ExpressionOperations<VARS = never, CURRENT_VALUE = null> {
     greaterThan: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
     lessThan: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
@@ -25,11 +26,13 @@ export type ImplementableExpression = {
     [KEY in keyof ExpressionValues | keyof ExpressionOperations]: any;
 };
 export default class Expression<VARS = never> implements ImplementableExpression {
+    vars?: any[] | undefined;
+    private readonly enableStringConcatenation;
     /**
      * Warning: Do not use outside of migrations
      */
     static stringifyValue(value: ValidType): string;
-    static stringify(initialiser: ExpressionInitialiser<any, any>): string;
+    static compile(initialiser: ExpressionInitialiser<any, any>, enableStringConcatenation?: boolean): Statement.Queryable;
     readonly parts: (() => string)[];
     private constructor();
     compile(): string;

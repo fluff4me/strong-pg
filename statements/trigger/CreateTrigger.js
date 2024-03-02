@@ -61,7 +61,8 @@ class CreateTrigger extends Statement_1.default {
         return this;
     }
     when(initialiser) {
-        this.condition = `WHEN (${Expression_1.default.stringify(initialiser)})`;
+        const expr = Expression_1.default.compile(initialiser, true);
+        this.condition = `WHEN (${expr.text})`;
         return this;
     }
     execute(functionName) {

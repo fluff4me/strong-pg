@@ -101,7 +101,7 @@ export interface TypeMap {
     [DataTypeID.ENUM]: string;
     [DataTypeID.BOOLEAN]: boolean;
     [DataTypeID.TSVECTOR]: null;
-    [DataTypeID.JSON]: null;
+    [DataTypeID.JSON]: any;
 }
 export type ValidType = string | boolean | number | symbol | Date | RegExp | undefined | null;
 export declare const SYMBOL_COLUMNS: unique symbol;

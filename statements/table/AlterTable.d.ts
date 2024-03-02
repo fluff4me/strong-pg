@@ -29,6 +29,10 @@ export declare class CreateColumn<DB extends DatabaseSchema, TYPE extends TypeSt
 }
 declare class CreateColumnSubStatement extends Statement {
     private readonly compiled;
+    private readonly vars?;
+    /**
+     * Warning: Do not use this outside of migrations
+     */
     static setDefault<TYPE extends TypeString>(value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>): CreateColumnSubStatement;
     static setNotNull(): CreateColumnSubStatement;
     static setCollation(collation: string): CreateColumnSubStatement;
@@ -44,6 +48,10 @@ export declare class AlterColumn<NAME extends string, TYPE extends TypeString> e
 }
 declare class AlterColumnSubStatement extends Statement {
     private readonly compiled;
+    private readonly vars?;
+    /**
+     * Warning: Do not use this outside of migrations
+     */
     static setDefault<TYPE extends TypeString>(value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>): AlterColumnSubStatement;
     static setNotNull(): AlterColumnSubStatement;
     private constructor();

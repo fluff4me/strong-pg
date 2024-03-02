@@ -23,7 +23,7 @@ class CreateIndex extends Statement_1.default {
         return this;
     }
     expression(initialiser) {
-        this.columns.push(Expression_1.default.stringify(initialiser));
+        this.columns.push(Expression_1.default.compile(initialiser).text);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }

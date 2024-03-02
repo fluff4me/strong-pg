@@ -31,7 +31,7 @@ var DataTypeID;
     // special
     DataTypeID[DataTypeID["TSVECTOR"] = 20] = "TSVECTOR";
     DataTypeID[DataTypeID["JSON"] = 21] = "JSON";
-})(DataTypeID = exports.DataTypeID || (exports.DataTypeID = {}));
+})(DataTypeID || (exports.DataTypeID = DataTypeID = {}));
 var DataType;
 (function (DataType) {
     // numeric
@@ -90,7 +90,7 @@ var DataType;
     // special
     DataType.TSVECTOR = "TSVECTOR";
     DataType.JSON = "JSON";
-})(DataType = exports.DataType || (exports.DataType = {}));
+})(DataType || (exports.DataType = DataType = {}));
 exports.SYMBOL_COLUMNS = Symbol("COLUMNS");
 var TypeString;
 (function (TypeString) {
@@ -100,11 +100,11 @@ var TypeString;
         return typeString;
     }
     TypeString.resolve = resolve;
-})(TypeString = exports.TypeString || (exports.TypeString = {}));
+})(TypeString || (exports.TypeString = TypeString = {}));
 var Keyword;
 (function (Keyword) {
     Keyword.CurrentTimestamp = Symbol("CURRENT_TIMESTAMP");
-})(Keyword = exports.Keyword || (exports.Keyword = {}));
+})(Keyword || (exports.Keyword = Keyword = {}));
 let ansicolor;
 function color(color, text) {
     if (!ansicolor) {
@@ -214,4 +214,4 @@ var StackUtil;
         return get(skip)?.[0].getFileName() ?? undefined;
     }
     StackUtil.getCallerFile = getCallerFile;
-})(StackUtil = exports.StackUtil || (exports.StackUtil = {}));
+})(StackUtil || (exports.StackUtil = StackUtil = {}));

@@ -3,8 +3,9 @@ interface SpecialKeys<SCHEMA> {
     PRIMARY_KEY?: keyof SCHEMA | (keyof SCHEMA)[];
 }
 type SchemaBase = Record<string, TypeString>;
+export type TableSchema = Record<string, any>;
 export interface DatabaseSchema {
-    tables: Record<string, Record<string, any>>;
+    tables: Record<string, TableSchema>;
     indices: Record<string, {}>;
     enums: Record<string, string[]>;
     triggers: Record<string, {}>;
@@ -26,7 +27,7 @@ export declare namespace DatabaseSchema {
     type TriggerName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["triggers"] & string;
     type FunctionName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["functions"] & string;
     type CollationName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["collations"] & string;
-    type Table<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> = SCHEMA["tables"][NAME];
+    type Table<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> = SCHEMA["tables"][NAME] extends infer TABLE ? TABLE extends TableSchema ? TABLE : never : never;
     type Enum<SCHEMA extends DatabaseSchema, NAME extends EnumName<SCHEMA>> = SCHEMA["enums"][NAME] & string[];
 }
 type ValidateTableSchema<SCHEMA> = SpecialKeys<SCHEMA> extends infer SPECIAL_DATA ? keyof SPECIAL_DATA extends infer SPECIAL_KEYS ? Exclude<keyof SCHEMA, SPECIAL_KEYS> extends infer KEYS ? Pick<SCHEMA, KEYS & keyof SCHEMA> extends infer SCHEMA_CORE ? Pick<SCHEMA, SPECIAL_KEYS & keyof SCHEMA> extends infer SCHEMA_SPECIAL ? SCHEMA_CORE extends SchemaBase ? SCHEMA_SPECIAL extends SPECIAL_DATA ? SCHEMA : "Unknown or invalid special keys in schema" : "Invalid column types" : never : never : never : never : never;

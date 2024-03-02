@@ -1,5 +1,9 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+const Statement_1 = __importDefault(require("../statements/Statement"));
 class Expression {
     /**
      * Warning: Do not use outside of migrations
@@ -25,13 +29,15 @@ class Expression {
                 return `${value}`;
         }
     }
-    static stringify(initialiser) {
-        const expr = new Expression();
+    static compile(initialiser, enableStringConcatenation = false) {
+        const expr = new Expression(undefined, enableStringConcatenation);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         initialiser(expr);
-        return expr.compile();
+        return new Statement_1.default.Queryable(expr.compile(), undefined, expr.vars);
     }
-    constructor() {
+    constructor(vars, enableStringConcatenation = false) {
+        this.vars = vars;
+        this.enableStringConcatenation = enableStringConcatenation;
         this.parts = [];
     }
     compile() {
@@ -73,9 +79,14 @@ class Expression {
         this.parts.push(() => {
             let result;
             if (typeof value === "function") {
-                const expr = new Expression();
+                const expr = new Expression(this.vars, this.enableStringConcatenation);
                 value(expr);
                 result = `(${expr.compile()})`;
+            }
+            else if (typeof value === "string" && !this.enableStringConcatenation) {
+                this.vars ?? (this.vars = []);
+                this.vars.push(value);
+                result = `$${this.vars.length}`;
             }
             else {
                 result = Expression.stringifyValue(value);
