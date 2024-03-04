@@ -122,7 +122,7 @@ class CreateColumnSubStatement extends Statement_1.default {
      */
     static setDefault(value) {
         const expr = typeof value === "function" ? Expression_1.default.compile(value) : undefined;
-        const stringifiedValue = expr?.text ?? Expression_1.default.stringifyValue(value);
+        const stringifiedValue = expr?.text ?? Expression_1.default.stringifyValueRaw(value);
         return new CreateColumnSubStatement(`DEFAULT (${stringifiedValue})`, expr?.values);
     }
     static setNotNull() {
@@ -167,7 +167,7 @@ class AlterColumnSubStatement extends Statement_1.default {
      */
     static setDefault(value) {
         const expr = typeof value === "function" ? Expression_1.default.compile(value) : undefined;
-        const stringifiedValue = expr?.text ?? Expression_1.default.stringifyValue(value);
+        const stringifiedValue = expr?.text ?? Expression_1.default.stringifyValueRaw(value);
         return new AlterColumnSubStatement(`SET DEFAULT (${stringifiedValue})`, expr?.values);
     }
     static setNotNull() {

@@ -1,4 +1,4 @@
-import { DataTypeID, EnumToTuple, TypeString, TypeStringMap } from "./IStrongPG";
+import { DataTypeID, EnumToTuple, InputTypeFromString, OutputTypeFromString, TypeString, TypeStringMap } from "./IStrongPG";
 interface SpecialKeys<SCHEMA> {
     PRIMARY_KEY?: keyof SCHEMA | (keyof SCHEMA)[];
 }
@@ -77,6 +77,12 @@ declare namespace Schema {
     };
     export type Columns<SCHEMA> = {
         [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN]: SCHEMA[COLUMN];
+    };
+    export type RowOutput<SCHEMA> = {
+        [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN]: OutputTypeFromString<Extract<SCHEMA[COLUMN], TypeString>>;
+    };
+    export type RowInput<SCHEMA> = {
+        [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN]: InputTypeFromString<Extract<SCHEMA[COLUMN], TypeString>>;
     };
     type Vaguify<T> = T extends TypeStringMap[DataTypeID.BIGINT] ? TypeStringMap[DataTypeID.BIGINT] | TypeStringMap[DataTypeID.BIGSERIAL] : T;
     export {};

@@ -5,10 +5,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Statement_1 = __importDefault(require("../statements/Statement"));
 class Expression {
+    static stringifyValue(value, vars, enableStringConcatenation = false) {
+        let result;
+        if (typeof value === "function") {
+            const expr = new Expression(vars, enableStringConcatenation);
+            value(expr);
+            result = `(${expr.compile()})`;
+        }
+        else if (typeof value === "string" && !enableStringConcatenation) {
+            vars ?? (vars = []);
+            vars.push(value);
+            result = `$${vars.length}`;
+        }
+        else {
+            result = Expression.stringifyValueRaw(value);
+        }
+        return result;
+    }
     /**
      * Warning: Do not use outside of migrations
      */
-    static stringifyValue(value) {
+    static stringifyValueRaw(value) {
         switch (typeof value) {
             case "string":
                 return `'${value}'`;
@@ -29,8 +46,8 @@ class Expression {
                 return `${value}`;
         }
     }
-    static compile(initialiser, enableStringConcatenation = false) {
-        const expr = new Expression(undefined, enableStringConcatenation);
+    static compile(initialiser, enableStringConcatenation = false, vars) {
+        const expr = new Expression(vars, enableStringConcatenation);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         initialiser(expr);
         return new Statement_1.default.Queryable(expr.compile(), undefined, expr.vars);
@@ -77,21 +94,8 @@ class Expression {
     // Values
     value(value, mapper) {
         this.parts.push(() => {
-            let result;
-            if (typeof value === "function") {
-                const expr = new Expression(this.vars, this.enableStringConcatenation);
-                value(expr);
-                result = `(${expr.compile()})`;
-            }
-            else if (typeof value === "string" && !this.enableStringConcatenation) {
-                this.vars ?? (this.vars = []);
-                this.vars.push(value);
-                result = `$${this.vars.length}`;
-            }
-            else {
-                result = Expression.stringifyValue(value);
-            }
-            return mapper ? mapper(result) : result;
+            const stringified = Expression.stringifyValue(value, this.vars, this.enableStringConcatenation);
+            return mapper ? mapper(stringified) : stringified;
         });
         return this;
     }

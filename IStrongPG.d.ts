@@ -1,4 +1,5 @@
 /// <reference types="node" />
+import { ExpressionOr } from "./expressions/Expression";
 export type Type = DataTypeID;
 export declare enum DataTypeID {
     SMALLINT = 0,
@@ -65,7 +66,7 @@ export declare namespace DataType {
     function VARCHAR(length?: number): TypeStringMap[DataTypeID.VARCHAR];
     const BYTECHAR: TypeStringMap[DataTypeID.BYTECHAR];
     function BIT(length: number): `BIT(${bigint})`;
-    function VARBIT(length?: number): `BIT VARYING(${bigint})` | "BIT VARYING";
+    function VARBIT(length?: number): "BIT VARYING" | `BIT VARYING(${bigint})`;
     const TEXT: TypeStringMap[DataTypeID.TEXT];
     function ENUM<NAME extends string>(name: NAME): Enum<NAME>;
     type Enum<NAME extends string> = `ENUM(${NAME})`;
@@ -79,7 +80,7 @@ export type DataTypeFromString<STR extends TypeString> = {
     [DATATYPE in DataTypeID as STR extends TypeStringMap[DATATYPE] ? DATATYPE : never]: DATATYPE;
 } extends infer DATATYPE_RESULT ? DATATYPE_RESULT[keyof DATATYPE_RESULT] & DataTypeID : never;
 export type ValidDate = Date | number | typeof Keyword.CurrentTimestamp;
-export interface TypeMap {
+export interface MigrationTypeMap {
     [DataTypeID.SMALLINT]: number;
     [DataTypeID.INTEGER]: number;
     [DataTypeID.BIGINT]: number;
@@ -101,11 +102,21 @@ export interface TypeMap {
     [DataTypeID.ENUM]: string;
     [DataTypeID.BOOLEAN]: boolean;
     [DataTypeID.TSVECTOR]: null;
+    [DataTypeID.JSON]: null;
+}
+export interface InputTypeMap extends Omit<MigrationTypeMap, DataTypeID.JSON> {
     [DataTypeID.JSON]: any;
+}
+export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | DataTypeID.TIMESTAMP | DataTypeID.TIME> {
+    [DataTypeID.DATE]: Date;
+    [DataTypeID.TIMESTAMP]: Date;
+    [DataTypeID.TIME]: Date;
 }
 export type ValidType = string | boolean | number | symbol | Date | RegExp | undefined | null;
 export declare const SYMBOL_COLUMNS: unique symbol;
-export type TypeFromString<STR extends TypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : TypeMap[DataTypeFromString<STR>];
+export type MigrationTypeFromString<STR extends TypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : MigrationTypeMap[DataTypeFromString<STR>];
+export type InputTypeFromString<STR extends TypeString, VARS = {}> = STR extends "*" ? typeof SYMBOL_COLUMNS : ExpressionOr<VARS, InputTypeMap[DataTypeFromString<STR>]>;
+export type OutputTypeFromString<STR extends TypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : OutputTypeMap[DataTypeFromString<STR>];
 export declare namespace TypeString {
     function resolve(typeString: TypeString): string;
 }

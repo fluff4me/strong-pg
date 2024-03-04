@@ -1,5 +1,5 @@
 import { ExpressionInitialiser } from "../../expressions/Expression";
-import { Initialiser, TypeFromString, TypeString } from "../../IStrongPG";
+import { Initialiser, MigrationTypeFromString, TypeString } from "../../IStrongPG";
 import Schema, { DatabaseSchema } from "../../Schema";
 import Statement from "../Statement";
 export type AlterTableInitialiser<DB extends DatabaseSchema, SCHEMA_START, SCHEMA_END> = Initialiser<AlterTable<DB, SCHEMA_START>, AlterTable<DB, SCHEMA_START, SCHEMA_END>>;
@@ -22,7 +22,7 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
     protected compileOperation(operation: string): string;
 }
 export declare class CreateColumn<DB extends DatabaseSchema, TYPE extends TypeString> extends Statement.Super<CreateColumnSubStatement> {
-    default(value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>): this;
+    default(value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>): this;
     notNull(): this;
     collate(collation: DatabaseSchema.CollationName<DB>): number;
     protected compileOperation(operation: string): string;
@@ -33,7 +33,7 @@ declare class CreateColumnSubStatement extends Statement {
     /**
      * Warning: Do not use this outside of migrations
      */
-    static setDefault<TYPE extends TypeString>(value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>): CreateColumnSubStatement;
+    static setDefault<TYPE extends TypeString>(value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>): CreateColumnSubStatement;
     static setNotNull(): CreateColumnSubStatement;
     static setCollation(collation: string): CreateColumnSubStatement;
     private constructor();
@@ -42,7 +42,7 @@ declare class CreateColumnSubStatement extends Statement {
 export declare class AlterColumn<NAME extends string, TYPE extends TypeString> extends Statement.Super<AlterColumnSubStatement> {
     name: NAME;
     constructor(name: NAME);
-    default(value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>): this;
+    default(value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>): this;
     notNull(): this;
     protected compileOperation(operation: string): string;
 }
@@ -52,7 +52,7 @@ declare class AlterColumnSubStatement extends Statement {
     /**
      * Warning: Do not use this outside of migrations
      */
-    static setDefault<TYPE extends TypeString>(value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>): AlterColumnSubStatement;
+    static setDefault<TYPE extends TypeString>(value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>): AlterColumnSubStatement;
     static setNotNull(): AlterColumnSubStatement;
     private constructor();
     compile(): Statement.Queryable[];
