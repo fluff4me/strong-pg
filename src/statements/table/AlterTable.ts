@@ -1,5 +1,5 @@
 import Expression, { ExpressionInitialiser } from "../../expressions/Expression";
-import { Initialiser, TypeFromString, TypeString } from "../../IStrongPG";
+import { Initialiser, MigrationTypeFromString, TypeString } from "../../IStrongPG";
 import Schema, { DatabaseSchema } from "../../Schema";
 import Statement from "../Statement";
 
@@ -129,7 +129,7 @@ class AlterTableSubStatement extends Statement {
 // }
 
 export class CreateColumn<DB extends DatabaseSchema, TYPE extends TypeString> extends Statement.Super<CreateColumnSubStatement> {
-	public default (value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>) {
+	public default (value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>) {
 		return this.addStandaloneOperation(CreateColumnSubStatement.setDefault(value));
 	}
 
@@ -151,9 +151,9 @@ class CreateColumnSubStatement extends Statement {
 	/**
 	 * Warning: Do not use this outside of migrations
 	 */
-	public static setDefault<TYPE extends TypeString> (value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>) {
+	public static setDefault<TYPE extends TypeString> (value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>) {
 		const expr = typeof value === "function" ? Expression.compile(value) : undefined;
-		const stringifiedValue = expr?.text ?? Expression.stringifyValue(value as TypeFromString<TYPE>);
+		const stringifiedValue = expr?.text ?? Expression.stringifyValueRaw(value as MigrationTypeFromString<TYPE>);
 		return new CreateColumnSubStatement(`DEFAULT (${stringifiedValue})`, expr?.values);
 	}
 
@@ -187,7 +187,7 @@ export class AlterColumn<NAME extends string, TYPE extends TypeString> extends S
 	// 	return this;
 	// }
 
-	public default (value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>) {
+	public default (value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>) {
 		return this.addStandaloneOperation(AlterColumnSubStatement.setDefault(value));
 	}
 
@@ -204,9 +204,9 @@ class AlterColumnSubStatement extends Statement {
 	/**
 	 * Warning: Do not use this outside of migrations
 	 */
-	public static setDefault<TYPE extends TypeString> (value: TypeFromString<TYPE> | ExpressionInitialiser<{}, TypeFromString<TYPE>>) {
+	public static setDefault<TYPE extends TypeString> (value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>) {
 		const expr = typeof value === "function" ? Expression.compile(value) : undefined;
-		const stringifiedValue = expr?.text ?? Expression.stringifyValue(value as TypeFromString<TYPE>);
+		const stringifiedValue = expr?.text ?? Expression.stringifyValueRaw(value as MigrationTypeFromString<TYPE>);
 		return new AlterColumnSubStatement(`SET DEFAULT (${stringifiedValue})`, expr?.values);
 	}
 

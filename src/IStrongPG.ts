@@ -1,3 +1,5 @@
+import { ExpressionOr } from "./expressions/Expression";
+
 export type Type = DataTypeID;
 
 export enum DataTypeID {
@@ -139,7 +141,7 @@ export type DataTypeFromString<STR extends TypeString> =
 
 export type ValidDate = Date | number | typeof Keyword.CurrentTimestamp;
 
-export interface TypeMap {
+export interface MigrationTypeMap {
 	// numeric
 	[DataTypeID.SMALLINT]: number;
 	[DataTypeID.INTEGER]: number;
@@ -171,13 +173,27 @@ export interface TypeMap {
 
 	// special
 	[DataTypeID.TSVECTOR]: null;
+	[DataTypeID.JSON]: null;
+}
+
+export interface InputTypeMap extends Omit<MigrationTypeMap, DataTypeID.JSON> {
 	[DataTypeID.JSON]: any;
+}
+
+export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | DataTypeID.TIMESTAMP | DataTypeID.TIME> {
+	// datetime
+	[DataTypeID.DATE]: Date;
+	[DataTypeID.TIMESTAMP]: Date;
+	[DataTypeID.TIME]: Date;
+	// INTERVAL,
 }
 
 export type ValidType = string | boolean | number | symbol | Date | RegExp | undefined | null;
 
 export const SYMBOL_COLUMNS = Symbol("COLUMNS");
-export type TypeFromString<STR extends TypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : TypeMap[DataTypeFromString<STR>];
+export type MigrationTypeFromString<STR extends TypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : MigrationTypeMap[DataTypeFromString<STR>];
+export type InputTypeFromString<STR extends TypeString, VARS = {}> = STR extends "*" ? typeof SYMBOL_COLUMNS : ExpressionOr<VARS, InputTypeMap[DataTypeFromString<STR>]>;
+export type OutputTypeFromString<STR extends TypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : OutputTypeMap[DataTypeFromString<STR>];
 
 export namespace TypeString {
 	export function resolve (typeString: TypeString) {

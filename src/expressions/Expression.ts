@@ -1,4 +1,4 @@
-import { Initialiser, TypeFromString, TypeString, ValidType } from "../IStrongPG";
+import { Initialiser, MigrationTypeFromString, TypeString, ValidType } from "../IStrongPG";
 import Statement from "../statements/Statement";
 
 export interface ExpressionOperations<VARS = never, CURRENT_VALUE = null> {
@@ -8,7 +8,7 @@ export interface ExpressionOperations<VARS = never, CURRENT_VALUE = null> {
 	equals: ExpressionValue<VARS, CURRENT_VALUE, boolean>;
 	or: ExpressionValue<VARS, boolean, boolean>;
 	matches: CURRENT_VALUE extends string ? ExpressionValue<VARS, RegExp, boolean> : never;
-	as<TYPE extends TypeString> (type: TYPE): ExpressionOperations<VARS, TypeFromString<TYPE>>;
+	as<TYPE extends TypeString> (type: TYPE): ExpressionOperations<VARS, MigrationTypeFromString<TYPE>>;
 }
 
 export interface ExpressionValue<VARS = never, EXPECTED_VALUE = null, RESULT = null> {
@@ -18,7 +18,7 @@ export interface ExpressionValue<VARS = never, EXPECTED_VALUE = null, RESULT = n
 
 export interface ExpressionValues<VARS = never, VALUE = null, RESULT = null> {
 	value: ExpressionValue<VARS, VALUE, RESULT>;
-	var<VAR extends keyof VARS> (name: VAR): ExpressionOperations<VARS, TypeFromString<VARS[VAR] & TypeString>>;
+	var<VAR extends keyof VARS> (name: VAR): ExpressionOperations<VARS, MigrationTypeFromString<VARS[VAR] & TypeString>>;
 	lowercase: ExpressionValue<VARS, string, string>;
 	uppercase: ExpressionValue<VARS, string, string>;
 	nextValue (sequenceId: string): ExpressionOperations<VARS, number>;
@@ -27,14 +27,33 @@ export interface ExpressionValues<VARS = never, VALUE = null, RESULT = null> {
 
 export type ExpressionInitialiser<VARS, RESULT = any> = Initialiser<ExpressionValues<VARS, null, null>, ExpressionOperations<VARS, RESULT>>;
 
+export type ExpressionOr<VARS, T> = T | ExpressionInitialiser<VARS, T>;
+
 export type ImplementableExpression = { [KEY in keyof ExpressionValues | keyof ExpressionOperations]: any };
 
 export default class Expression<VARS = never> implements ImplementableExpression {
 
+	public static stringifyValue<VARS = never> (value: ExpressionOr<VARS, ValidType>, vars?: any[], enableStringConcatenation = false) {
+		let result: string;
+		if (typeof value === "function") {
+			const expr = new Expression(vars, enableStringConcatenation);
+			value(expr as any as ExpressionValues<VARS, null, null>);
+			result = `(${expr.compile()})`;
+		} else if (typeof value === "string" && !enableStringConcatenation) {
+			vars ??= [];
+			vars.push(value);
+			result = `$${vars.length}`;
+		} else {
+			result = Expression.stringifyValueRaw(value);
+		}
+
+		return result;
+	}
+
 	/**
 	 * Warning: Do not use outside of migrations
 	 */
-	public static stringifyValue (value: ValidType) {
+	public static stringifyValueRaw (value: ValidType) {
 		switch (typeof value) {
 			case "string":
 				return `'${value}'`;
@@ -61,8 +80,8 @@ export default class Expression<VARS = never> implements ImplementableExpression
 		}
 	}
 
-	public static compile (initialiser: ExpressionInitialiser<any, any>, enableStringConcatenation = false) {
-		const expr = new Expression(undefined, enableStringConcatenation);
+	public static compile (initialiser: ExpressionInitialiser<any, any>, enableStringConcatenation = false, vars?: any[]) {
+		const expr = new Expression(vars, enableStringConcatenation);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		initialiser(expr as any);
 		return new Statement.Queryable(expr.compile(), undefined, expr.vars);
@@ -121,20 +140,8 @@ export default class Expression<VARS = never> implements ImplementableExpression
 
 	public value (value: ValidType | Initialiser<Expression>, mapper?: (value: string) => string) {
 		this.parts.push(() => {
-			let result: string;
-			if (typeof value === "function") {
-				const expr = new Expression(this.vars, this.enableStringConcatenation);
-				value(expr);
-				result = `(${expr.compile()})`;
-			} else if (typeof value === "string" && !this.enableStringConcatenation) {
-				this.vars ??= [];
-				this.vars.push(value);
-				result = `$${this.vars.length}`;
-			} else {
-				result = Expression.stringifyValue(value);
-			}
-
-			return mapper ? mapper(result) : result;
+			const stringified = Expression.stringifyValue(value as ValidType | ExpressionInitialiser<VARS>, this.vars, this.enableStringConcatenation);
+			return mapper ? mapper(stringified) : stringified;
 		});
 
 		return this;
