@@ -1,5 +1,7 @@
 import { Pool, PoolClient, QueryResult } from "pg";
+import util from "util";
 import { StackUtil } from "../IStrongPG";
+import log, { color } from "../Log";
 import Transaction from "../Transaction";
 
 abstract class Statement<RESULT = void> {
@@ -17,8 +19,14 @@ abstract class Statement<RESULT = void> {
 	public query (pool: Pool | PoolClient) {
 		let result: QueryResult;
 		return Statement.Transaction.execute(pool, async client => {
-			for (const statement of this.compile())
-				result = await pool.query(statement);
+			for (const statement of this.compile()) {
+				log("  > ", color("darkGray", statement.text));
+				if (statement.values?.length)
+					for (let i = 0; i < statement.values.length; i++)
+						log(`    ${color("lightYellow", `$${i + 1}`)}${color("darkGray", ":")} `, util.inspect(statement.values[i], undefined, Infinity, true));
+
+				result = await client.query(statement);
+			}
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 			return this.resolveQueryOutput(result);
 		});

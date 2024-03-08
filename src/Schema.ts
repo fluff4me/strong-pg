@@ -133,6 +133,26 @@ class Schema {
 	public static primaryKey<KEYS extends string[]> (...keys: KEYS): KEYS[number][] {
 		return keys;
 	}
+
+	public static getSingleColumnPrimaryKey<SCHEMA extends TableSchema> (schema: SCHEMA) {
+		const primaryKey = schema["PRIMARY_KEY"] as Schema.Column<SCHEMA>[] | undefined;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+		// const primaryKey = ?.[0];
+		if (!primaryKey || primaryKey.length !== 1)
+			throw new Error("No primary key or primary key is multiple columns");
+
+		return primaryKey[0];
+	}
+
+	public static isColumn<SCHEMA extends TableSchema> (schema: SCHEMA, column: keyof SCHEMA, type: TypeString) {
+		const columnType = schema[column] as TypeString;
+		switch (type) {
+			case "TIMESTAMP":
+				return columnType.startsWith("TIMESTAMP");
+			default:
+				return columnType === type;
+		}
+	}
 }
 
 export default Schema;
@@ -154,7 +174,7 @@ namespace Schema {
 		keyof { [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : SCHEMA[COLUMN] extends Vaguify<TYPE> ? COLUMN : never]: SCHEMA[COLUMN] };
 	export type Columns<SCHEMA> = { [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN]: SCHEMA[COLUMN] };
 	export type RowOutput<SCHEMA> = { [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN]: OutputTypeFromString<Extract<SCHEMA[COLUMN], TypeString>> };
-	export type RowInput<SCHEMA> = { [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN]: InputTypeFromString<Extract<SCHEMA[COLUMN], TypeString>> };
+	export type RowInput<SCHEMA, VARS = {}> = { [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN]: InputTypeFromString<Extract<SCHEMA[COLUMN], TypeString>, VARS> };
 
 	type Vaguify<T> = T extends TypeStringMap[DataTypeID.BIGINT] ? TypeStringMap[DataTypeID.BIGINT] | TypeStringMap[DataTypeID.BIGSERIAL]
 		: T;

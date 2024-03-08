@@ -1,25 +1,9 @@
 import { DatabaseError, Pool, PoolClient } from "pg";
 import { StackUtil } from "./IStrongPG";
+import log, { color } from "./Log";
 import Migration, { MigrationVersion } from "./Migration";
 import { DatabaseSchema } from "./Schema";
 import Transaction from "./Transaction";
-
-let ansicolor: typeof import("ansicolor") | undefined;
-function color (color: keyof typeof import("ansicolor"), text: string) {
-	if (!ansicolor) {
-		try {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			ansicolor = require("ansicolor");
-			// eslint-disable-next-line no-empty
-		} catch { }
-
-		if (!ansicolor)
-			return text;
-	}
-
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-	return (ansicolor as any)[color](text) as string;
-}
 
 export class History<SCHEMA extends DatabaseSchema | null = null> {
 
@@ -60,18 +44,18 @@ export class History<SCHEMA extends DatabaseSchema | null = null> {
 			return -1;
 
 		const targetVersion = commits[commits.length - 1].version!;
-		this.log(color("lightYellow", `Found migrations up to v${targetVersion}`));
+		log(color("lightYellow", `Found migrations up to v${targetVersion}`));
 
 		let migratedVersion: MigrationVersion | undefined;
 		let migratedCommitIndex: number | undefined;
 		let rolledBack = false;
 		for (let i = startCommitIndex + 1; i < commits.length; i++) {
 			const commit = commits[i];
-			this.log(`Beginning migration ${commit.version!} ${commit.file ? color("lightBlue", commit.file) : ""}`);
+			log(`Beginning migration ${commit.version!} ${commit.file ? color("lightBlue", commit.file) : ""}`);
 
 			const statements = commit.compile();
 			if (!statements.length) {
-				this.log("Migration contains no statements");
+				log("Migration contains no statements");
 				continue;
 			}
 
@@ -79,7 +63,7 @@ export class History<SCHEMA extends DatabaseSchema | null = null> {
 			try {
 				await Transaction.execute(pool, async client => {
 					for (const statement of statements) {
-						this.log("  >", color("darkGray", statement.text));
+						log("  > ", color("darkGray", statement.text));
 						stack = statement.stack;
 						await client.query(statement);
 					}
@@ -90,7 +74,7 @@ export class History<SCHEMA extends DatabaseSchema | null = null> {
 			} catch (e) {
 				const err = e as DatabaseError;
 				const formattedStack = stack?.format();
-				this.log([
+				log([
 					`${color("lightRed", `Encountered an error: ${err.message[0].toUpperCase()}${err.message.slice(1)}`)}`,
 					err.hint ? `\n  ${err.hint}` : "",
 					formattedStack ? `\n${formattedStack}` : "",
@@ -104,44 +88,15 @@ export class History<SCHEMA extends DatabaseSchema | null = null> {
 		const version = commits[commitIndex].version!;
 
 		if (migratedVersion === undefined && !rolledBack) {
-			this.log(color("lightGreen", `Already on v${version}, no migrations necessary`));
+			log(color("lightGreen", `Already on v${version}, no migrations necessary`));
 			return startCommitIndex;
 		}
 
 		if (migratedVersion !== undefined)
 			await pool.query("INSERT INTO migrations VALUES ($1, $2)", [startCommitIndex, migratedCommitIndex]);
 
-		this.log(color(rolledBack ? "lightYellow" : "lightGreen", `${rolledBack ? "Rolled back" : "Migrated"} to v${version}`));
+		log(color(rolledBack ? "lightYellow" : "lightGreen", `${rolledBack ? "Rolled back" : "Migrated"} to v${version}`));
 
 		return commitIndex;
-	}
-
-	private log (text: string): void;
-	private log (prefix: string, text: string): void;
-	private log (prefix: string, text?: string) {
-		if (!process.env.DEBUG_PG)
-			return;
-
-		if (text === undefined)
-			text = prefix, prefix = "";
-
-		prefix = prefix ? prefix.slice(0, 20).trimEnd() + " " : prefix; // cap prefix length at 20
-
-		const maxLineLength = 150 - prefix.length;
-		text = text.split("\n")
-			.flatMap(line => {
-				const lines = [];
-				while (line.length > maxLineLength) {
-					lines.push(line.slice(0, maxLineLength));
-					line = line.slice(maxLineLength);
-				}
-				lines.push(line.trimEnd());
-				return lines;
-			})
-			.filter(line => line)
-			.map((line, i) => i ? line.padStart(line.length + prefix.length, " ") : `${prefix}${line}`)
-			.join("\n");
-
-		console.log(text);
 	}
 }

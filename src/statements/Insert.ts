@@ -1,5 +1,5 @@
 import { QueryResult } from "pg";
-import { Initialiser, InputTypeFromString, Value } from "../IStrongPG";
+import { Initialiser, InputTypeFromString, ValidType, Value } from "../IStrongPG";
 import Schema, { TableSchema } from "../Schema";
 import Expression from "../expressions/Expression";
 import Statement from "./Statement";
@@ -9,17 +9,24 @@ export interface InsertIntoTableFactory<SCHEMA extends TableSchema, COLUMNS exte
 	values (...values: { [I in keyof COLUMNS]: InputTypeFromString<SCHEMA[COLUMNS[I]]> }): InsertIntoTable<SCHEMA, COLUMNS>;
 }
 
-export default class InsertIntoTable<SCHEMA extends TableSchema, RESULT = []> extends Statement<RESULT> {
+export interface InsertIntoTableConflictActionFactory<SCHEMA extends TableSchema, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[], RESULT = []> {
+	doNothing (): InsertIntoTable<SCHEMA, COLUMNS, RESULT>;
+	doUpdate (initialiser: Initialiser<UpdateTable<SCHEMA, any, { [KEY in COLUMNS[number]as `EXCLUDED.${KEY & string}`]: SCHEMA[KEY] }>>): InsertIntoTable<SCHEMA, COLUMNS, RESULT>;
+}
+
+export default class InsertIntoTable<SCHEMA extends TableSchema, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[], RESULT = []> extends Statement<RESULT> {
 
 	public static columns<SCHEMA extends TableSchema, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[]> (tableName: string, schema: SCHEMA, columns: COLUMNS, isUpsert = false): InsertIntoTableFactory<SCHEMA, COLUMNS> {
+		const primaryKey = !isUpsert ? undefined : Schema.getSingleColumnPrimaryKey(schema);
+
 		return {
 			values: (...values: any[]) => {
 				const query = new InsertIntoTable<SCHEMA, COLUMNS>(tableName, schema, columns, values as never);
 				if (isUpsert) {
-					query.onConflictDoUpdate(update => {
+					query.onConflict(primaryKey!).doUpdate(update => {
 						for (let i = 0; i < columns.length; i++) {
-							// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-							update.set(columns[i], values[i]);
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+							update.set(columns[i], ((expr: any) => expr.var(`EXCLUDED.${String(columns[i])}`)) as never);
 						}
 					});
 				}
@@ -34,30 +41,42 @@ export default class InsertIntoTable<SCHEMA extends TableSchema, RESULT = []> ex
 		super();
 	}
 
-	private onConflict?: null | UpdateTable<SCHEMA, any>;
-	public onConflictDoNothing () {
-		this.onConflict = null;
-		return this;
-	}
-
-	public onConflictDoUpdate (initialiser: Initialiser<UpdateTable<SCHEMA, any>>) {
-		this.onConflict = new UpdateTable(undefined, this.schema, this.vars);
-		initialiser(this.onConflict);
-		return this;
+	private conflictTarget?: Schema.Column<SCHEMA>[];
+	private conflictAction?: null | UpdateTable<SCHEMA, any>;
+	public onConflict (...columns: Schema.Column<SCHEMA>[]): InsertIntoTableConflictActionFactory<SCHEMA, COLUMNS, RESULT> {
+		this.conflictTarget = columns;
+		return {
+			doNothing: () => {
+				this.conflictAction = null;
+				return this;
+			},
+			doUpdate: initialiser => {
+				this.conflictAction = new UpdateTable(undefined, this.schema, this.vars);
+				initialiser(this.conflictAction);
+				return this;
+			},
+		}
 	}
 
 	public compile () {
-		const values = this.values.map(value => Expression.stringifyValue(value, this.vars)).join(",");
-		let onConflict = this.onConflict === undefined ? " "
-			: this.onConflict === null ? "ON CONFLICT DO NOTHING"
+		const values = this.values.map((value: ValidType, i) => {
+			const column = this.columns[i];
+			if (Schema.isColumn(this.schema, column, "TIMESTAMP") && typeof value === "number")
+				value = new Date(value);
+			return Expression.stringifyValue(value, this.vars);
+		}).join(",");
+
+		const conflictTarget = this.conflictTarget?.length ? `(${this.conflictTarget.join(",")})` : "";
+		let conflictAction = this.conflictAction === undefined ? " "
+			: this.conflictAction === null ? `ON CONFLICT ${conflictTarget} DO NOTHING`
 				: undefined;
 
-		if (this.onConflict) {
-			const compiled = this.onConflict.compile()[0];
-			onConflict = `ON CONFLICT DO ${compiled.text}`;
+		if (this.conflictAction) {
+			const compiled = this.conflictAction.compile()[0];
+			conflictAction = `ON CONFLICT ${conflictTarget} DO ${compiled.text}`;
 		}
 
-		return this.queryable(`INSERT INTO ${this.tableName} (${this.columns.join(",")}) VALUES (${values}) ${onConflict!}`, undefined, this.vars);
+		return this.queryable(`INSERT INTO ${this.tableName} (${this.columns.join(",")}) VALUES (${values}) ${conflictAction!}`, undefined, this.vars);
 	}
 
 	protected override resolveQueryOutput (output: QueryResult<any>) {

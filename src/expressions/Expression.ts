@@ -33,21 +33,26 @@ export type ImplementableExpression = { [KEY in keyof ExpressionValues | keyof E
 
 export default class Expression<VARS = never> implements ImplementableExpression {
 
-	public static stringifyValue<VARS = never> (value: ExpressionOr<VARS, ValidType>, vars?: any[], enableStringConcatenation = false) {
-		let result: string;
+	public static stringifyValue<VARS = never> (value: ExpressionOr<VARS, ValidType>, vars: any[], enableStringConcatenation = false) {
 		if (typeof value === "function") {
 			const expr = new Expression(vars, enableStringConcatenation);
 			value(expr as any as ExpressionValues<VARS, null, null>);
-			result = `(${expr.compile()})`;
-		} else if (typeof value === "string" && !enableStringConcatenation) {
-			vars ??= [];
-			vars.push(value);
-			result = `$${vars.length}`;
-		} else {
-			result = Expression.stringifyValueRaw(value);
+			return `(${expr.compile()})`;
 		}
 
-		return result;
+		const shouldPassAsVariable = false
+			|| (typeof value === "string" && !enableStringConcatenation)
+			|| (value && typeof value === "object" && !(value instanceof Date) && !(value instanceof RegExp));
+		if (!shouldPassAsVariable)
+			return Expression.stringifyValueRaw(value);
+
+		const index = vars.indexOf(value);
+		if (index !== undefined && index !== -1)
+			// already in vars
+			return `$${index + 1}`;
+
+		vars.push(value);
+		return `$${vars.length}`;
 	}
 
 	/**
@@ -73,7 +78,7 @@ export default class Expression<VARS = never> implements ImplementableExpression
 				else if (value instanceof RegExp)
 					return `'${value.source.replace(/'/g, "''")}'`;
 				else
-					return value.toISOString();
+					return `'${value.toISOString()}'`;
 
 			case "number":
 				return `${value}`;
@@ -81,7 +86,7 @@ export default class Expression<VARS = never> implements ImplementableExpression
 	}
 
 	public static compile (initialiser: ExpressionInitialiser<any, any>, enableStringConcatenation = false, vars?: any[]) {
-		const expr = new Expression(vars, enableStringConcatenation);
+		const expr = new Expression(vars ?? [], enableStringConcatenation);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		initialiser(expr as any);
 		return new Statement.Queryable(expr.compile(), undefined, expr.vars);
@@ -89,7 +94,7 @@ export default class Expression<VARS = never> implements ImplementableExpression
 
 	public readonly parts: (() => string)[] = [];
 
-	private constructor (public vars?: any[], private readonly enableStringConcatenation = false) { }
+	private constructor (public vars: any[], private readonly enableStringConcatenation = false) { }
 
 	public compile () {
 		return this.parts.map(part => part()).join("");

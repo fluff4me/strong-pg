@@ -13,14 +13,14 @@ export default class Table<SCHEMA extends TableSchema> {
 	 */
 	public select (): SelectFromTable<SCHEMA, "*"[]>;
 	/**
+	 * SELECT columns
+	 */
+	public select<COLUMNS extends Schema.Column<SCHEMA>[]> (...columns: COLUMNS): SelectFromTable<SCHEMA, COLUMNS>;
+	/**
 	 * SELECT *
 	 * ...then provide an initialiser for tweaking the query
 	 */
 	public select<RETURN extends SelectFromTable<SCHEMA, "*"[], any> = SelectFromTable<SCHEMA, "*"[]>> (initialiser: Initialiser<SelectFromTable<SCHEMA, "*"[]>, RETURN>): RETURN;
-	/**
-	 * SELECT columns
-	 */
-	public select<COLUMNS extends Schema.Column<SCHEMA>[]> (...columns: COLUMNS): SelectFromTable<SCHEMA, COLUMNS>;
 	/**
 	 * SELECT columns
 	 * ...then provide an initialiser for tweaking the query
@@ -28,6 +28,9 @@ export default class Table<SCHEMA extends TableSchema> {
 	public select<COLUMNS extends Schema.Column<SCHEMA>[], RETURN extends SelectFromTable<SCHEMA, COLUMNS, any>> (...columnsAndInitialiser: [...COLUMNS, Initialiser<SelectFromTable<SCHEMA, COLUMNS>, RETURN>]): RETURN;
 	public select (...params: (Schema.Column<SCHEMA> | "*" | Initialiser<SelectFromTable<SCHEMA>> | Initialiser<SelectFromTable<SCHEMA, "*"[]>>)[]): SelectFromTable<SCHEMA, Schema.Column<SCHEMA>[]> | SelectFromTable<SCHEMA, "*"[]> {
 		const initialiser = typeof params[params.length - 1] === "function" ? params.pop() as Initialiser<SelectFromTable<SCHEMA>> : undefined;
+		if (params.length === 0)
+			params.push("*");
+
 		const query = new SelectFromTable<SCHEMA>(this.name, this.schema, params as Schema.Column<SCHEMA>[]);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return initialiser?.(query) ?? query;
