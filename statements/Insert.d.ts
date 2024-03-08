@@ -8,7 +8,13 @@ export interface InsertIntoTableFactory<SCHEMA extends TableSchema, COLUMNS exte
         [I in keyof COLUMNS]: InputTypeFromString<SCHEMA[COLUMNS[I]]>;
     }): InsertIntoTable<SCHEMA, COLUMNS>;
 }
-export default class InsertIntoTable<SCHEMA extends TableSchema, RESULT = []> extends Statement<RESULT> {
+export interface InsertIntoTableConflictActionFactory<SCHEMA extends TableSchema, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[], RESULT = []> {
+    doNothing(): InsertIntoTable<SCHEMA, COLUMNS, RESULT>;
+    doUpdate(initialiser: Initialiser<UpdateTable<SCHEMA, any, {
+        [KEY in COLUMNS[number] as `EXCLUDED.${KEY & string}`]: SCHEMA[KEY];
+    }>>): InsertIntoTable<SCHEMA, COLUMNS, RESULT>;
+}
+export default class InsertIntoTable<SCHEMA extends TableSchema, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[], RESULT = []> extends Statement<RESULT> {
     readonly tableName: string;
     readonly schema: SCHEMA;
     readonly columns: Schema.Column<SCHEMA>[];
@@ -16,9 +22,9 @@ export default class InsertIntoTable<SCHEMA extends TableSchema, RESULT = []> ex
     static columns<SCHEMA extends TableSchema, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[]>(tableName: string, schema: SCHEMA, columns: COLUMNS, isUpsert?: boolean): InsertIntoTableFactory<SCHEMA, COLUMNS>;
     private vars;
     constructor(tableName: string, schema: SCHEMA, columns: Schema.Column<SCHEMA>[], values: Value<Schema.RowInput<SCHEMA>>[]);
-    private onConflict?;
-    onConflictDoNothing(): this;
-    onConflictDoUpdate(initialiser: Initialiser<UpdateTable<SCHEMA, any>>): this;
+    private conflictTarget?;
+    private conflictAction?;
+    onConflict(...columns: Schema.Column<SCHEMA>[]): InsertIntoTableConflictActionFactory<SCHEMA, COLUMNS, RESULT>;
     compile(): Statement.Queryable[];
     protected resolveQueryOutput(output: QueryResult<any>): RESULT;
 }

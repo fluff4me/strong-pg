@@ -6,21 +6,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Statement_1 = __importDefault(require("../statements/Statement"));
 class Expression {
     static stringifyValue(value, vars, enableStringConcatenation = false) {
-        let result;
         if (typeof value === "function") {
             const expr = new Expression(vars, enableStringConcatenation);
             value(expr);
-            result = `(${expr.compile()})`;
+            return `(${expr.compile()})`;
         }
-        else if (typeof value === "string" && !enableStringConcatenation) {
-            vars ?? (vars = []);
-            vars.push(value);
-            result = `$${vars.length}`;
-        }
-        else {
-            result = Expression.stringifyValueRaw(value);
-        }
-        return result;
+        const shouldPassAsVariable = false
+            || (typeof value === "string" && !enableStringConcatenation)
+            || (value && typeof value === "object" && !(value instanceof Date) && !(value instanceof RegExp));
+        if (!shouldPassAsVariable)
+            return Expression.stringifyValueRaw(value);
+        const index = vars.indexOf(value);
+        if (index !== undefined && index !== -1)
+            // already in vars
+            return `$${index + 1}`;
+        vars.push(value);
+        return `$${vars.length}`;
     }
     /**
      * Warning: Do not use outside of migrations
@@ -41,13 +42,13 @@ class Expression {
                 else if (value instanceof RegExp)
                     return `'${value.source.replace(/'/g, "''")}'`;
                 else
-                    return value.toISOString();
+                    return `'${value.toISOString()}'`;
             case "number":
                 return `${value}`;
         }
     }
     static compile(initialiser, enableStringConcatenation = false, vars) {
-        const expr = new Expression(vars, enableStringConcatenation);
+        const expr = new Expression(vars ?? [], enableStringConcatenation);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         initialiser(expr);
         return new Statement_1.default.Queryable(expr.compile(), undefined, expr.vars);

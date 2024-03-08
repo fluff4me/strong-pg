@@ -12,14 +12,14 @@ export default class Table<SCHEMA extends TableSchema> {
      */
     select(): SelectFromTable<SCHEMA, "*"[]>;
     /**
+     * SELECT columns
+     */
+    select<COLUMNS extends Schema.Column<SCHEMA>[]>(...columns: COLUMNS): SelectFromTable<SCHEMA, COLUMNS>;
+    /**
      * SELECT *
      * ...then provide an initialiser for tweaking the query
      */
     select<RETURN extends SelectFromTable<SCHEMA, "*"[], any> = SelectFromTable<SCHEMA, "*"[]>>(initialiser: Initialiser<SelectFromTable<SCHEMA, "*"[]>, RETURN>): RETURN;
-    /**
-     * SELECT columns
-     */
-    select<COLUMNS extends Schema.Column<SCHEMA>[]>(...columns: COLUMNS): SelectFromTable<SCHEMA, COLUMNS>;
     /**
      * SELECT columns
      * ...then provide an initialiser for tweaking the query

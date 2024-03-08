@@ -13,6 +13,8 @@ class Table {
     }
     select(...params) {
         const initialiser = typeof params[params.length - 1] === "function" ? params.pop() : undefined;
+        if (params.length === 0)
+            params.push("*");
         const query = new Select_1.default(this.name, this.schema, params);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return initialiser?.(query) ?? query;

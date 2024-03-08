@@ -60,6 +60,8 @@ declare class Schema {
     static readonly FUNCTION: (...args: any[]) => any;
     static readonly COLLATION: {};
     static primaryKey<KEYS extends string[]>(...keys: KEYS): KEYS[number][];
+    static getSingleColumnPrimaryKey<SCHEMA extends TableSchema>(schema: SCHEMA): Schema.Column<SCHEMA>;
+    static isColumn<SCHEMA extends TableSchema>(schema: SCHEMA, column: keyof SCHEMA, type: TypeString): boolean;
 }
 export default Schema;
 declare namespace Schema {
@@ -81,8 +83,8 @@ declare namespace Schema {
     export type RowOutput<SCHEMA> = {
         [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN]: OutputTypeFromString<Extract<SCHEMA[COLUMN], TypeString>>;
     };
-    export type RowInput<SCHEMA> = {
-        [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN]: InputTypeFromString<Extract<SCHEMA[COLUMN], TypeString>>;
+    export type RowInput<SCHEMA, VARS = {}> = {
+        [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN]: InputTypeFromString<Extract<SCHEMA[COLUMN], TypeString>, VARS>;
     };
     type Vaguify<T> = T extends TypeStringMap[DataTypeID.BIGINT] ? TypeStringMap[DataTypeID.BIGINT] | TypeStringMap[DataTypeID.BIGSERIAL] : T;
     export {};

@@ -27,9 +27,9 @@ export type ImplementableExpression = {
     [KEY in keyof ExpressionValues | keyof ExpressionOperations]: any;
 };
 export default class Expression<VARS = never> implements ImplementableExpression {
-    vars?: any[] | undefined;
+    vars: any[];
     private readonly enableStringConcatenation;
-    static stringifyValue<VARS = never>(value: ExpressionOr<VARS, ValidType>, vars?: any[], enableStringConcatenation?: boolean): string;
+    static stringifyValue<VARS = never>(value: ExpressionOr<VARS, ValidType>, vars: any[], enableStringConcatenation?: boolean): string;
     /**
      * Warning: Do not use outside of migrations
      */

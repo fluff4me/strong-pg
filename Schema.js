@@ -27,6 +27,23 @@ class Schema {
     static primaryKey(...keys) {
         return keys;
     }
+    static getSingleColumnPrimaryKey(schema) {
+        const primaryKey = schema["PRIMARY_KEY"];
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        // const primaryKey = ?.[0];
+        if (!primaryKey || primaryKey.length !== 1)
+            throw new Error("No primary key or primary key is multiple columns");
+        return primaryKey[0];
+    }
+    static isColumn(schema, column, type) {
+        const columnType = schema[column];
+        switch (type) {
+            case "TIMESTAMP":
+                return columnType.startsWith("TIMESTAMP");
+            default:
+                return columnType === type;
+        }
+    }
 }
 Schema.INDEX = {};
 Schema.TRIGGER = {};
