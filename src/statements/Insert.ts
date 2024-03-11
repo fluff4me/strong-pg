@@ -1,11 +1,12 @@
 import { QueryResult } from "pg";
-import { Initialiser, InputTypeFromString, ValidType, Value } from "../IStrongPG";
+import { Initialiser, InputTypeFromString, OutputTypeFromString, ValidType, Value } from "../IStrongPG";
 import Schema, { TableSchema } from "../Schema";
 import Expression from "../expressions/Expression";
 import Statement from "./Statement";
 import UpdateTable from "./Update";
 
 export interface InsertIntoTableFactory<SCHEMA extends TableSchema, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[]> {
+	prepare (): InsertIntoTable<SCHEMA, COLUMNS>;
 	values (...values: { [I in keyof COLUMNS]: InputTypeFromString<SCHEMA[COLUMNS[I]]> }): InsertIntoTable<SCHEMA, COLUMNS>;
 }
 
@@ -20,8 +21,9 @@ export default class InsertIntoTable<SCHEMA extends TableSchema, COLUMNS extends
 		const primaryKey = !isUpsert ? undefined : Schema.getSingleColumnPrimaryKey(schema);
 
 		return {
+			prepare: () => new InsertIntoTable<SCHEMA, COLUMNS>(tableName, schema, columns, []),
 			values: (...values: any[]) => {
-				const query = new InsertIntoTable<SCHEMA, COLUMNS>(tableName, schema, columns, [values] as never);
+				const query = new InsertIntoTable<SCHEMA, COLUMNS>(tableName, schema, columns, columns.length && !values.length ? [] : [values] as never);
 				if (isUpsert) {
 					query.onConflict(primaryKey!).doUpdate(update => {
 						for (let i = 0; i < columns.length; i++) {
@@ -63,6 +65,15 @@ export default class InsertIntoTable<SCHEMA extends TableSchema, COLUMNS extends
 		}
 	}
 
+	private returningColumns?: (Schema.Column<SCHEMA> | "*")[];
+	public returning<RETURNING_COLUMNS extends Schema.Column<SCHEMA>[]> (...columns: RETURNING_COLUMNS): InsertIntoTable<SCHEMA, COLUMNS, { [KEY in RETURNING_COLUMNS[number]]: OutputTypeFromString<SCHEMA[KEY]> }[]>;
+	public returning<RETURNING_COLUMN extends Schema.Column<SCHEMA> | "*"> (columns: RETURNING_COLUMN): InsertIntoTable<SCHEMA, COLUMNS, { [KEY in RETURNING_COLUMN extends "*" ? Schema.Column<SCHEMA> : RETURNING_COLUMN]: OutputTypeFromString<SCHEMA[KEY]> }[]>;
+	public returning (...columns: (Schema.Column<SCHEMA> | "*")[]) {
+		this.returningColumns = columns;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+		return this as InsertIntoTable<SCHEMA, COLUMNS, any>;
+	}
+
 	public compile () {
 		const rows = this.rows
 			.map(row => row
@@ -86,7 +97,10 @@ export default class InsertIntoTable<SCHEMA extends TableSchema, COLUMNS extends
 			conflictAction = `ON CONFLICT ${conflictTarget} DO ${compiled.text}`;
 		}
 
-		return this.queryable(`INSERT INTO ${this.tableName} (${this.columns.join(",")}) VALUES ${rows} ${conflictAction!}`, undefined, this.vars);
+		const returning = !this.returningColumns ? ""
+			: `RETURNING ${this.returningColumns.join(",")}`;
+
+		return this.queryable(`INSERT INTO ${this.tableName} (${this.columns.join(",")}) VALUES ${rows} ${conflictAction!} ${returning}`, undefined, this.vars);
 	}
 
 	protected override resolveQueryOutput (output: QueryResult<any>) {
