@@ -25,10 +25,10 @@ export default class Table<SCHEMA extends TableSchema> {
      * ...then provide an initialiser for tweaking the query
      */
     select<COLUMNS extends Schema.Column<SCHEMA>[], RETURN extends SelectFromTable<SCHEMA, COLUMNS, any>>(...columnsAndInitialiser: [...COLUMNS, Initialiser<SelectFromTable<SCHEMA, COLUMNS>, RETURN>]): RETURN;
-    insert(data: Partial<Schema.RowInput<SCHEMA>>): InsertIntoTable<SCHEMA>;
-    insert(data: Partial<Schema.RowInput<SCHEMA>>, initialiser: Initialiser<InsertIntoTable<SCHEMA>>): InsertIntoTable<SCHEMA>;
     insert<COLUMNS extends Schema.Column<SCHEMA>[]>(...columns: COLUMNS): InsertIntoTableFactory<SCHEMA, COLUMNS>;
     insert<COLUMNS extends Schema.Column<SCHEMA>[], RETURN extends InsertIntoTableFactory<SCHEMA, COLUMNS> | InsertIntoTable<SCHEMA>>(...columnsAndInitialiser: [...COLUMNS, Initialiser<InsertIntoTableFactory<SCHEMA, COLUMNS>, RETURN>]): RETURN;
+    insert(data: Partial<Schema.RowInput<SCHEMA>>): InsertIntoTable<SCHEMA>;
+    insert(data: Partial<Schema.RowInput<SCHEMA>>, initialiser: Initialiser<InsertIntoTable<SCHEMA>>): InsertIntoTable<SCHEMA>;
     upsert(data: Schema.RowInput<SCHEMA>): InsertIntoTable<SCHEMA>;
     upsert<RETURN extends InsertIntoTable<SCHEMA, any>>(data: Schema.RowInput<SCHEMA>, initialiser: Initialiser<InsertIntoTable<SCHEMA>, RETURN>): RETURN;
     upsert<COLUMNS extends Schema.Column<SCHEMA>[]>(...columns: COLUMNS): InsertIntoTableFactory<SCHEMA, COLUMNS>;

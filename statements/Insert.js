@@ -12,7 +12,7 @@ class InsertIntoTable extends Statement_1.default {
         const primaryKey = !isUpsert ? undefined : Schema_1.default.getSingleColumnPrimaryKey(schema);
         return {
             values: (...values) => {
-                const query = new InsertIntoTable(tableName, schema, columns, values);
+                const query = new InsertIntoTable(tableName, schema, columns, [values]);
                 if (isUpsert) {
                     query.onConflict(primaryKey).doUpdate(update => {
                         for (let i = 0; i < columns.length; i++) {
@@ -25,13 +25,17 @@ class InsertIntoTable extends Statement_1.default {
             },
         };
     }
-    constructor(tableName, schema, columns, values) {
+    constructor(tableName, schema, columns, rows) {
         super();
         this.tableName = tableName;
         this.schema = schema;
         this.columns = columns;
-        this.values = values;
+        this.rows = rows;
         this.vars = [];
+    }
+    values(...values) {
+        this.rows.push(values);
+        return this;
     }
     onConflict(...columns) {
         this.conflictTarget = columns;
@@ -48,12 +52,17 @@ class InsertIntoTable extends Statement_1.default {
         };
     }
     compile() {
-        const values = this.values.map((value, i) => {
+        const rows = this.rows
+            .map(row => row
+            .map((value, i) => {
             const column = this.columns[i];
             if (Schema_1.default.isColumn(this.schema, column, "TIMESTAMP") && typeof value === "number")
                 value = new Date(value);
             return Expression_1.default.stringifyValue(value, this.vars);
-        }).join(",");
+        })
+            .join(","))
+            .map(columnValues => `(${columnValues})`)
+            .join(",");
         const conflictTarget = this.conflictTarget?.length ? `(${this.conflictTarget.join(",")})` : "";
         let conflictAction = this.conflictAction === undefined ? " "
             : this.conflictAction === null ? `ON CONFLICT ${conflictTarget} DO NOTHING`
@@ -62,7 +71,7 @@ class InsertIntoTable extends Statement_1.default {
             const compiled = this.conflictAction.compile()[0];
             conflictAction = `ON CONFLICT ${conflictTarget} DO ${compiled.text}`;
         }
-        return this.queryable(`INSERT INTO ${this.tableName} (${this.columns.join(",")}) VALUES (${values}) ${conflictAction}`, undefined, this.vars);
+        return this.queryable(`INSERT INTO ${this.tableName} (${this.columns.join(",")}) VALUES ${rows} ${conflictAction}`, undefined, this.vars);
     }
     resolveQueryOutput(output) {
         return output.rows;

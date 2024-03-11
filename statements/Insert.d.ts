@@ -18,10 +18,13 @@ export default class InsertIntoTable<SCHEMA extends TableSchema, COLUMNS extends
     readonly tableName: string;
     readonly schema: SCHEMA;
     readonly columns: Schema.Column<SCHEMA>[];
-    readonly values: Value<Schema.RowInput<SCHEMA>>[];
+    readonly rows: Value<Schema.RowInput<SCHEMA>>[][];
     static columns<SCHEMA extends TableSchema, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[]>(tableName: string, schema: SCHEMA, columns: COLUMNS, isUpsert?: boolean): InsertIntoTableFactory<SCHEMA, COLUMNS>;
     private vars;
-    constructor(tableName: string, schema: SCHEMA, columns: Schema.Column<SCHEMA>[], values: Value<Schema.RowInput<SCHEMA>>[]);
+    constructor(tableName: string, schema: SCHEMA, columns: Schema.Column<SCHEMA>[], rows: Value<Schema.RowInput<SCHEMA>>[][]);
+    values(...values: {
+        [I in keyof COLUMNS]: InputTypeFromString<SCHEMA[COLUMNS[I]]>;
+    }): this;
     private conflictTarget?;
     private conflictAction?;
     onConflict(...columns: Schema.Column<SCHEMA>[]): InsertIntoTableConflictActionFactory<SCHEMA, COLUMNS, RESULT>;
