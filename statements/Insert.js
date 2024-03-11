@@ -11,8 +11,9 @@ class InsertIntoTable extends Statement_1.default {
     static columns(tableName, schema, columns, isUpsert = false) {
         const primaryKey = !isUpsert ? undefined : Schema_1.default.getSingleColumnPrimaryKey(schema);
         return {
+            prepare: () => new InsertIntoTable(tableName, schema, columns, []),
             values: (...values) => {
-                const query = new InsertIntoTable(tableName, schema, columns, [values]);
+                const query = new InsertIntoTable(tableName, schema, columns, columns.length && !values.length ? [] : [values]);
                 if (isUpsert) {
                     query.onConflict(primaryKey).doUpdate(update => {
                         for (let i = 0; i < columns.length; i++) {
@@ -51,6 +52,11 @@ class InsertIntoTable extends Statement_1.default {
             },
         };
     }
+    returning(...columns) {
+        this.returningColumns = columns;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return this;
+    }
     compile() {
         const rows = this.rows
             .map(row => row
@@ -71,7 +77,9 @@ class InsertIntoTable extends Statement_1.default {
             const compiled = this.conflictAction.compile()[0];
             conflictAction = `ON CONFLICT ${conflictTarget} DO ${compiled.text}`;
         }
-        return this.queryable(`INSERT INTO ${this.tableName} (${this.columns.join(",")}) VALUES ${rows} ${conflictAction}`, undefined, this.vars);
+        const returning = !this.returningColumns ? ""
+            : `RETURNING ${this.returningColumns.join(",")}`;
+        return this.queryable(`INSERT INTO ${this.tableName} (${this.columns.join(",")}) VALUES ${rows} ${conflictAction} ${returning}`, undefined, this.vars);
     }
     resolveQueryOutput(output) {
         return output.rows;
