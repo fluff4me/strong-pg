@@ -36,10 +36,10 @@ export default class Table<SCHEMA extends TableSchema> {
 		return initialiser?.(query) ?? query;
 	}
 
-	public insert (data: Partial<Schema.RowInput<SCHEMA>>): InsertIntoTable<SCHEMA>;
-	public insert (data: Partial<Schema.RowInput<SCHEMA>>, initialiser: Initialiser<InsertIntoTable<SCHEMA>>): InsertIntoTable<SCHEMA>;
 	public insert<COLUMNS extends Schema.Column<SCHEMA>[]> (...columns: COLUMNS): InsertIntoTableFactory<SCHEMA, COLUMNS>;
 	public insert<COLUMNS extends Schema.Column<SCHEMA>[], RETURN extends InsertIntoTableFactory<SCHEMA, COLUMNS> | InsertIntoTable<SCHEMA>> (...columnsAndInitialiser: [...COLUMNS, Initialiser<InsertIntoTableFactory<SCHEMA, COLUMNS>, RETURN>]): RETURN;
+	public insert (data: Partial<Schema.RowInput<SCHEMA>>): InsertIntoTable<SCHEMA>;
+	public insert (data: Partial<Schema.RowInput<SCHEMA>>, initialiser: Initialiser<InsertIntoTable<SCHEMA>>): InsertIntoTable<SCHEMA>;
 	public insert (...params: (boolean | Partial<Schema.RowInput<SCHEMA>> | Schema.Column<SCHEMA> | Initialiser<InsertIntoTableFactory<SCHEMA>> | Initialiser<InsertIntoTable<SCHEMA>>)[]): InsertIntoTableFactory<SCHEMA> | InsertIntoTable<SCHEMA> {
 		const isUpsert = params[0] === true;
 		if (typeof params[0] === "boolean")

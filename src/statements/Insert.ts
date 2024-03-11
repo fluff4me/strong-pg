@@ -21,7 +21,7 @@ export default class InsertIntoTable<SCHEMA extends TableSchema, COLUMNS extends
 
 		return {
 			values: (...values: any[]) => {
-				const query = new InsertIntoTable<SCHEMA, COLUMNS>(tableName, schema, columns, values as never);
+				const query = new InsertIntoTable<SCHEMA, COLUMNS>(tableName, schema, columns, [values] as never);
 				if (isUpsert) {
 					query.onConflict(primaryKey!).doUpdate(update => {
 						for (let i = 0; i < columns.length; i++) {
@@ -37,8 +37,13 @@ export default class InsertIntoTable<SCHEMA extends TableSchema, COLUMNS extends
 	}
 
 	private vars: any[] = [];
-	public constructor (public readonly tableName: string, public readonly schema: SCHEMA, public readonly columns: Schema.Column<SCHEMA>[], public readonly values: Value<Schema.RowInput<SCHEMA>>[]) {
+	public constructor (public readonly tableName: string, public readonly schema: SCHEMA, public readonly columns: Schema.Column<SCHEMA>[], public readonly rows: Value<Schema.RowInput<SCHEMA>>[][]) {
 		super();
+	}
+
+	public values (...values: { [I in keyof COLUMNS]: InputTypeFromString<SCHEMA[COLUMNS[I]]> }): this {
+		this.rows.push(values);
+		return this;
 	}
 
 	private conflictTarget?: Schema.Column<SCHEMA>[];
@@ -59,12 +64,17 @@ export default class InsertIntoTable<SCHEMA extends TableSchema, COLUMNS extends
 	}
 
 	public compile () {
-		const values = this.values.map((value: ValidType, i) => {
-			const column = this.columns[i];
-			if (Schema.isColumn(this.schema, column, "TIMESTAMP") && typeof value === "number")
-				value = new Date(value);
-			return Expression.stringifyValue(value, this.vars);
-		}).join(",");
+		const rows = this.rows
+			.map(row => row
+				.map((value: ValidType, i) => {
+					const column = this.columns[i];
+					if (Schema.isColumn(this.schema, column, "TIMESTAMP") && typeof value === "number")
+						value = new Date(value);
+					return Expression.stringifyValue(value, this.vars);
+				})
+				.join(","))
+			.map(columnValues => `(${columnValues})`)
+			.join(",");
 
 		const conflictTarget = this.conflictTarget?.length ? `(${this.conflictTarget.join(",")})` : "";
 		let conflictAction = this.conflictAction === undefined ? " "
@@ -76,7 +86,7 @@ export default class InsertIntoTable<SCHEMA extends TableSchema, COLUMNS extends
 			conflictAction = `ON CONFLICT ${conflictTarget} DO ${compiled.text}`;
 		}
 
-		return this.queryable(`INSERT INTO ${this.tableName} (${this.columns.join(",")}) VALUES (${values}) ${conflictAction!}`, undefined, this.vars);
+		return this.queryable(`INSERT INTO ${this.tableName} (${this.columns.join(",")}) VALUES ${rows} ${conflictAction!}`, undefined, this.vars);
 	}
 
 	protected override resolveQueryOutput (output: QueryResult<any>) {
