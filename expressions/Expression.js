@@ -83,6 +83,10 @@ class Expression {
         this.parts.push(() => " OR ");
         return this.value(value);
     }
+    and(value) {
+        this.parts.push(() => " AND ");
+        return this.value(value);
+    }
     equals(value) {
         this.parts.push(() => " = ");
         return this.value(value);

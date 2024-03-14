@@ -6,6 +6,7 @@ export interface ExpressionOperations<VARS = never, CURRENT_VALUE = null> {
     isNull(): ExpressionOperations<VARS, boolean>;
     equals: ExpressionValue<VARS, CURRENT_VALUE, boolean>;
     or: ExpressionValue<VARS, boolean, boolean>;
+    and: ExpressionValue<VARS, boolean, boolean>;
     matches: CURRENT_VALUE extends string ? ExpressionValue<VARS, RegExp, boolean> : never;
     as<TYPE extends TypeString>(type: TYPE): ExpressionOperations<VARS, MigrationTypeFromString<TYPE>>;
 }
@@ -43,6 +44,7 @@ export default class Expression<VARS = never> implements ImplementableExpression
     matches(value: ValidType | Initialiser<Expression>): this;
     isNull(): this;
     or(value: ValidType | Initialiser<Expression>): this;
+    and(value: ValidType | Initialiser<Expression>): this;
     equals(value: ValidType | Initialiser<Expression>): this;
     as(type: TypeString): this;
     value(value: ValidType | Initialiser<Expression>, mapper?: (value: string) => string): this;

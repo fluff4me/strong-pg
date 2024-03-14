@@ -1,5 +1,6 @@
 import { Initialiser } from "./IStrongPG";
 import Schema, { TableSchema } from "./Schema";
+import DeleteFromTable from "./statements/Delete";
 import InsertIntoTable, { InsertIntoTableFactory } from "./statements/Insert";
 import SelectFromTable from "./statements/Select";
 import UpdateTable from "./statements/Update";
@@ -35,4 +36,6 @@ export default class Table<SCHEMA extends TableSchema> {
     upsert<COLUMNS extends Schema.Column<SCHEMA>[], RETURN extends InsertIntoTableFactory<SCHEMA, COLUMNS> | InsertIntoTable<SCHEMA>>(...columnsAndInitialiser: [...COLUMNS, Initialiser<InsertIntoTableFactory<SCHEMA, COLUMNS>, RETURN>]): RETURN;
     update(data: Partial<Schema.RowInput<SCHEMA>>): UpdateTable<SCHEMA>;
     update<RETURN extends UpdateTable<SCHEMA, any>>(data: Partial<Schema.RowInput<SCHEMA>>, initialiser: Initialiser<UpdateTable<SCHEMA>, RETURN>): RETURN;
+    delete(): DeleteFromTable<SCHEMA>;
+    delete<RETURN extends DeleteFromTable<SCHEMA, any> = DeleteFromTable<SCHEMA>>(initialiser: Initialiser<DeleteFromTable<SCHEMA>, RETURN>): RETURN;
 }

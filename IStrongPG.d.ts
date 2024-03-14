@@ -83,13 +83,13 @@ export type ValidDate = Date | number | typeof Keyword.CurrentTimestamp;
 export interface MigrationTypeMap {
     [DataTypeID.SMALLINT]: number;
     [DataTypeID.INTEGER]: number;
-    [DataTypeID.BIGINT]: number;
+    [DataTypeID.BIGINT]: number | bigint | `${bigint}`;
     [DataTypeID.NUMERIC]: number;
     [DataTypeID.REAL]: number;
     [DataTypeID.DOUBLE]: number;
     [DataTypeID.SMALLSERIAL]: number;
     [DataTypeID.SERIAL]: number;
-    [DataTypeID.BIGSERIAL]: number;
+    [DataTypeID.BIGSERIAL]: number | bigint | `${bigint}`;
     [DataTypeID.DATE]: ValidDate;
     [DataTypeID.TIMESTAMP]: ValidDate;
     [DataTypeID.TIME]: ValidDate;

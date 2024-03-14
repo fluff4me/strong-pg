@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const Delete_1 = __importDefault(require("./statements/Delete"));
 const Insert_1 = __importDefault(require("./statements/Insert"));
 const Select_1 = __importDefault(require("./statements/Select"));
 const Update_1 = __importDefault(require("./statements/Update"));
@@ -45,6 +46,11 @@ class Table {
         for (const key of Object.keys(data))
             if (data[key] !== undefined)
                 query.set(key, data[key]);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument
+        return initialiser?.(query) ?? query;
+    }
+    delete(initialiser) {
+        const query = new Delete_1.default(this.name, this.schema);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument
         return initialiser?.(query) ?? query;
     }
