@@ -145,13 +145,13 @@ export interface MigrationTypeMap {
 	// numeric
 	[DataTypeID.SMALLINT]: number;
 	[DataTypeID.INTEGER]: number;
-	[DataTypeID.BIGINT]: number;
+	[DataTypeID.BIGINT]: number | bigint | `${bigint}`;
 	[DataTypeID.NUMERIC]: number;
 	[DataTypeID.REAL]: number;
 	[DataTypeID.DOUBLE]: number;
 	[DataTypeID.SMALLSERIAL]: number;
 	[DataTypeID.SERIAL]: number;
-	[DataTypeID.BIGSERIAL]: number;
+	[DataTypeID.BIGSERIAL]: number | bigint | `${bigint}`;
 
 	// datetime
 	[DataTypeID.DATE]: ValidDate;
