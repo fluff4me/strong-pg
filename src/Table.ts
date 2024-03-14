@@ -1,5 +1,6 @@
 import { Initialiser } from "./IStrongPG";
 import Schema, { TableSchema } from "./Schema";
+import DeleteFromTable from "./statements/Delete";
 import InsertIntoTable, { InsertIntoTableFactory } from "./statements/Insert";
 import SelectFromTable from "./statements/Select";
 import UpdateTable from "./statements/Update";
@@ -78,6 +79,15 @@ export default class Table<SCHEMA extends TableSchema> {
 		for (const key of Object.keys(data))
 			if (data[key] !== undefined)
 				query.set(key as Schema.Column<SCHEMA>, data[key]!);
+
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument
+		return initialiser?.(query) ?? query;
+	}
+
+	public delete (): DeleteFromTable<SCHEMA>;
+	public delete<RETURN extends DeleteFromTable<SCHEMA, any> = DeleteFromTable<SCHEMA>> (initialiser: Initialiser<DeleteFromTable<SCHEMA>, RETURN>): RETURN;
+	public delete (initialiser?: Initialiser<DeleteFromTable<SCHEMA>, any>) {
+		const query = new DeleteFromTable<SCHEMA, any>(this.name, this.schema);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument
 		return initialiser?.(query) ?? query;
