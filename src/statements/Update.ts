@@ -1,7 +1,7 @@
 import { QueryResult } from "pg";
-import { InputTypeFromString, ValidType } from "../IStrongPG";
+import { InputTypeFromString, OutputTypeFromString, SingleStringUnion, ValidType } from "../IStrongPG";
 import Schema, { TableSchema } from "../Schema";
-import Expression from "../expressions/Expression";
+import Expression, { ExpressionInitialiser } from "../expressions/Expression";
 import Statement from "./Statement";
 
 export default class UpdateTable<SCHEMA extends TableSchema, RESULT = [], VARS = {}> extends Statement<RESULT> {
@@ -29,8 +29,32 @@ export default class UpdateTable<SCHEMA extends TableSchema, RESULT = [], VARS =
 		return this;
 	}
 
+	private condition?: string;
+	public where (initialiser: ExpressionInitialiser<Schema.Columns<SCHEMA>, boolean>) {
+		const queryable = Expression.compile(initialiser, undefined, this.vars);
+		this.condition = `WHERE (${queryable.text})`;
+		return this;
+	}
+
+	public primaryKeyed (id: InputTypeFromString<SCHEMA[SingleStringUnion<Schema.PrimaryKey<SCHEMA>[number]>]>) {
+		const primaryKey = Schema.getSingleColumnPrimaryKey(this.schema);
+		this.where(expr => expr.var(primaryKey).equals(id as never));
+		return this;
+	}
+
+	private returningColumns?: (Schema.Column<SCHEMA> | "*")[];
+	public returning<RETURNING_COLUMNS extends Schema.Column<SCHEMA>[]> (...columns: RETURNING_COLUMNS): UpdateTable<SCHEMA, { [KEY in RETURNING_COLUMNS[number]]: OutputTypeFromString<SCHEMA[KEY]> }[], VARS>;
+	public returning<RETURNING_COLUMN extends Schema.Column<SCHEMA> | "*"> (columns: RETURNING_COLUMN): UpdateTable<SCHEMA, { [KEY in RETURNING_COLUMN extends "*" ? Schema.Column<SCHEMA> : RETURNING_COLUMN]: OutputTypeFromString<SCHEMA[KEY]> }[], VARS>;
+	public returning (...columns: (Schema.Column<SCHEMA> | "*")[]) {
+		this.returningColumns = columns;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+		return this as UpdateTable<SCHEMA, any, VARS>;
+	}
+
 	public compile () {
-		return this.queryable(`UPDATE ${this.tableName ?? ""} SET ${this.assignments.join(",")}`, undefined, this.vars);
+		const returning = !this.returningColumns ? ""
+			: `RETURNING ${this.returningColumns.join(",")}`;
+		return this.queryable(`UPDATE ${this.tableName ?? ""} SET ${this.assignments.join(",")} ${this.condition ?? ""} ${returning}`, undefined, this.vars);
 	}
 
 	protected override resolveQueryOutput (output: QueryResult<any>) {
