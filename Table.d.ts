@@ -33,6 +33,6 @@ export default class Table<SCHEMA extends TableSchema> {
     upsert<RETURN extends InsertIntoTable<SCHEMA, any>>(data: Schema.RowInput<SCHEMA>, initialiser: Initialiser<InsertIntoTable<SCHEMA>, RETURN>): RETURN;
     upsert<COLUMNS extends Schema.Column<SCHEMA>[]>(...columns: COLUMNS): InsertIntoTableFactory<SCHEMA, COLUMNS>;
     upsert<COLUMNS extends Schema.Column<SCHEMA>[], RETURN extends InsertIntoTableFactory<SCHEMA, COLUMNS> | InsertIntoTable<SCHEMA>>(...columnsAndInitialiser: [...COLUMNS, Initialiser<InsertIntoTableFactory<SCHEMA, COLUMNS>, RETURN>]): RETURN;
-    update(data: Schema.RowInput<SCHEMA>): UpdateTable<SCHEMA>;
-    update<RETURN extends UpdateTable<SCHEMA, any>>(data: Schema.RowInput<SCHEMA>, initialiser: Initialiser<UpdateTable<SCHEMA>, RETURN>): RETURN;
+    update(data: Partial<Schema.RowInput<SCHEMA>>): UpdateTable<SCHEMA>;
+    update<RETURN extends UpdateTable<SCHEMA, any>>(data: Partial<Schema.RowInput<SCHEMA>>, initialiser: Initialiser<UpdateTable<SCHEMA>, RETURN>): RETURN;
 }

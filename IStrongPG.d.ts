@@ -128,6 +128,7 @@ export type EnumToTuple<ENUM, LENGTH extends 1[] = []> = Key<ENUM, LENGTH["lengt
     KEY
 ] extends [never] ? [] : [KEY, ...EnumToTuple<ENUM, [...LENGTH, 1]>] : [];
 export type Value<T> = T[keyof T];
+export type SingleStringUnion<T> = ((k: ((T extends any ? () => T : never) extends infer U ? ((U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never) extends () => (infer R) ? R : never : never)) => any) extends (k: T) => any ? T : never;
 export declare namespace Keyword {
     const CurrentTimestamp: unique symbol;
 }
