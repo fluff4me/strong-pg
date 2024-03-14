@@ -1,10 +1,8 @@
 import { Pool, PoolClient, QueryResult } from "pg";
-import { InputTypeFromString, OutputTypeFromString } from "../IStrongPG";
+import { InputTypeFromString, OutputTypeFromString, SingleStringUnion } from "../IStrongPG";
 import Schema, { TableSchema } from "../Schema";
 import Expression, { ExpressionInitialiser } from "../expressions/Expression";
 import Statement from "./Statement";
-
-type SingleStringUnion<T> = ((k: ((T extends any ? () => T : never) extends infer U ? ((U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never) extends () => (infer R) ? R : never : never)) => any) extends (k: T) => any ? T : never;
 
 type SelectResult<SCHEMA extends TableSchema, COLUMNS extends (Schema.Column<SCHEMA> | "*")[]> = { [K in "*" extends COLUMNS[number] ? Schema.Column<SCHEMA> : COLUMNS[number]]: OutputTypeFromString<SCHEMA[K]> };
 
