@@ -54,7 +54,7 @@ export default class Table<SCHEMA extends TableSchema> {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
 				.values(...keys.map(key => (params[0] as any)[key]));
 
-			return initialiser?.(query as InsertIntoTable<SCHEMA>) as InsertIntoTable<SCHEMA> ?? query;
+			return initialiser?.(query) as InsertIntoTable<SCHEMA> ?? query;
 		}
 
 		const query = InsertIntoTable.columns<SCHEMA>(this.name, this.schema, params as Schema.Column<SCHEMA>[], isUpsert);
@@ -71,12 +71,13 @@ export default class Table<SCHEMA extends TableSchema> {
 		return (this.insert as any)(true, ...params as Schema.Column<SCHEMA>[]);
 	}
 
-	public update (data: Schema.RowInput<SCHEMA>): UpdateTable<SCHEMA>;
-	public update<RETURN extends UpdateTable<SCHEMA, any>> (data: Schema.RowInput<SCHEMA>, initialiser: Initialiser<UpdateTable<SCHEMA>, RETURN>): RETURN;
-	public update (data: Schema.RowInput<SCHEMA>, initialiser?: Initialiser<UpdateTable<SCHEMA>, UpdateTable<SCHEMA, any>>): UpdateTable<SCHEMA, any> {
+	public update (data: Partial<Schema.RowInput<SCHEMA>>): UpdateTable<SCHEMA>;
+	public update<RETURN extends UpdateTable<SCHEMA, any>> (data: Partial<Schema.RowInput<SCHEMA>>, initialiser: Initialiser<UpdateTable<SCHEMA>, RETURN>): RETURN;
+	public update (data: Partial<Schema.RowInput<SCHEMA>>, initialiser?: Initialiser<UpdateTable<SCHEMA>, UpdateTable<SCHEMA, any>>): UpdateTable<SCHEMA, any> {
 		const query = new UpdateTable<SCHEMA, any>(this.name, this.schema);
 		for (const key of Object.keys(data))
-			query.set(key as Schema.Column<SCHEMA>, data[key]);
+			if (data[key] !== undefined)
+				query.set(key as Schema.Column<SCHEMA>, data[key]!);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument
 		return initialiser?.(query) ?? query;
