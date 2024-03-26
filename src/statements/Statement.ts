@@ -89,12 +89,17 @@ namespace Statement {
 
 		public compile () {
 			const operations: (string | Queryable)[] = this.compileStandaloneOperations();
-			const parallelOperations = this.compileParallelOperations().join(",");
+			const parallelOperations = this.joinParallelOperations(this.compileParallelOperations());
 			if (parallelOperations)
 				operations.unshift(parallelOperations);
+
 			return operations.flatMap(operation => this.queryable(this.compileOperation(
 				typeof operation === "string" ? operation : operation.text),
 				typeof operation === "string" ? undefined : operation.stack));
+		}
+
+		protected joinParallelOperations (operations: string[]) {
+			return operations.join(",");
 		}
 
 		protected compileParallelOperations (): string[] {

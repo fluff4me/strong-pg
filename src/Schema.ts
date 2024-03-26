@@ -144,6 +144,16 @@ class Schema {
 		return primaryKey[0];
 	}
 
+	public static getPrimaryKey<SCHEMA extends TableSchema> (schema: SCHEMA) {
+		const primaryKey = schema["PRIMARY_KEY"] as Schema.Column<SCHEMA>[] | undefined;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+		// const primaryKey = ?.[0];
+		if (!primaryKey?.length)
+			throw new Error("No primary key");
+
+		return primaryKey;
+	}
+
 	public static isColumn<SCHEMA extends TableSchema> (schema: SCHEMA, column: keyof SCHEMA, type: TypeString) {
 		const columnType = schema[column] as TypeString;
 		switch (type) {

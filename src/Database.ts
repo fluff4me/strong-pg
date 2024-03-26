@@ -12,7 +12,7 @@ export default class Database<SCHEMA extends DatabaseSchema> {
 	}
 
 	public async migrate (pool: Pool | PoolClient) {
-		return this.history?.migrate(pool);
+		return this.history?.migrate(this, pool);
 	}
 
 	public setHistory (initialiser: (history: History) => History<SCHEMA>) {

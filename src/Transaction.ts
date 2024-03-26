@@ -22,9 +22,9 @@ export default class Transaction {
 		}
 	}
 
-	protected readonly statements: Statement[] = [];
+	protected readonly statements: (Statement | (() => Statement))[] = [];
 
-	public add (statement: Statement) {
+	public add (statement: Statement | (() => Statement)) {
 		this.statements.push(statement);
 		return this;
 	}
@@ -37,7 +37,7 @@ export default class Transaction {
 	}
 
 	public compile () {
-		return this.statements.flatMap(statement => statement.compile());
+		return this.statements.flatMap(statement => (typeof statement === "function" ? statement() : statement).compile());
 	}
 }
 

@@ -102,7 +102,10 @@ export namespace DataType {
 	// INTERVAL,
 
 	// string
-	export const CHAR: TypeStringMap[DataTypeID.CHAR] = "CHARACTER";
+	export function CHAR (length?: number): TypeStringMap[DataTypeID.CHAR] {
+		return length === undefined ? "CHARACTER"
+			: `CHARACTER(${Math.round(length)})` as TypeStringMap[DataTypeID.CHAR];
+	}
 	export function VARCHAR (length?: number): TypeStringMap[DataTypeID.VARCHAR] {
 		return length === undefined ? "CHARACTER VARYING"
 			: `CHARACTER VARYING(${Math.round(length)})` as TypeStringMap[DataTypeID.VARCHAR];

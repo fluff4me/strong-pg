@@ -20,9 +20,14 @@ export default class SelectFromTable<SCHEMA extends TableSchema, COLUMNS extends
 		return this;
 	}
 
-	public primaryKeyed (id: InputTypeFromString<SCHEMA[SingleStringUnion<Schema.PrimaryKey<SCHEMA>[number]>]>) {
+	public primaryKeyed (id: InputTypeFromString<SCHEMA[SingleStringUnion<Schema.PrimaryKey<SCHEMA>[number]>]>, initialiser?: ExpressionInitialiser<Schema.Columns<SCHEMA>, boolean>) {
 		const primaryKey = Schema.getSingleColumnPrimaryKey(this.schema);
-		this.where(expr => expr.var(primaryKey).equals(id as never));
+		this.where(expr => {
+			const e2 = expr.var(primaryKey).equals(id as never);
+			if (initialiser)
+				e2.and(initialiser);
+			return e2;
+		});
 		return this.limit(1);
 	}
 

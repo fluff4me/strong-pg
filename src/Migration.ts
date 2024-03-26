@@ -1,3 +1,4 @@
+import Database from "./Database";
 import { StackUtil } from "./IStrongPG";
 import { DatabaseSchema } from "./Schema";
 import CreateCollation from "./statements/collation/CreateCollation";
@@ -9,6 +10,7 @@ import CreateOrReplaceFunction, { CreateOrReplaceFunctionInitialiser } from "./s
 import DropFunction from "./statements/function/DropFunction";
 import CreateIndex, { CreateIndexInitialiser } from "./statements/index/CreateIndex";
 import DropIndex from "./statements/index/DropIndex";
+import Statement from "./statements/Statement";
 import AlterTable, { AlterTableInitialiser } from "./statements/table/AlterTable";
 import CreateTable from "./statements/table/CreateTable";
 import DropTable from "./statements/table/DropTable";
@@ -26,10 +28,18 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 	private commits: MigrationCommit[] = [];
 	public readonly file = StackUtil.getCallerFile();
 
+	private db!: Database<SCHEMA_END>;
+
 	public constructor (schemaStart?: SCHEMA_START) {
 		super();
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		this.schemaStart = schemaStart as any;
+	}
+
+	public then (statementSupplier: (db: Database<SCHEMA_END>) => Statement<any>) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+		this.add(() => statementSupplier(this.db));
+		return this;
 	}
 
 	public createTable<NAME extends string, TABLE_SCHEMA_NEW> (

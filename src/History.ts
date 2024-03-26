@@ -1,4 +1,5 @@
 import { DatabaseError, Pool, PoolClient } from "pg";
+import Database from "./Database";
 import { StackUtil } from "./IStrongPG";
 import log, { color } from "./Log";
 import Migration, { MigrationVersion } from "./Migration";
@@ -22,7 +23,11 @@ export class History<SCHEMA extends DatabaseSchema | null = null> {
 		return this as any;
 	}
 
-	public async migrate (pool: Pool | PoolClient) {
+	public async migrate (db: Database<SCHEMA & DatabaseSchema>, pool: Pool | PoolClient) {
+
+		for (const migration of this.migrations)
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			migration["db"] = db as Database<any>;
 
 		await pool.query(`CREATE TABLE IF NOT EXISTS migrations (
 				migration_index_start SMALLINT DEFAULT 0,

@@ -18,14 +18,14 @@ export interface InsertIntoTableConflictActionFactory<SCHEMA extends TableSchema
 export default class InsertIntoTable<SCHEMA extends TableSchema, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[], RESULT = []> extends Statement<RESULT> {
 
 	public static columns<SCHEMA extends TableSchema, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[]> (tableName: string, schema: SCHEMA, columns: COLUMNS, isUpsert = false): InsertIntoTableFactory<SCHEMA, COLUMNS> {
-		const primaryKey = !isUpsert ? undefined : Schema.getSingleColumnPrimaryKey(schema);
+		const primaryKey = !isUpsert ? undefined : Schema.getPrimaryKey(schema);
 
 		return {
 			prepare: () => new InsertIntoTable<SCHEMA, COLUMNS>(tableName, schema, columns, []),
 			values: (...values: any[]) => {
 				const query = new InsertIntoTable<SCHEMA, COLUMNS>(tableName, schema, columns, columns.length && !values.length ? [] : [values] as never);
 				if (isUpsert) {
-					query.onConflict(primaryKey!).doUpdate(update => {
+					query.onConflict(...primaryKey!).doUpdate(update => {
 						for (let i = 0; i < columns.length; i++) {
 							// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 							update.set(columns[i], ((expr: any) => expr.var(`EXCLUDED.${String(columns[i])}`)) as never);

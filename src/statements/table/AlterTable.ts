@@ -27,6 +27,10 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
 		return this.do<{ [KEY in NAME | keyof SCHEMA_END]: KEY extends NAME ? TYPE : SCHEMA_END[KEY & keyof SCHEMA_END] }>(AlterTableSubStatement.addColumn(name, type, initialiser));
 	}
 
+	public alterColumn<NAME extends keyof SCHEMA_END & string, NEW_TYPE extends TypeString> (name: NAME, initialiser: Initialiser<AlterColumn<NAME, SCHEMA_END[NAME] & TypeString>, AlterColumn<NAME, NEW_TYPE>>) {
+		return this.do<{ [KEY in NAME | keyof SCHEMA_END]: KEY extends NAME ? NEW_TYPE : SCHEMA_END[KEY & keyof SCHEMA_END] }>(AlterTableSubStatement.alterColumn(name, initialiser));
+	}
+
 	public dropColumn<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string> (name: NAME) {
 		return this.do<Omit<SCHEMA_END, NAME>>(
 			AlterTableSubStatement.dropColumn(name));
@@ -79,7 +83,7 @@ class AlterTableSubStatement extends Statement {
 		return new AlterTableSubStatement(`ADD COLUMN ${column} ${TypeString.resolve(type)}${columnStuffs}`);
 	}
 
-	public static alterColumn<COLUMN extends string, TYPE extends TypeString> (column: COLUMN, initialiser: Initialiser<AlterColumn<COLUMN, TYPE>>) {
+	public static alterColumn<COLUMN extends string, TYPE extends TypeString, NEW_TYPE extends TypeString> (column: COLUMN, initialiser: Initialiser<AlterColumn<COLUMN, TYPE>, AlterColumn<COLUMN, NEW_TYPE>>) {
 		const statement = new AlterColumn<COLUMN, TYPE>(column);
 		initialiser(statement);
 		return statement;
@@ -174,25 +178,30 @@ class CreateColumnSubStatement extends Statement {
 	}
 }
 
-export class AlterColumn<NAME extends string, TYPE extends TypeString> extends Statement.Super<AlterColumnSubStatement> {
+export class AlterColumn<NAME extends string, TYPE extends TypeString> extends Statement.Super<AlterColumnSubStatement | AlterColumnSetType<TypeString>> {
 
 	public constructor (public name: NAME) {
 		super();
 	}
 
-	// public reference?: ColumnReference<TYPE>;
+	public setType<TYPE extends TypeString> (type: TYPE, initialiser?: Initialiser<AlterColumnSetType<TYPE>>) {
+		return this.addStandaloneOperation<AlterColumn<NAME, TYPE>>(AlterColumnSubStatement.setType(type, initialiser));
+	}
 
-	// public setReferences (reference: ColumnReference<TYPE>) {
-	// 	this.reference = reference;
-	// 	return this;
-	// }
-
-	public default (value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>) {
+	public setDefault (value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>) {
 		return this.addStandaloneOperation(AlterColumnSubStatement.setDefault(value));
 	}
 
-	public notNull () {
+	public dropDefault () {
+		return this.addStandaloneOperation(AlterColumnSubStatement.dropDefault());
+	}
+
+	public setNotNull () {
 		return this.addStandaloneOperation(AlterColumnSubStatement.setNotNull());
+	}
+
+	public dropNotNull () {
+		return this.addStandaloneOperation(AlterColumnSubStatement.dropNotNull());
 	}
 
 	protected compileOperation (operation: string) {
@@ -210,8 +219,64 @@ class AlterColumnSubStatement extends Statement {
 		return new AlterColumnSubStatement(`SET DEFAULT (${stringifiedValue})`, expr?.values);
 	}
 
+	public static dropDefault () {
+		return new AlterColumnSubStatement("DROP DEFAULT");
+	}
+
 	public static setNotNull () {
 		return new AlterColumnSubStatement("SET NOT NULL");
+	}
+
+	public static dropNotNull () {
+		return new AlterColumnSubStatement("DROP NOT NULL");
+	}
+
+	public static setType<TYPE extends TypeString> (type: TYPE, initialiser?: Initialiser<AlterColumnSetType<TYPE>>) {
+		const setType = new AlterColumnSetType(type);
+		initialiser?.(setType);
+		return setType;
+	}
+
+	private constructor (private readonly compiled: string, private readonly vars?: any[]) {
+		super();
+	}
+
+	public compile () {
+		return this.queryable(this.compiled, undefined, this.vars);
+	}
+}
+
+export class AlterColumnSetType<TYPE extends TypeString> extends Statement.Super<AlterColumnSetTypeSubStatement> {
+
+	public constructor (private readonly type: TYPE) {
+		super();
+		this.addParallelOperation(AlterColumnSetTypeSubStatement.type(type));
+	}
+
+	public using () { // TODO accept params
+		return this.addParallelOperation(AlterColumnSetTypeSubStatement.using());
+	}
+
+	// TODO collate
+
+	protected compileOperation (operation: string) {
+		return `${operation}`;
+	}
+
+	protected override joinParallelOperations (operations: string[]): string {
+		return operations.join(" ");
+	}
+}
+
+class AlterColumnSetTypeSubStatement extends Statement {
+
+	public static type (type: TypeString) {
+		return new AlterColumnSetTypeSubStatement(`TYPE ${type}`);
+	}
+
+	public static using () {
+		// TODO
+		return new AlterColumnSetTypeSubStatement("USING");
 	}
 
 	private constructor (private readonly compiled: string, private readonly vars?: any[]) {

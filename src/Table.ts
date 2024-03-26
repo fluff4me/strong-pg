@@ -3,6 +3,7 @@ import Schema, { TableSchema } from "./Schema";
 import DeleteFromTable from "./statements/Delete";
 import InsertIntoTable, { InsertIntoTableFactory } from "./statements/Insert";
 import SelectFromTable from "./statements/Select";
+import TruncateTable from "./statements/Truncate";
 import UpdateTable from "./statements/Update";
 
 export default class Table<SCHEMA extends TableSchema> {
@@ -91,5 +92,9 @@ export default class Table<SCHEMA extends TableSchema> {
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument
 		return initialiser?.(query) ?? query;
+	}
+
+	public truncate () {
+		return new TruncateTable(this.name);
 	}
 }
