@@ -61,6 +61,7 @@ declare class Schema {
     static readonly COLLATION: {};
     static primaryKey<KEYS extends string[]>(...keys: KEYS): KEYS[number][];
     static getSingleColumnPrimaryKey<SCHEMA extends TableSchema>(schema: SCHEMA): Schema.Column<SCHEMA>;
+    static getPrimaryKey<SCHEMA extends TableSchema>(schema: SCHEMA): Schema.Column<SCHEMA>[];
     static isColumn<SCHEMA extends TableSchema>(schema: SCHEMA, column: keyof SCHEMA, type: TypeString): boolean;
 }
 export default Schema;

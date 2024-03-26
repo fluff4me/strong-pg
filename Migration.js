@@ -30,6 +30,11 @@ class Migration extends Transaction_1.default {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         this.schemaStart = schemaStart;
     }
+    then(statementSupplier) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        this.add(() => statementSupplier(this.db));
+        return this;
+    }
     createTable(table, alter) {
         this.add(new CreateTable_1.default(table).setCaller());
         this.add(alter(new AlterTable_1.default(table)).setCaller());

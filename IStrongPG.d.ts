@@ -62,7 +62,7 @@ export declare namespace DataType {
     const DATE = "DATE";
     function TIMESTAMP(precision?: number, withoutTimeZone?: true): "TIMESTAMP" | `TIMESTAMP(${bigint})` | `TIMESTAMP(${bigint}) WITHOUT TIME ZONE`;
     function TIME(precision?: number, withoutTimeZone?: true): "TIMESTAMP" | `TIMESTAMP(${bigint})` | `TIMESTAMP(${bigint}) WITHOUT TIME ZONE`;
-    const CHAR: TypeStringMap[DataTypeID.CHAR];
+    function CHAR(length?: number): TypeStringMap[DataTypeID.CHAR];
     function VARCHAR(length?: number): TypeStringMap[DataTypeID.VARCHAR];
     const BYTECHAR: TypeStringMap[DataTypeID.BYTECHAR];
     function BIT(length: number): `BIT(${bigint})`;

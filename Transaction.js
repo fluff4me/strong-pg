@@ -38,7 +38,7 @@ class Transaction {
         });
     }
     compile() {
-        return this.statements.flatMap(statement => statement.compile());
+        return this.statements.flatMap(statement => (typeof statement === "function" ? statement() : statement).compile());
     }
 }
 exports.default = Transaction;

@@ -11,6 +11,7 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
     private do;
     private doStandalone;
     addColumn<NAME extends string, TYPE extends TypeString>(name: NAME, type: TYPE, initialiser?: Initialiser<CreateColumn<DB, TYPE>>): AlterTable<DB, SCHEMA_START, { [KEY in NAME | keyof SCHEMA_END]: KEY extends NAME ? TYPE : SCHEMA_END[KEY & keyof SCHEMA_END]; }>;
+    alterColumn<NAME extends keyof SCHEMA_END & string, NEW_TYPE extends TypeString>(name: NAME, initialiser: Initialiser<AlterColumn<NAME, SCHEMA_END[NAME] & TypeString>, AlterColumn<NAME, NEW_TYPE>>): AlterTable<DB, SCHEMA_START, { [KEY in keyof SCHEMA_END | NAME]: KEY extends NAME ? NEW_TYPE : SCHEMA_END[KEY & keyof SCHEMA_END]; }>;
     dropColumn<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string>(name: NAME): AlterTable<DB, SCHEMA_START, Omit<SCHEMA_END, NAME>>;
     renameColumn<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string, NAME_NEW extends string>(name: NAME, newName: NAME_NEW): AlterTable<DB, SCHEMA_START, { [KEY in NAME_NEW | Exclude<keyof SCHEMA_END, NAME>]: KEY extends NAME_NEW ? SCHEMA_END[NAME] : SCHEMA_END[KEY & keyof SCHEMA_END]; }>;
     addPrimaryKey<KEYS extends Schema.PrimaryKeyOrNull<SCHEMA_END> extends null ? (keyof SCHEMA_END & string)[] : never[]>(...keys: KEYS): AlterTable<DB, SCHEMA_START, Schema.PrimaryKeyed<SCHEMA_END, KEYS[number][]>>;
@@ -39,11 +40,14 @@ declare class CreateColumnSubStatement extends Statement {
     private constructor();
     compile(): Statement.Queryable[];
 }
-export declare class AlterColumn<NAME extends string, TYPE extends TypeString> extends Statement.Super<AlterColumnSubStatement> {
+export declare class AlterColumn<NAME extends string, TYPE extends TypeString> extends Statement.Super<AlterColumnSubStatement | AlterColumnSetType<TypeString>> {
     name: NAME;
     constructor(name: NAME);
-    default(value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>): this;
-    notNull(): this;
+    setType<TYPE extends TypeString>(type: TYPE, initialiser?: Initialiser<AlterColumnSetType<TYPE>>): AlterColumn<NAME, TYPE>;
+    setDefault(value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>): this;
+    dropDefault(): this;
+    setNotNull(): this;
+    dropNotNull(): this;
     protected compileOperation(operation: string): string;
 }
 declare class AlterColumnSubStatement extends Statement {
@@ -53,7 +57,25 @@ declare class AlterColumnSubStatement extends Statement {
      * Warning: Do not use this outside of migrations
      */
     static setDefault<TYPE extends TypeString>(value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>): AlterColumnSubStatement;
+    static dropDefault(): AlterColumnSubStatement;
     static setNotNull(): AlterColumnSubStatement;
+    static dropNotNull(): AlterColumnSubStatement;
+    static setType<TYPE extends TypeString>(type: TYPE, initialiser?: Initialiser<AlterColumnSetType<TYPE>>): AlterColumnSetType<TYPE>;
+    private constructor();
+    compile(): Statement.Queryable[];
+}
+export declare class AlterColumnSetType<TYPE extends TypeString> extends Statement.Super<AlterColumnSetTypeSubStatement> {
+    private readonly type;
+    constructor(type: TYPE);
+    using(): this;
+    protected compileOperation(operation: string): string;
+    protected joinParallelOperations(operations: string[]): string;
+}
+declare class AlterColumnSetTypeSubStatement extends Statement {
+    private readonly compiled;
+    private readonly vars?;
+    static type(type: TypeString): AlterColumnSetTypeSubStatement;
+    static using(): AlterColumnSetTypeSubStatement;
     private constructor();
     compile(): Statement.Queryable[];
 }

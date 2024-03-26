@@ -63,7 +63,11 @@ var DataType;
     DataType.TIME = TIME;
     // INTERVAL,
     // string
-    DataType.CHAR = "CHARACTER";
+    function CHAR(length) {
+        return length === undefined ? "CHARACTER"
+            : `CHARACTER(${Math.round(length)})`;
+    }
+    DataType.CHAR = CHAR;
     function VARCHAR(length) {
         return length === undefined ? "CHARACTER VARYING"
             : `CHARACTER VARYING(${Math.round(length)})`;

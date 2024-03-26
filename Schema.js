@@ -35,6 +35,14 @@ class Schema {
             throw new Error("No primary key or primary key is multiple columns");
         return primaryKey[0];
     }
+    static getPrimaryKey(schema) {
+        const primaryKey = schema["PRIMARY_KEY"];
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        // const primaryKey = ?.[0];
+        if (!primaryKey?.length)
+            throw new Error("No primary key");
+        return primaryKey;
+    }
     static isColumn(schema, column, type) {
         const columnType = schema[column];
         switch (type) {

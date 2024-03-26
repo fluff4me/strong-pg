@@ -1,7 +1,9 @@
+import Database from "./Database";
 import { DatabaseSchema } from "./Schema";
 import { AlterEnumInitialiser } from "./statements/enum/AlterEnum";
 import { CreateOrReplaceFunctionInitialiser } from "./statements/function/CreateOrReplaceFunction";
 import { CreateIndexInitialiser } from "./statements/index/CreateIndex";
+import Statement from "./statements/Statement";
 import { AlterTableInitialiser } from "./statements/table/AlterTable";
 import { CreateTriggerInitialiser } from "./statements/trigger/CreateTrigger";
 import Transaction from "./Transaction";
@@ -10,7 +12,9 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
     schemaEnd?: SCHEMA_END;
     private commits;
     readonly file: string | undefined;
+    private db;
     constructor(schemaStart?: SCHEMA_START);
+    then(statementSupplier: (db: Database<SCHEMA_END>) => Statement<any>): this;
     createTable<NAME extends string, TABLE_SCHEMA_NEW>(table: NAME, alter: NAME extends DatabaseSchema.TableName<SCHEMA_END> ? never : AlterTableInitialiser<SCHEMA_END, null, TABLE_SCHEMA_NEW>): Migration<SCHEMA_START, {
         [KEY in keyof SCHEMA_END]: KEY extends "tables" ? ({
             [TABLE_NAME in NAME | keyof SCHEMA_END["tables"]]: TABLE_NAME extends NAME ? TABLE_SCHEMA_NEW & Record<string, any> : SCHEMA_END["tables"][TABLE_NAME];

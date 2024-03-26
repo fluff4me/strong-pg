@@ -3,6 +3,7 @@ import Schema, { TableSchema } from "./Schema";
 import DeleteFromTable from "./statements/Delete";
 import InsertIntoTable, { InsertIntoTableFactory } from "./statements/Insert";
 import SelectFromTable from "./statements/Select";
+import TruncateTable from "./statements/Truncate";
 import UpdateTable from "./statements/Update";
 export default class Table<SCHEMA extends TableSchema> {
     protected readonly name: string;
@@ -38,4 +39,5 @@ export default class Table<SCHEMA extends TableSchema> {
     update<RETURN extends UpdateTable<SCHEMA, any>>(data: Partial<Schema.RowInput<SCHEMA>>, initialiser: Initialiser<UpdateTable<SCHEMA>, RETURN>): RETURN;
     delete(): DeleteFromTable<SCHEMA>;
     delete<RETURN extends DeleteFromTable<SCHEMA, any> = DeleteFromTable<SCHEMA>>(initialiser: Initialiser<DeleteFromTable<SCHEMA>, RETURN>): RETURN;
+    truncate(): TruncateTable;
 }

@@ -10,7 +10,7 @@ class Database {
         this.schema = schema;
     }
     async migrate(pool) {
-        return this.history?.migrate(pool);
+        return this.history?.migrate(this, pool);
     }
     setHistory(initialiser) {
         this.history = initialiser(new History_1.History());

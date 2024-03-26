@@ -19,9 +19,14 @@ class SelectFromTable extends Statement_1.default {
         this.condition = `WHERE (${queryable.text})`;
         return this;
     }
-    primaryKeyed(id) {
+    primaryKeyed(id, initialiser) {
         const primaryKey = Schema_1.default.getSingleColumnPrimaryKey(this.schema);
-        this.where(expr => expr.var(primaryKey).equals(id));
+        this.where(expr => {
+            const e2 = expr.var(primaryKey).equals(id);
+            if (initialiser)
+                e2.and(initialiser);
+            return e2;
+        });
         return this.limit(1);
     }
     limit(count) {

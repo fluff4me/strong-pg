@@ -39,7 +39,10 @@ class History {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
-    async migrate(pool) {
+    async migrate(db, pool) {
+        for (const migration of this.migrations)
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            migration["db"] = db;
         await pool.query(`CREATE TABLE IF NOT EXISTS migrations (
 				migration_index_start SMALLINT DEFAULT 0,
 				migration_index_end SMALLINT,

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AlterColumn = exports.CreateColumn = void 0;
+exports.AlterColumnSetType = exports.AlterColumn = exports.CreateColumn = void 0;
 const Expression_1 = __importDefault(require("../../expressions/Expression"));
 const IStrongPG_1 = require("../../IStrongPG");
 const Statement_1 = __importDefault(require("../Statement"));
@@ -20,6 +20,9 @@ class AlterTable extends Statement_1.default.Super {
     }
     addColumn(name, type, initialiser) {
         return this.do(AlterTableSubStatement.addColumn(name, type, initialiser));
+    }
+    alterColumn(name, initialiser) {
+        return this.do(AlterTableSubStatement.alterColumn(name, initialiser));
     }
     dropColumn(name) {
         return this.do(AlterTableSubStatement.dropColumn(name));
@@ -145,16 +148,20 @@ class AlterColumn extends Statement_1.default.Super {
         super();
         this.name = name;
     }
-    // public reference?: ColumnReference<TYPE>;
-    // public setReferences (reference: ColumnReference<TYPE>) {
-    // 	this.reference = reference;
-    // 	return this;
-    // }
-    default(value) {
+    setType(type, initialiser) {
+        return this.addStandaloneOperation(AlterColumnSubStatement.setType(type, initialiser));
+    }
+    setDefault(value) {
         return this.addStandaloneOperation(AlterColumnSubStatement.setDefault(value));
     }
-    notNull() {
+    dropDefault() {
+        return this.addStandaloneOperation(AlterColumnSubStatement.dropDefault());
+    }
+    setNotNull() {
         return this.addStandaloneOperation(AlterColumnSubStatement.setNotNull());
+    }
+    dropNotNull() {
+        return this.addStandaloneOperation(AlterColumnSubStatement.dropNotNull());
     }
     compileOperation(operation) {
         return `ALTER COLUMN ${this.name} ${operation}`;
@@ -170,8 +177,54 @@ class AlterColumnSubStatement extends Statement_1.default {
         const stringifiedValue = expr?.text ?? Expression_1.default.stringifyValueRaw(value);
         return new AlterColumnSubStatement(`SET DEFAULT (${stringifiedValue})`, expr?.values);
     }
+    static dropDefault() {
+        return new AlterColumnSubStatement("DROP DEFAULT");
+    }
     static setNotNull() {
         return new AlterColumnSubStatement("SET NOT NULL");
+    }
+    static dropNotNull() {
+        return new AlterColumnSubStatement("DROP NOT NULL");
+    }
+    static setType(type, initialiser) {
+        const setType = new AlterColumnSetType(type);
+        initialiser?.(setType);
+        return setType;
+    }
+    constructor(compiled, vars) {
+        super();
+        this.compiled = compiled;
+        this.vars = vars;
+    }
+    compile() {
+        return this.queryable(this.compiled, undefined, this.vars);
+    }
+}
+class AlterColumnSetType extends Statement_1.default.Super {
+    constructor(type) {
+        super();
+        this.type = type;
+        this.addParallelOperation(AlterColumnSetTypeSubStatement.type(type));
+    }
+    using() {
+        return this.addParallelOperation(AlterColumnSetTypeSubStatement.using());
+    }
+    // TODO collate
+    compileOperation(operation) {
+        return `${operation}`;
+    }
+    joinParallelOperations(operations) {
+        return operations.join(" ");
+    }
+}
+exports.AlterColumnSetType = AlterColumnSetType;
+class AlterColumnSetTypeSubStatement extends Statement_1.default {
+    static type(type) {
+        return new AlterColumnSetTypeSubStatement(`TYPE ${type}`);
+    }
+    static using() {
+        // TODO
+        return new AlterColumnSetTypeSubStatement("USING");
     }
     constructor(compiled, vars) {
         super();

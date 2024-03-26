@@ -28,6 +28,7 @@ declare namespace Statement {
         protected addParallelOperation<RESULT extends Super<SUB_STATEMENT> = this>(...operations: SUB_STATEMENT[]): RESULT;
         protected addStandaloneOperation<RESULT extends Super<SUB_STATEMENT> = this>(...operations: SUB_STATEMENT[]): RESULT;
         compile(): Queryable[];
+        protected joinParallelOperations(operations: string[]): string;
         protected compileParallelOperations(): string[];
         protected compileStandaloneOperations(): Queryable[];
         protected abstract compileOperation(operation: string): string;
