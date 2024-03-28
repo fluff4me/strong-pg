@@ -9,8 +9,12 @@ class TruncateTable extends Statement_1.default {
         super();
         this.tableName = tableName;
     }
+    cascade() {
+        this.shouldCascade = true;
+        return this;
+    }
     compile() {
-        return this.queryable(`TRUNCATE ${this.tableName ?? ""}`);
+        return this.queryable(`TRUNCATE ${this.tableName ?? ""} ${this.shouldCascade ? "CASCADE" : ""}`);
     }
 }
 exports.default = TruncateTable;

@@ -27,6 +27,9 @@ class Schema {
     static primaryKey(...keys) {
         return keys;
     }
+    static optional(type) {
+        return { type, optional: true };
+    }
     static getSingleColumnPrimaryKey(schema) {
         const primaryKey = schema["PRIMARY_KEY"];
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
@@ -44,7 +47,11 @@ class Schema {
         return primaryKey;
     }
     static isColumn(schema, column, type) {
-        const columnType = schema[column];
+        let columnType = schema[column];
+        if (!columnType)
+            throw new Error(`No column ${String(column)} in schema`);
+        if (typeof columnType === "object")
+            columnType = columnType.type;
         switch (type) {
             case "TIMESTAMP":
                 return columnType.startsWith("TIMESTAMP");

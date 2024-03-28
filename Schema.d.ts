@@ -2,7 +2,11 @@ import { DataTypeID, EnumToTuple, InputTypeFromString, OutputTypeFromString, Typ
 interface SpecialKeys<SCHEMA> {
     PRIMARY_KEY?: keyof SCHEMA | (keyof SCHEMA)[];
 }
-type SchemaBase = Record<string, TypeString>;
+interface OptionalTypeString<TYPE extends TypeString = TypeString> {
+    type: TYPE;
+    optional: true;
+}
+type SchemaBase = Record<string, TypeString | OptionalTypeString>;
 export type TableSchema = Record<string, any>;
 export interface DatabaseSchema {
     tables: Record<string, TableSchema>;
@@ -60,6 +64,10 @@ declare class Schema {
     static readonly FUNCTION: (...args: any[]) => any;
     static readonly COLLATION: {};
     static primaryKey<KEYS extends string[]>(...keys: KEYS): KEYS[number][];
+    static optional<TYPE extends TypeString>(type: TYPE): {
+        type: TYPE;
+        optional: true;
+    };
     static getSingleColumnPrimaryKey<SCHEMA extends TableSchema>(schema: SCHEMA): Schema.Column<SCHEMA>;
     static getPrimaryKey<SCHEMA extends TableSchema>(schema: SCHEMA): Schema.Column<SCHEMA>[];
     static isColumn<SCHEMA extends TableSchema>(schema: SCHEMA, column: keyof SCHEMA, type: TypeString): boolean;
@@ -81,12 +89,20 @@ declare namespace Schema {
     export type Columns<SCHEMA> = {
         [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN]: SCHEMA[COLUMN];
     };
-    export type RowOutput<SCHEMA> = {
-        [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN]: OutputTypeFromString<Extract<SCHEMA[COLUMN], TypeString>>;
-    };
-    export type RowInput<SCHEMA, VARS = {}> = {
-        [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN]: InputTypeFromString<Extract<SCHEMA[COLUMN], TypeString>, VARS>;
-    };
+    export type RowOutput<SCHEMA> = ({
+        [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : SCHEMA[COLUMN] extends OptionalTypeString ? never : COLUMN]: OutputTypeFromString<Extract<SCHEMA[COLUMN], TypeString>>;
+    } & {
+        [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : SCHEMA[COLUMN] extends OptionalTypeString ? COLUMN : never]?: OutputTypeFromString<Extract<SCHEMA[COLUMN] extends OptionalTypeString<infer TYPE> ? TYPE : never, TypeString>>;
+    }) extends infer T ? {
+        [P in keyof T]: T[P];
+    } : never;
+    export type RowInput<SCHEMA, VARS = {}> = ({
+        [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : SCHEMA[COLUMN] extends OptionalTypeString ? never : COLUMN]: InputTypeFromString<Extract<SCHEMA[COLUMN], TypeString>, VARS>;
+    } & {
+        [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : SCHEMA[COLUMN] extends OptionalTypeString ? COLUMN : never]?: InputTypeFromString<Extract<SCHEMA[COLUMN] extends OptionalTypeString<infer TYPE> ? TYPE : never, TypeString>, VARS> | null;
+    }) extends infer T ? {
+        [P in keyof T]: T[P];
+    } : never;
     type Vaguify<T> = T extends TypeStringMap[DataTypeID.BIGINT] ? TypeStringMap[DataTypeID.BIGINT] | TypeStringMap[DataTypeID.BIGSERIAL] : T;
     export {};
 }

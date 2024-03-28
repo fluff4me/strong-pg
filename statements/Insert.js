@@ -60,7 +60,8 @@ class InsertIntoTable extends Statement_1.default {
     compile() {
         const rows = this.rows
             .map(row => row
-            .map((value, i) => {
+            .map((v, i) => {
+            let value = v;
             const column = this.columns[i];
             if (Schema_1.default.isColumn(this.schema, column, "TIMESTAMP") && typeof value === "number")
                 value = new Date(value);
