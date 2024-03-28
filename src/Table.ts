@@ -78,8 +78,8 @@ export default class Table<SCHEMA extends TableSchema> {
 	public update (data: Partial<Schema.RowInput<SCHEMA>>, initialiser?: Initialiser<UpdateTable<SCHEMA>, UpdateTable<SCHEMA, any>>): UpdateTable<SCHEMA, any> {
 		const query = new UpdateTable<SCHEMA, any>(this.name, this.schema);
 		for (const key of Object.keys(data))
-			if (data[key] !== undefined)
-				query.set(key as Schema.Column<SCHEMA>, data[key]!);
+			if (data[key as keyof Schema.RowInput<SCHEMA>] !== undefined)
+				query.set(key as Schema.Column<SCHEMA>, data[key as keyof Schema.RowInput<SCHEMA>] as never);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument
 		return initialiser?.(query) ?? query;

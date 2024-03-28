@@ -4,7 +4,12 @@ interface SpecialKeys<SCHEMA> {
 	PRIMARY_KEY?: keyof SCHEMA | (keyof SCHEMA)[];
 }
 
-type SchemaBase = Record<string, TypeString>;
+interface OptionalTypeString<TYPE extends TypeString = TypeString> {
+	type: TYPE;
+	optional: true;
+}
+
+type SchemaBase = Record<string, TypeString | OptionalTypeString>;
 
 // type Schema<SCHEMA extends SchemaBase = SchemaBase> = { PRIMARY_KEY?: keyof SCHEMA } & SCHEMA;
 
@@ -134,6 +139,10 @@ class Schema {
 		return keys;
 	}
 
+	public static optional<TYPE extends TypeString> (type: TYPE): { type: TYPE, optional: true } {
+		return { type, optional: true };
+	}
+
 	public static getSingleColumnPrimaryKey<SCHEMA extends TableSchema> (schema: SCHEMA) {
 		const primaryKey = schema["PRIMARY_KEY"] as Schema.Column<SCHEMA>[] | undefined;
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
@@ -155,7 +164,13 @@ class Schema {
 	}
 
 	public static isColumn<SCHEMA extends TableSchema> (schema: SCHEMA, column: keyof SCHEMA, type: TypeString) {
-		const columnType = schema[column] as TypeString;
+		let columnType = schema[column] as TypeString | OptionalTypeString;
+		if (!columnType)
+			throw new Error(`No column ${String(column)} in schema`);
+
+		if (typeof columnType === "object")
+			columnType = columnType.type;
+
 		switch (type) {
 			case "TIMESTAMP":
 				return columnType.startsWith("TIMESTAMP");
@@ -183,8 +198,14 @@ namespace Schema {
 	export type ColumnTyped<SCHEMA, TYPE> =
 		keyof { [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : SCHEMA[COLUMN] extends Vaguify<TYPE> ? COLUMN : never]: SCHEMA[COLUMN] };
 	export type Columns<SCHEMA> = { [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN]: SCHEMA[COLUMN] };
-	export type RowOutput<SCHEMA> = { [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN]: OutputTypeFromString<Extract<SCHEMA[COLUMN], TypeString>> };
-	export type RowInput<SCHEMA, VARS = {}> = { [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN]: InputTypeFromString<Extract<SCHEMA[COLUMN], TypeString>, VARS> };
+	export type RowOutput<SCHEMA> = (
+		{ [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : SCHEMA[COLUMN] extends OptionalTypeString ? never : COLUMN]: OutputTypeFromString<Extract<SCHEMA[COLUMN], TypeString>> }
+		& { [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : SCHEMA[COLUMN] extends OptionalTypeString ? COLUMN : never]?: OutputTypeFromString<Extract<SCHEMA[COLUMN] extends OptionalTypeString<infer TYPE> ? TYPE : never, TypeString>> }
+	) extends infer T ? { [P in keyof T]: T[P] } : never;
+	export type RowInput<SCHEMA, VARS = {}> = (
+		{ [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : SCHEMA[COLUMN] extends OptionalTypeString ? never : COLUMN]: InputTypeFromString<Extract<SCHEMA[COLUMN], TypeString>, VARS> }
+		& { [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : SCHEMA[COLUMN] extends OptionalTypeString ? COLUMN : never]?: InputTypeFromString<Extract<SCHEMA[COLUMN] extends OptionalTypeString<infer TYPE> ? TYPE : never, TypeString>, VARS> | null }
+	) extends infer T ? { [P in keyof T]: T[P] } : never;
 
 	type Vaguify<T> = T extends TypeStringMap[DataTypeID.BIGINT] ? TypeStringMap[DataTypeID.BIGINT] | TypeStringMap[DataTypeID.BIGSERIAL]
 		: T;

@@ -18,7 +18,7 @@ export default class UpdateTable<SCHEMA extends TableSchema, RESULT = [], VARS =
 	public set (input: Schema.Column<SCHEMA> | Partial<Schema.RowInput<SCHEMA, VARS>>, value?: ValidType) {
 		if (typeof input === "object") {
 			for (const column of Object.keys(input))
-				this.set(column as Schema.Column<SCHEMA>, input[column] as never);
+				this.set(column as Schema.Column<SCHEMA>, input[column as keyof Schema.RowInput<SCHEMA, VARS>] as never);
 
 		} else {
 			if (Schema.isColumn(this.schema, input, "TIMESTAMP") && typeof value === "number")

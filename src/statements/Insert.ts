@@ -77,7 +77,8 @@ export default class InsertIntoTable<SCHEMA extends TableSchema, COLUMNS extends
 	public compile () {
 		const rows = this.rows
 			.map(row => row
-				.map((value: ValidType, i) => {
+				.map((v, i) => {
+					let value = v as ValidType;
 					const column = this.columns[i];
 					if (Schema.isColumn(this.schema, column, "TIMESTAMP") && typeof value === "number")
 						value = new Date(value);

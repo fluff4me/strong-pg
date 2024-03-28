@@ -6,7 +6,13 @@ export default class TruncateTable extends Statement<[]> {
 		super();
 	}
 
+	private shouldCascade?: true;
+	public cascade () {
+		this.shouldCascade = true;
+		return this;
+	}
+
 	public compile () {
-		return this.queryable(`TRUNCATE ${this.tableName ?? ""}`);
+		return this.queryable(`TRUNCATE ${this.tableName ?? ""} ${this.shouldCascade ? "CASCADE" : ""}`);
 	}
 }
