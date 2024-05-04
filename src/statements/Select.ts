@@ -39,8 +39,23 @@ export default class SelectFromTable<SCHEMA extends TableSchema, COLUMNS extends
 		return this;
 	}
 
+	private _orderByColumn?: Schema.Column<SCHEMA>;
+	public orderBy (column: Schema.Column<SCHEMA>) {
+		this._orderByColumn = column;
+		return this;
+	}
+
+	private _offset?: number;
+	public offset (amount: number) {
+		this._offset = amount;
+		return this;
+	}
+
 	public compile () {
-		return this.queryable(`SELECT ${this.columns.join(",")} FROM ${this.tableName} ${this.condition ?? ""} ${this._limit ? `LIMIT ${this._limit}` : ""}`, undefined, this.vars);
+		const orderBy = this._orderByColumn ? `ORDER BY ${String(this._orderByColumn)}` : "";
+		const offset = this._offset ? `OFFSET ${this._offset}` : "";
+		const limit = this._limit ? `LIMIT ${this._limit}` : "";
+		return this.queryable(`SELECT ${this.columns.join(",")} FROM ${this.tableName} ${this.condition ?? ""} ${orderBy} ${offset} ${limit}`, undefined, this.vars);
 	}
 
 	public async queryOne (pool: Pool | PoolClient) {
