@@ -18,6 +18,10 @@ export default class SelectFromTable<SCHEMA extends TableSchema, COLUMNS extends
     private _limit?;
     limit(count: 1): SelectFromTable<SCHEMA, COLUMNS, SelectResult<SCHEMA, COLUMNS> | undefined>;
     limit(count: number): SelectFromTable<SCHEMA, COLUMNS, SelectResult<SCHEMA, COLUMNS>[]>;
+    private _orderByColumn?;
+    orderBy(column: Schema.Column<SCHEMA>): this;
+    private _offset?;
+    offset(amount: number): this;
     compile(): Statement.Queryable[];
     queryOne(pool: Pool | PoolClient): Promise<SelectResult<SCHEMA, COLUMNS> | undefined>;
     protected resolveQueryOutput(output: QueryResult<any>): any;

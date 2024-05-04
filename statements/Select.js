@@ -33,8 +33,19 @@ class SelectFromTable extends Statement_1.default {
         this._limit = count;
         return this;
     }
+    orderBy(column) {
+        this._orderByColumn = column;
+        return this;
+    }
+    offset(amount) {
+        this._offset = amount;
+        return this;
+    }
     compile() {
-        return this.queryable(`SELECT ${this.columns.join(",")} FROM ${this.tableName} ${this.condition ?? ""} ${this._limit ? `LIMIT ${this._limit}` : ""}`, undefined, this.vars);
+        const orderBy = this._orderByColumn ? `ORDER BY ${String(this._orderByColumn)}` : "";
+        const offset = this._offset ? `OFFSET ${this._offset}` : "";
+        const limit = this._limit ? `LIMIT ${this._limit}` : "";
+        return this.queryable(`SELECT ${this.columns.join(",")} FROM ${this.tableName} ${this.condition ?? ""} ${orderBy} ${offset} ${limit}`, undefined, this.vars);
     }
     async queryOne(pool) {
         return this.limit(1).query(pool);
