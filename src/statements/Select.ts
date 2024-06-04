@@ -40,8 +40,10 @@ export default class SelectFromTable<SCHEMA extends TableSchema, COLUMNS extends
 	}
 
 	private _orderByColumn?: Schema.Column<SCHEMA>;
-	public orderBy (column: Schema.Column<SCHEMA>) {
+	private _orderByDirection?: string;
+	public orderBy (column: Schema.Column<SCHEMA>, order = "ASC") {
 		this._orderByColumn = column;
+		this._orderByDirection = order;
 		return this;
 	}
 
@@ -52,7 +54,7 @@ export default class SelectFromTable<SCHEMA extends TableSchema, COLUMNS extends
 	}
 
 	public compile () {
-		const orderBy = this._orderByColumn ? `ORDER BY ${String(this._orderByColumn)}` : "";
+		const orderBy = this._orderByColumn && this._orderByDirection ? `ORDER BY ${String(this._orderByColumn)} ${this._orderByDirection}` : "";
 		const offset = this._offset ? `OFFSET ${this._offset}` : "";
 		const limit = this._limit ? `LIMIT ${this._limit}` : "";
 		return this.queryable(`SELECT ${this.columns.join(",")} FROM ${this.tableName} ${this.condition ?? ""} ${orderBy} ${offset} ${limit}`, undefined, this.vars);
