@@ -113,6 +113,8 @@ export interface InputTypeMap extends Omit<MigrationTypeMap, DataTypeID.JSON> {
     [DataTypeID.JSON]: any;
 }
 export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | DataTypeID.TIMESTAMP | DataTypeID.TIME> {
+    [DataTypeID.BIGINT]: `${bigint}`;
+    [DataTypeID.BIGSERIAL]: `${bigint}`;
     [DataTypeID.DATE]: Date;
     [DataTypeID.TIMESTAMP]: Date;
     [DataTypeID.TIME]: Date;

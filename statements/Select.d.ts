@@ -19,7 +19,8 @@ export default class SelectFromTable<SCHEMA extends TableSchema, COLUMNS extends
     limit(count: 1): SelectFromTable<SCHEMA, COLUMNS, SelectResult<SCHEMA, COLUMNS> | undefined>;
     limit(count: number): SelectFromTable<SCHEMA, COLUMNS, SelectResult<SCHEMA, COLUMNS>[]>;
     private _orderByColumn?;
-    orderBy(column: Schema.Column<SCHEMA>): this;
+    private _orderByDirection?;
+    orderBy(column: Schema.Column<SCHEMA>, order?: string): this;
     private _offset?;
     offset(amount: number): this;
     compile(): Statement.Queryable[];
