@@ -1,5 +1,5 @@
 import Expression, { ExpressionInitialiser } from "../../expressions/Expression";
-import { Initialiser, MigrationTypeFromString, TypeString } from "../../IStrongPG";
+import { ExtractTypeString, Initialiser, MigrationTypeFromString, OptionalTypeString, TypeString } from "../../IStrongPG";
 import Schema, { DatabaseSchema } from "../../Schema";
 import Statement from "../Statement";
 
@@ -23,11 +23,11 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
 		return this.addStandaloneOperation<AlterTable<DB, SCHEMA_START, SCHEMA_NEW>>(...operations);
 	}
 
-	public addColumn<NAME extends string, TYPE extends TypeString> (name: NAME, type: TYPE, initialiser?: Initialiser<CreateColumn<DB, TYPE>>) {
-		return this.do<{ [KEY in NAME | keyof SCHEMA_END]: KEY extends NAME ? TYPE : SCHEMA_END[KEY & keyof SCHEMA_END] }>(AlterTableSubStatement.addColumn(name, type, initialiser));
+	public addColumn<NAME extends string, TYPE extends TypeString, NEW_TYPE extends TypeString | OptionalTypeString = OptionalTypeString<TYPE>> (name: NAME, type: TYPE, initialiser?: Initialiser<CreateColumn<DB, OptionalTypeString<TYPE>>, CreateColumn<DB, NEW_TYPE>>) {
+		return this.do<{ [KEY in NAME | keyof SCHEMA_END]: KEY extends NAME ? NEW_TYPE : SCHEMA_END[KEY & keyof SCHEMA_END] }>(AlterTableSubStatement.addColumn(name, type, initialiser));
 	}
 
-	public alterColumn<NAME extends keyof SCHEMA_END & string, NEW_TYPE extends TypeString> (name: NAME, initialiser: Initialiser<AlterColumn<NAME, SCHEMA_END[NAME] & TypeString>, AlterColumn<NAME, NEW_TYPE>>) {
+	public alterColumn<NAME extends keyof SCHEMA_END & string, NEW_TYPE extends TypeString | OptionalTypeString> (name: NAME, initialiser: Initialiser<AlterColumn<NAME, SCHEMA_END[NAME] & (TypeString | OptionalTypeString)>, AlterColumn<NAME, NEW_TYPE>>) {
 		return this.do<{ [KEY in NAME | keyof SCHEMA_END]: KEY extends NAME ? NEW_TYPE : SCHEMA_END[KEY & keyof SCHEMA_END] }>(AlterTableSubStatement.alterColumn(name, initialiser));
 	}
 
@@ -76,14 +76,14 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
 }
 
 class AlterTableSubStatement extends Statement {
-	public static addColumn<NAME extends string, TYPE extends TypeString> (column: NAME, type: TYPE, initialiser?: Initialiser<CreateColumn<any, TYPE>>) {
-		const createColumn = new CreateColumn<any, TYPE>();
+	public static addColumn<NAME extends string, TYPE extends TypeString, NEW_TYPE extends TypeString | OptionalTypeString> (column: NAME, type: TYPE, initialiser?: Initialiser<CreateColumn<any, OptionalTypeString<TYPE>>, CreateColumn<any, NEW_TYPE>>) {
+		const createColumn = new CreateColumn<any, OptionalTypeString<TYPE>>();
 		initialiser?.(createColumn);
 		const columnStuffs = !initialiser ? "" : ` ${createColumn.compile().map(query => query.text).join(" ")}`;
 		return new AlterTableSubStatement(`ADD COLUMN ${column} ${TypeString.resolve(type)}${columnStuffs}`);
 	}
 
-	public static alterColumn<COLUMN extends string, TYPE extends TypeString, NEW_TYPE extends TypeString> (column: COLUMN, initialiser: Initialiser<AlterColumn<COLUMN, TYPE>, AlterColumn<COLUMN, NEW_TYPE>>) {
+	public static alterColumn<COLUMN extends string, TYPE extends TypeString | OptionalTypeString, NEW_TYPE extends TypeString | OptionalTypeString> (column: COLUMN, initialiser: Initialiser<AlterColumn<COLUMN, TYPE>, AlterColumn<COLUMN, NEW_TYPE>>) {
 		const statement = new AlterColumn<COLUMN, TYPE>(column);
 		initialiser(statement);
 		return statement;
@@ -132,18 +132,22 @@ class AlterTableSubStatement extends Statement {
 // 	}
 // }
 
-export class CreateColumn<DB extends DatabaseSchema, TYPE extends TypeString> extends Statement.Super<CreateColumnSubStatement> {
+export class CreateColumn<DB extends DatabaseSchema, TYPE extends TypeString | OptionalTypeString> extends Statement.Super<CreateColumnSubStatement> {
 	public default (value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>) {
-		return this.addStandaloneOperation(CreateColumnSubStatement.setDefault(value));
+		if (value === null)
+			return this;
+		else
+			return this.addStandaloneOperation(CreateColumnSubStatement.setDefault(value));
 	}
 
 	public notNull () {
-		return this.addStandaloneOperation(CreateColumnSubStatement.setNotNull());
+		return this.addStandaloneOperation<CreateColumn<DB, ExtractTypeString<TYPE>>>(CreateColumnSubStatement.setNotNull());
 	}
 
 	public collate (collation: DatabaseSchema.CollationName<DB>) {
 		// put it first
-		return this.standaloneOperations.unshift(CreateColumnSubStatement.setCollation(collation));
+		this.standaloneOperations.unshift(CreateColumnSubStatement.setCollation(collation));
+		return this;
 	}
 
 	protected compileOperation (operation: string) {
@@ -155,9 +159,9 @@ class CreateColumnSubStatement extends Statement {
 	/**
 	 * Warning: Do not use this outside of migrations
 	 */
-	public static setDefault<TYPE extends TypeString> (value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>) {
+	public static setDefault<TYPE extends TypeString | OptionalTypeString> (value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>) {
 		const expr = typeof value === "function" ? Expression.compile(value) : undefined;
-		const stringifiedValue = expr?.text ?? Expression.stringifyValueRaw(value as MigrationTypeFromString<TYPE>);
+		const stringifiedValue = expr?.text ?? Expression.stringifyValueRaw(value as MigrationTypeFromString<ExtractTypeString<TYPE>>);
 		return new CreateColumnSubStatement(`DEFAULT (${stringifiedValue})`, expr?.values);
 	}
 
@@ -178,7 +182,7 @@ class CreateColumnSubStatement extends Statement {
 	}
 }
 
-export class AlterColumn<NAME extends string, TYPE extends TypeString> extends Statement.Super<AlterColumnSubStatement | AlterColumnSetType<TypeString>> {
+export class AlterColumn<NAME extends string, TYPE extends TypeString | OptionalTypeString> extends Statement.Super<AlterColumnSubStatement | AlterColumnSetType<TypeString>> {
 
 	public constructor (public name: NAME) {
 		super();
@@ -189,7 +193,10 @@ export class AlterColumn<NAME extends string, TYPE extends TypeString> extends S
 	}
 
 	public setDefault (value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>) {
-		return this.addStandaloneOperation(AlterColumnSubStatement.setDefault(value));
+		if (value === null)
+			return this.dropDefault();
+		else
+			return this.addStandaloneOperation(AlterColumnSubStatement.setDefault(value));
 	}
 
 	public dropDefault () {
@@ -201,7 +208,7 @@ export class AlterColumn<NAME extends string, TYPE extends TypeString> extends S
 	}
 
 	public dropNotNull () {
-		return this.addStandaloneOperation(AlterColumnSubStatement.dropNotNull());
+		return this.addStandaloneOperation<AlterColumn<NAME, TYPE extends TypeString ? OptionalTypeString<TYPE> : TYPE>>(AlterColumnSubStatement.dropNotNull());
 	}
 
 	protected compileOperation (operation: string) {
@@ -213,7 +220,7 @@ class AlterColumnSubStatement extends Statement {
 	/**
 	 * Warning: Do not use this outside of migrations
 	 */
-	public static setDefault<TYPE extends TypeString> (value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>) {
+	public static setDefault<TYPE extends TypeString> (value: MigrationTypeFromString<TYPE | OptionalTypeString<TYPE>> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE | OptionalTypeString<TYPE>>>) {
 		const expr = typeof value === "function" ? Expression.compile(value) : undefined;
 		const stringifiedValue = expr?.text ?? Expression.stringifyValueRaw(value as MigrationTypeFromString<TYPE>);
 		return new AlterColumnSubStatement(`SET DEFAULT (${stringifiedValue})`, expr?.values);

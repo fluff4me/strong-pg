@@ -1,12 +1,7 @@
-import { DataTypeID, EnumToTuple, InputTypeFromString, OutputTypeFromString, TypeString, TypeStringMap } from "./IStrongPG";
+import { DataTypeID, EnumToTuple, InputTypeFromString, OptionalTypeString, OutputTypeFromString, TypeString, TypeStringMap } from "./IStrongPG";
 
 interface SpecialKeys<SCHEMA> {
 	PRIMARY_KEY?: keyof SCHEMA | (keyof SCHEMA)[];
-}
-
-interface OptionalTypeString<TYPE extends TypeString = TypeString> {
-	type: TYPE;
-	optional: true;
 }
 
 type SchemaBase = Record<string, TypeString | OptionalTypeString>;
@@ -196,7 +191,10 @@ namespace Schema {
 
 	export type Column<SCHEMA> = keyof SCHEMA extends infer KEYS ? KEYS extends keyof SpecialKeys<any> ? never : keyof SCHEMA : never;
 	export type ColumnTyped<SCHEMA, TYPE> =
-		keyof { [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : SCHEMA[COLUMN] extends Vaguify<TYPE> ? COLUMN : never]: SCHEMA[COLUMN] };
+		Vaguify<TYPE extends OptionalTypeString<infer TYPE2> ? TYPE2 : TYPE> extends infer TYPE2 ?
+		keyof { [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : SCHEMA[COLUMN] extends TYPE2 ? COLUMN : never]: SCHEMA[COLUMN]; }
+		: never;
+
 	export type Columns<SCHEMA> = { [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN]: SCHEMA[COLUMN] };
 	export type RowOutput<SCHEMA> = (
 		{ [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : SCHEMA[COLUMN] extends OptionalTypeString ? never : COLUMN]: OutputTypeFromString<Extract<SCHEMA[COLUMN], TypeString>> }
