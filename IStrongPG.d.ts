@@ -76,9 +76,14 @@ export declare namespace DataType {
     const JSON: TypeStringMap[DataTypeID.JSON];
 }
 export type TypeString = TypeStringMap[DataTypeID] | "*";
-export type DataTypeFromString<STR extends TypeString> = {
-    [DATATYPE in DataTypeID as STR extends TypeStringMap[DATATYPE] ? DATATYPE : never]: DATATYPE;
-} extends infer DATATYPE_RESULT ? DATATYPE_RESULT[keyof DATATYPE_RESULT] & DataTypeID : never;
+export interface OptionalTypeString<TYPE extends TypeString = TypeString> {
+    type: TYPE;
+    optional: true;
+}
+export type ExtractTypeString<TYPE extends TypeString | OptionalTypeString> = TYPE extends OptionalTypeString<infer TYPE2> ? TYPE2 : TYPE;
+export type DataTypeFromString<STR extends TypeString | OptionalTypeString> = (STR extends OptionalTypeString<infer TYPE> ? TYPE : STR) extends infer TYPE ? {
+    [DATATYPE in DataTypeID as TYPE extends TypeStringMap[DATATYPE] ? DATATYPE : never]: DATATYPE;
+} extends infer DATATYPE_RESULT ? DATATYPE_RESULT[keyof DATATYPE_RESULT] & DataTypeID : never : never;
 export type ValidDate = Date | number | typeof Keyword.CurrentTimestamp;
 export interface MigrationTypeMap {
     [DataTypeID.SMALLINT]: number;
@@ -114,11 +119,11 @@ export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | Data
 }
 export type ValidType = string | boolean | number | symbol | Date | RegExp | undefined | null;
 export declare const SYMBOL_COLUMNS: unique symbol;
-export type MigrationTypeFromString<STR extends TypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : MigrationTypeMap[DataTypeFromString<STR>];
-export type InputTypeFromString<STR extends TypeString, VARS = {}> = STR extends "*" ? typeof SYMBOL_COLUMNS : ExpressionOr<VARS, InputTypeMap[DataTypeFromString<STR>]>;
-export type OutputTypeFromString<STR extends TypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : OutputTypeMap[DataTypeFromString<STR>];
+export type MigrationTypeFromString<STR extends TypeString | OptionalTypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : MigrationTypeMap[DataTypeFromString<STR>];
+export type InputTypeFromString<STR extends TypeString | OptionalTypeString, VARS = {}> = STR extends "*" ? typeof SYMBOL_COLUMNS : ExpressionOr<VARS, InputTypeMap[DataTypeFromString<STR>]>;
+export type OutputTypeFromString<STR extends TypeString | OptionalTypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : OutputTypeMap[DataTypeFromString<STR>];
 export declare namespace TypeString {
-    function resolve(typeString: TypeString): string;
+    function resolve(typeString: TypeString | OptionalTypeString): string;
 }
 export type Initialiser<T, R = any> = (value: T) => R;
 export type Key<OBJ, VALUE> = keyof {

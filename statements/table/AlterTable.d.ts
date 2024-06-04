@@ -1,5 +1,5 @@
 import { ExpressionInitialiser } from "../../expressions/Expression";
-import { Initialiser, MigrationTypeFromString, TypeString } from "../../IStrongPG";
+import { ExtractTypeString, Initialiser, MigrationTypeFromString, OptionalTypeString, TypeString } from "../../IStrongPG";
 import Schema, { DatabaseSchema } from "../../Schema";
 import Statement from "../Statement";
 export type AlterTableInitialiser<DB extends DatabaseSchema, SCHEMA_START, SCHEMA_END> = Initialiser<AlterTable<DB, SCHEMA_START>, AlterTable<DB, SCHEMA_START, SCHEMA_END>>;
@@ -10,8 +10,8 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
     constructor(table: string);
     private do;
     private doStandalone;
-    addColumn<NAME extends string, TYPE extends TypeString>(name: NAME, type: TYPE, initialiser?: Initialiser<CreateColumn<DB, TYPE>>): AlterTable<DB, SCHEMA_START, { [KEY in NAME | keyof SCHEMA_END]: KEY extends NAME ? TYPE : SCHEMA_END[KEY & keyof SCHEMA_END]; }>;
-    alterColumn<NAME extends keyof SCHEMA_END & string, NEW_TYPE extends TypeString>(name: NAME, initialiser: Initialiser<AlterColumn<NAME, SCHEMA_END[NAME] & TypeString>, AlterColumn<NAME, NEW_TYPE>>): AlterTable<DB, SCHEMA_START, { [KEY in keyof SCHEMA_END | NAME]: KEY extends NAME ? NEW_TYPE : SCHEMA_END[KEY & keyof SCHEMA_END]; }>;
+    addColumn<NAME extends string, TYPE extends TypeString, NEW_TYPE extends TypeString | OptionalTypeString = OptionalTypeString<TYPE>>(name: NAME, type: TYPE, initialiser?: Initialiser<CreateColumn<DB, OptionalTypeString<TYPE>>, CreateColumn<DB, NEW_TYPE>>): AlterTable<DB, SCHEMA_START, { [KEY in NAME | keyof SCHEMA_END]: KEY extends NAME ? NEW_TYPE : SCHEMA_END[KEY & keyof SCHEMA_END]; }>;
+    alterColumn<NAME extends keyof SCHEMA_END & string, NEW_TYPE extends TypeString | OptionalTypeString>(name: NAME, initialiser: Initialiser<AlterColumn<NAME, SCHEMA_END[NAME] & (TypeString | OptionalTypeString)>, AlterColumn<NAME, NEW_TYPE>>): AlterTable<DB, SCHEMA_START, { [KEY in keyof SCHEMA_END | NAME]: KEY extends NAME ? NEW_TYPE : SCHEMA_END[KEY & keyof SCHEMA_END]; }>;
     dropColumn<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string>(name: NAME): AlterTable<DB, SCHEMA_START, Omit<SCHEMA_END, NAME>>;
     renameColumn<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string, NAME_NEW extends string>(name: NAME, newName: NAME_NEW): AlterTable<DB, SCHEMA_START, { [KEY in NAME_NEW | Exclude<keyof SCHEMA_END, NAME>]: KEY extends NAME_NEW ? SCHEMA_END[NAME] : SCHEMA_END[KEY & keyof SCHEMA_END]; }>;
     addPrimaryKey<KEYS extends Schema.PrimaryKeyOrNull<SCHEMA_END> extends null ? (keyof SCHEMA_END & string)[] : never[]>(...keys: KEYS): AlterTable<DB, SCHEMA_START, Schema.PrimaryKeyed<SCHEMA_END, KEYS[number][]>>;
@@ -22,10 +22,10 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
     schema<SCHEMA_TEST extends SCHEMA_END>(): SCHEMA_END extends SCHEMA_TEST ? AlterTable<DB, SCHEMA_START, SCHEMA_TEST> : null;
     protected compileOperation(operation: string): string;
 }
-export declare class CreateColumn<DB extends DatabaseSchema, TYPE extends TypeString> extends Statement.Super<CreateColumnSubStatement> {
+export declare class CreateColumn<DB extends DatabaseSchema, TYPE extends TypeString | OptionalTypeString> extends Statement.Super<CreateColumnSubStatement> {
     default(value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>): this;
-    notNull(): this;
-    collate(collation: DatabaseSchema.CollationName<DB>): number;
+    notNull(): CreateColumn<DB, ExtractTypeString<TYPE>>;
+    collate(collation: DatabaseSchema.CollationName<DB>): this;
     protected compileOperation(operation: string): string;
 }
 declare class CreateColumnSubStatement extends Statement {
@@ -34,20 +34,20 @@ declare class CreateColumnSubStatement extends Statement {
     /**
      * Warning: Do not use this outside of migrations
      */
-    static setDefault<TYPE extends TypeString>(value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>): CreateColumnSubStatement;
+    static setDefault<TYPE extends TypeString | OptionalTypeString>(value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>): CreateColumnSubStatement;
     static setNotNull(): CreateColumnSubStatement;
     static setCollation(collation: string): CreateColumnSubStatement;
     private constructor();
     compile(): Statement.Queryable[];
 }
-export declare class AlterColumn<NAME extends string, TYPE extends TypeString> extends Statement.Super<AlterColumnSubStatement | AlterColumnSetType<TypeString>> {
+export declare class AlterColumn<NAME extends string, TYPE extends TypeString | OptionalTypeString> extends Statement.Super<AlterColumnSubStatement | AlterColumnSetType<TypeString>> {
     name: NAME;
     constructor(name: NAME);
     setType<TYPE extends TypeString>(type: TYPE, initialiser?: Initialiser<AlterColumnSetType<TYPE>>): AlterColumn<NAME, TYPE>;
     setDefault(value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>): this;
     dropDefault(): this;
     setNotNull(): this;
-    dropNotNull(): this;
+    dropNotNull(): AlterColumn<NAME, TYPE extends TypeString ? OptionalTypeString<TYPE> : TYPE>;
     protected compileOperation(operation: string): string;
 }
 declare class AlterColumnSubStatement extends Statement {
@@ -56,7 +56,7 @@ declare class AlterColumnSubStatement extends Statement {
     /**
      * Warning: Do not use this outside of migrations
      */
-    static setDefault<TYPE extends TypeString>(value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>): AlterColumnSubStatement;
+    static setDefault<TYPE extends TypeString>(value: MigrationTypeFromString<TYPE | OptionalTypeString<TYPE>> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE | OptionalTypeString<TYPE>>>): AlterColumnSubStatement;
     static dropDefault(): AlterColumnSubStatement;
     static setNotNull(): AlterColumnSubStatement;
     static dropNotNull(): AlterColumnSubStatement;

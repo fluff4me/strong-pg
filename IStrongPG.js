@@ -99,6 +99,8 @@ exports.SYMBOL_COLUMNS = Symbol("COLUMNS");
 var TypeString;
 (function (TypeString) {
     function resolve(typeString) {
+        if (typeof typeString === "object")
+            typeString = typeString.type;
         if (typeString.startsWith("ENUM("))
             return typeString.slice(5, -1);
         return typeString;

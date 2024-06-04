@@ -105,14 +105,18 @@ class AlterTableSubStatement extends Statement_1.default {
 // }
 class CreateColumn extends Statement_1.default.Super {
     default(value) {
-        return this.addStandaloneOperation(CreateColumnSubStatement.setDefault(value));
+        if (value === null)
+            return this;
+        else
+            return this.addStandaloneOperation(CreateColumnSubStatement.setDefault(value));
     }
     notNull() {
         return this.addStandaloneOperation(CreateColumnSubStatement.setNotNull());
     }
     collate(collation) {
         // put it first
-        return this.standaloneOperations.unshift(CreateColumnSubStatement.setCollation(collation));
+        this.standaloneOperations.unshift(CreateColumnSubStatement.setCollation(collation));
+        return this;
     }
     compileOperation(operation) {
         return operation;
@@ -152,7 +156,10 @@ class AlterColumn extends Statement_1.default.Super {
         return this.addStandaloneOperation(AlterColumnSubStatement.setType(type, initialiser));
     }
     setDefault(value) {
-        return this.addStandaloneOperation(AlterColumnSubStatement.setDefault(value));
+        if (value === null)
+            return this.dropDefault();
+        else
+            return this.addStandaloneOperation(AlterColumnSubStatement.setDefault(value));
     }
     dropDefault() {
         return this.addStandaloneOperation(AlterColumnSubStatement.dropDefault());
