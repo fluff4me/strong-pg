@@ -40,7 +40,7 @@ export namespace DatabaseSchema {
 		SCHEMA["tables"][NAME] extends infer TABLE ? TABLE extends TableSchema ? TABLE : never : never;
 
 	export type Enum<SCHEMA extends DatabaseSchema, NAME extends EnumName<SCHEMA>> =
-		SCHEMA["enums"][NAME] & string[];
+		SCHEMA["enums"][NAME] extends infer ENUM ? ENUM extends string[] ? ENUM : never : never;
 }
 
 // this is a type function that validates the schema it receives
