@@ -31,6 +31,7 @@ export default class Database<SCHEMA extends DatabaseSchema> {
 	}
 
 	public table<TABLE_NAME extends DatabaseSchema.TableName<SCHEMA>> (tableName: TABLE_NAME) {
-		return new Table(tableName as string, this.schema.tables[tableName as string] as DatabaseSchema.Table<SCHEMA, TABLE_NAME>);
+		type TABLE = DatabaseSchema.Table<SCHEMA, TABLE_NAME>;
+		return new Table<TABLE, SCHEMA, TABLE_NAME>(tableName, this.schema.tables[tableName as string] as TABLE);
 	}
 }

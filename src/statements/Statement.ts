@@ -14,12 +14,12 @@ abstract class Statement<RESULT = void> {
 		return this;
 	}
 
-	public abstract compile (): Statement.Queryable[];
+	public abstract compile (): Statement.Queryable | Statement.Queryable[];
 
 	public query (pool: Pool | PoolClient) {
 		let result: QueryResult;
 		return Statement.Transaction.execute(pool, async client => {
-			for (const statement of this.compile()) {
+			for (const statement of this.queryable(this.compile())) {
 				log("  > ", color("darkGray", statement.text));
 				if (statement.values?.length)
 					for (let i = 0; i < statement.values.length; i++)
