@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Delete_1 = __importDefault(require("./statements/Delete"));
 const Insert_1 = __importDefault(require("./statements/Insert"));
+const Join_1 = __importDefault(require("./statements/Join"));
 const Select_1 = __importDefault(require("./statements/Select"));
 const Truncate_1 = __importDefault(require("./statements/Truncate"));
 const Update_1 = __importDefault(require("./statements/Update"));
@@ -57,6 +58,16 @@ class Table {
     }
     truncate() {
         return new Truncate_1.default(this.name);
+    }
+    as(alias1) {
+        return {
+            innerJoin: (tableName, alias2) => {
+                return new Join_1.default("INNER", this.name, tableName, alias1, alias2);
+            },
+        };
+    }
+    innerJoin(tableName, alias) {
+        return new Join_1.default("INNER", this.name, tableName, undefined, alias);
     }
 }
 exports.default = Table;

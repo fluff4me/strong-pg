@@ -12,7 +12,7 @@ export interface ExpressionOperations<VARS = never, CURRENT_VALUE = null> {
 }
 export interface ExpressionValue<VARS = never, EXPECTED_VALUE = null, RESULT = null> {
     <VALUE extends (EXPECTED_VALUE extends null ? ValidType : EXPECTED_VALUE)>(value: VALUE): ExpressionOperations<VARS, RESULT extends null ? VALUE : RESULT>;
-    (value: ExpressionInitialiser<VARS, RESULT>): ExpressionOperations<VARS, RESULT>;
+    (value: ExpressionInitialiser<VARS, EXPECTED_VALUE>): ExpressionOperations<VARS, RESULT>;
 }
 export interface ExpressionValues<VARS = never, VALUE = null, RESULT = null> {
     value: ExpressionValue<VARS, VALUE, RESULT>;

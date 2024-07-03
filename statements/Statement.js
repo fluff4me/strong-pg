@@ -37,7 +37,7 @@ class Statement {
     query(pool) {
         let result;
         return Statement.Transaction.execute(pool, async (client) => {
-            for (const statement of this.compile()) {
+            for (const statement of this.queryable(this.compile())) {
                 (0, Log_1.default)("  > ", (0, Log_1.color)("darkGray", statement.text));
                 if (statement.values?.length)
                     for (let i = 0; i < statement.values.length; i++)

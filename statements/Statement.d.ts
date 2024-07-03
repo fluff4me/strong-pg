@@ -4,7 +4,7 @@ declare abstract class Statement<RESULT = void> {
     private static Transaction;
     stack?: StackUtil.Stack;
     setCaller(skip?: number): this;
-    abstract compile(): Statement.Queryable[];
+    abstract compile(): Statement.Queryable | Statement.Queryable[];
     query(pool: Pool | PoolClient): Promise<RESULT>;
     protected resolveQueryOutput(output: QueryResult): RESULT;
     protected queryable(queryables: string | Statement.Queryable | (string | Statement.Queryable)[], stack?: StackUtil.Stack | undefined, vars?: any[]): Statement.Queryable[];

@@ -12,5 +12,5 @@ export default class Database<SCHEMA extends DatabaseSchema> {
      * Drops the database if the environment variable `DEBUG_PG_ALLOW_DROP` is set
      */
     dropIfShould(pool: Pool | PoolClient): Promise<import("pg").QueryResult<any> | undefined>;
-    table<TABLE_NAME extends DatabaseSchema.TableName<SCHEMA>>(tableName: TABLE_NAME): Table<DatabaseSchema.Table<SCHEMA, TABLE_NAME>>;
+    table<TABLE_NAME extends DatabaseSchema.TableName<SCHEMA>>(tableName: TABLE_NAME): Table<DatabaseSchema.Table<SCHEMA, TABLE_NAME>, SCHEMA, TABLE_NAME>;
 }
