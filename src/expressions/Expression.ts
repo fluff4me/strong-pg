@@ -18,6 +18,8 @@ export interface ExpressionValue<VARS = never, EXPECTED_VALUE = null, RESULT = n
 }
 
 export interface ExpressionValues<VARS = never, VALUE = null, RESULT = null> {
+	some<T> (values: T[], predicate: (e: ExpressionValues<VARS, null, boolean>, value: T, index: number, values: T[]) => ExpressionOperations<VARS, boolean>): ExpressionOperations<VARS, boolean>;
+	every<T> (values: T[], predicate: (e: ExpressionValues<VARS, null, boolean>, value: T, index: number, values: T[]) => ExpressionOperations<VARS, boolean>): ExpressionOperations<VARS, boolean>;
 	value: ExpressionValue<VARS, VALUE, RESULT>;
 	var<VAR extends keyof VARS> (name: VAR): ExpressionOperations<VARS, MigrationTypeFromString<VARS[VAR] & TypeString>>;
 	lowercase: ExpressionValue<VARS, string, string>;
@@ -148,6 +150,20 @@ export default class Expression<VARS = never> implements ImplementableExpression
 
 	////////////////////////////////////
 	// Values
+
+	public some (values: any[], predicate: (e: ExpressionValues, value: any, index: number, values: any[]) => any) {
+		this.parts.push(() => values
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+			.map((value, i) => Expression.stringifyValue(expression => predicate(expression, value, i, values), this.vars, this.enableStringConcatenation))
+			.join(" OR "));
+	}
+
+	public every (values: any[], predicate: (e: ExpressionValues, value: any, index: number, values: any[]) => any) {
+		this.parts.push(() => values
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+			.map((value, i) => Expression.stringifyValue(expression => predicate(expression, value, i, values), this.vars, this.enableStringConcatenation))
+			.join(" AND "));
+	}
 
 	public value (value: ValidType | Initialiser<Expression>, mapper?: (value: string) => string) {
 		this.parts.push(() => {
