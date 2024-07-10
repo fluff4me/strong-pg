@@ -15,6 +15,8 @@ export interface ExpressionValue<VARS = never, EXPECTED_VALUE = null, RESULT = n
     (value: ExpressionInitialiser<VARS, EXPECTED_VALUE>): ExpressionOperations<VARS, RESULT>;
 }
 export interface ExpressionValues<VARS = never, VALUE = null, RESULT = null> {
+    some<T>(values: T[], predicate: (e: ExpressionValues<VARS, null, boolean>, value: T, index: number, values: T[]) => ExpressionOperations<VARS, boolean>): ExpressionOperations<VARS, boolean>;
+    every<T>(values: T[], predicate: (e: ExpressionValues<VARS, null, boolean>, value: T, index: number, values: T[]) => ExpressionOperations<VARS, boolean>): ExpressionOperations<VARS, boolean>;
     value: ExpressionValue<VARS, VALUE, RESULT>;
     var<VAR extends keyof VARS>(name: VAR): ExpressionOperations<VARS, MigrationTypeFromString<VARS[VAR] & TypeString>>;
     lowercase: ExpressionValue<VARS, string, string>;
@@ -47,6 +49,8 @@ export default class Expression<VARS = never> implements ImplementableExpression
     and(value: ValidType | Initialiser<Expression>): this;
     equals(value: ValidType | Initialiser<Expression>): this;
     as(type: TypeString): this;
+    some(values: any[], predicate: (e: ExpressionValues, value: any, index: number, values: any[]) => any): void;
+    every(values: any[], predicate: (e: ExpressionValues, value: any, index: number, values: any[]) => any): void;
     value(value: ValidType | Initialiser<Expression>, mapper?: (value: string) => string): this;
     var(name: keyof VARS): this;
     lowercase(value: string | Initialiser<Expression>): this;

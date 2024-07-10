@@ -97,6 +97,18 @@ class Expression {
     }
     ////////////////////////////////////
     // Values
+    some(values, predicate) {
+        this.parts.push(() => values
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+            .map((value, i) => Expression.stringifyValue(expression => predicate(expression, value, i, values), this.vars, this.enableStringConcatenation))
+            .join(" OR "));
+    }
+    every(values, predicate) {
+        this.parts.push(() => values
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+            .map((value, i) => Expression.stringifyValue(expression => predicate(expression, value, i, values), this.vars, this.enableStringConcatenation))
+            .join(" AND "));
+    }
     value(value, mapper) {
         this.parts.push(() => {
             const stringified = Expression.stringifyValue(value, this.vars, this.enableStringConcatenation);

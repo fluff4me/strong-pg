@@ -8,14 +8,31 @@ class Transaction {
     constructor() {
         this.statements = [];
     }
-    static async execute(pool, executor) {
-        if (pool.release)
-            // already in a transaction
-            return await executor(pool);
+    static async execute(pool, executor, handleError) {
+        if (pool.release) {
+            try {
+                // already in a transaction
+                return await executor(pool);
+            }
+            catch (err) {
+                pool.throwError?.(err);
+                handleError?.(err);
+                throw err;
+            }
+        }
         const client = await pool.connect();
         await client.query("BEGIN");
         try {
-            const result = await executor(client);
+            let error;
+            const errorPromise = new Promise(r => client.throwError = err => {
+                error = err || new Error("Unknown transaction error");
+                r(err);
+            });
+            const result = await Promise.race([errorPromise, executor(client)]);
+            if (error) {
+                handleError?.(error);
+                throw error;
+            }
             await client.query("COMMIT");
             return result;
         }
