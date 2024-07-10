@@ -1,19 +1,39 @@
 import { Pool, PoolClient } from "pg";
 import Statement from "./statements/Statement";
 
+type PoolClientWithThrowErrorFunction = PoolClient & { throwError: (err: Error) => any };
+
 export default class Transaction {
 
-	public static async execute<R> (pool: Pool | PoolClient, executor: (client: PoolClient) => Promise<R>) {
-		if ((pool as PoolClient).release)
-			// already in a transaction
-			return await executor(pool as PoolClient);
+	public static async execute<R> (pool: Pool | PoolClient, executor: (client: PoolClient) => Promise<R>, handleError?: (err: Error) => any) {
+		if ((pool as PoolClient).release) {
+			try {
+				// already in a transaction
+				return await executor(pool as PoolClient);
+			} catch (err) {
+				(pool as PoolClientWithThrowErrorFunction).throwError?.(err as Error);
+				handleError?.(err as Error);
+				throw err;
+			}
+		}
 
 		const client = await (pool as Pool).connect();
 		await client.query("BEGIN");
 		try {
-			const result = await executor(client);
+			let error: Error | undefined;
+			const errorPromise = new Promise<Error>(r => (client as PoolClientWithThrowErrorFunction).throwError = err => {
+				error = err || new Error("Unknown transaction error");
+				r(err);
+			});
+
+			const result = await Promise.race([errorPromise, executor(client)]);
+			if (error) {
+				handleError?.(error);
+				throw error;
+			}
+
 			await client.query("COMMIT");
-			return result;
+			return result as R;
 		} catch (err) {
 			await client.query("ROLLBACK");
 			throw err;
