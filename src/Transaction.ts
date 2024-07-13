@@ -5,14 +5,14 @@ type PoolClientWithThrowErrorFunction = PoolClient & { throwError: (err: Error) 
 
 export default class Transaction {
 
-	public static async execute<R> (pool: Pool | PoolClient, executor: (client: PoolClient) => Promise<R>, handleError?: (err: Error) => any) {
+	public static async execute<R> (pool: Pool | PoolClient, executor: (client: PoolClient) => Promise<R>, handleError?: (err: Error, client: PoolClient) => any) {
 		if ((pool as PoolClient).release) {
 			try {
 				// already in a transaction
 				return await executor(pool as PoolClient);
 			} catch (err) {
 				(pool as PoolClientWithThrowErrorFunction).throwError?.(err as Error);
-				handleError?.(err as Error);
+				handleError?.(err as Error, pool as PoolClient);
 				throw err;
 			}
 		}
@@ -28,7 +28,7 @@ export default class Transaction {
 
 			const result = await Promise.race([errorPromise, executor(client)]);
 			if (error) {
-				handleError?.(error);
+				handleError?.(error, client);
 				throw error;
 			}
 
