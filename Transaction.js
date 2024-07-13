@@ -16,7 +16,7 @@ class Transaction {
             }
             catch (err) {
                 pool.throwError?.(err);
-                handleError?.(err);
+                handleError?.(err, pool);
                 throw err;
             }
         }
@@ -30,7 +30,7 @@ class Transaction {
             });
             const result = await Promise.race([errorPromise, executor(client)]);
             if (error) {
-                handleError?.(error);
+                handleError?.(error, client);
                 throw error;
             }
             await client.query("COMMIT");
