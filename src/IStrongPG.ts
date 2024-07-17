@@ -1,5 +1,7 @@
 import { ExpressionOr } from "./expressions/Expression";
 
+export const CASCADE = "CASCADE";
+
 export type Type = DataTypeID;
 
 export enum DataTypeID {
