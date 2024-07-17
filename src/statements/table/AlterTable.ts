@@ -55,9 +55,9 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
 		return this.do(AlterTableSubStatement.addCheck(id, value));
 	}
 
-	public foreignKey<COLUMN extends Schema.Column<SCHEMA_END>, FOREIGN_TABLE extends DatabaseSchema.TableName<DB>, FOREIGN_KEY extends Schema.ColumnTyped<DatabaseSchema.Table<DB, FOREIGN_TABLE>, SCHEMA_END[COLUMN]>> (column: COLUMN, foreignTable: FOREIGN_TABLE, foreignKey: FOREIGN_KEY) {
+	public foreignKey<COLUMN extends Schema.Column<SCHEMA_END>, FOREIGN_TABLE extends DatabaseSchema.TableName<DB>, FOREIGN_KEY extends Schema.ColumnTyped<DatabaseSchema.Table<DB, FOREIGN_TABLE>, SCHEMA_END[COLUMN]>> (column: COLUMN, foreignTable: FOREIGN_TABLE, foreignKey: FOREIGN_KEY, cascade?: true) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-		return this.do(AlterTableSubStatement.addForeignKey(column as string, foreignTable, foreignKey as any));
+		return this.do(AlterTableSubStatement.addForeignKey(column as string, foreignTable, foreignKey as any, cascade));
 	}
 
 	public unique (name: string, index: DatabaseSchema.IndexName<DB>) {
@@ -110,8 +110,9 @@ class AlterTableSubStatement extends Statement {
 		return new AlterTableSubStatement(`ADD CONSTRAINT ${id}_check CHECK (${expr.text})`, expr.values);
 	}
 
-	public static addForeignKey (column: string, foreignTable: string, foreignColumn: string) {
-		return new AlterTableSubStatement(`ADD CONSTRAINT ${column}_fk FOREIGN KEY (${column}) REFERENCES ${foreignTable} (${foreignColumn})`);
+	public static addForeignKey (column: string, foreignTable: string, foreignColumn: string, cascade?: true) {
+		const cascadeString = !cascade ? "" : "ON DELETE CASCADE";
+		return new AlterTableSubStatement(`ADD CONSTRAINT ${column}_fk FOREIGN KEY (${column}) REFERENCES ${foreignTable} (${foreignColumn}) ${cascadeString}`);
 	}
 
 	public static addUnique (name: string, index: string) {
