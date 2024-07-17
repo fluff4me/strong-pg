@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.StackUtil = exports.Keyword = exports.TypeString = exports.SYMBOL_COLUMNS = exports.DataType = exports.DataTypeID = void 0;
+exports.StackUtil = exports.Keyword = exports.TypeString = exports.SYMBOL_COLUMNS = exports.DataType = exports.DataTypeID = exports.CASCADE = void 0;
+exports.CASCADE = "CASCADE";
 var DataTypeID;
 (function (DataTypeID) {
     // numeric

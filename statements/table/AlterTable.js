@@ -39,9 +39,9 @@ class AlterTable extends Statement_1.default.Super {
     check(id, value) {
         return this.do(AlterTableSubStatement.addCheck(id, value));
     }
-    foreignKey(column, foreignTable, foreignKey) {
+    foreignKey(column, foreignTable, foreignKey, cascade) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        return this.do(AlterTableSubStatement.addForeignKey(column, foreignTable, foreignKey));
+        return this.do(AlterTableSubStatement.addForeignKey(column, foreignTable, foreignKey, cascade));
     }
     unique(name, index) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -84,8 +84,9 @@ class AlterTableSubStatement extends Statement_1.default {
         const expr = Expression_1.default.compile(value);
         return new AlterTableSubStatement(`ADD CONSTRAINT ${id}_check CHECK (${expr.text})`, expr.values);
     }
-    static addForeignKey(column, foreignTable, foreignColumn) {
-        return new AlterTableSubStatement(`ADD CONSTRAINT ${column}_fk FOREIGN KEY (${column}) REFERENCES ${foreignTable} (${foreignColumn})`);
+    static addForeignKey(column, foreignTable, foreignColumn, cascade) {
+        const cascadeString = !cascade ? "" : "ON DELETE CASCADE";
+        return new AlterTableSubStatement(`ADD CONSTRAINT ${column}_fk FOREIGN KEY (${column}) REFERENCES ${foreignTable} (${foreignColumn}) ${cascadeString}`);
     }
     static addUnique(name, index) {
         return new AlterTableSubStatement(`ADD CONSTRAINT ${name} UNIQUE USING INDEX ${index}`);

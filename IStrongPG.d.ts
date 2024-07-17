@@ -1,5 +1,6 @@
 /// <reference types="node" />
 import { ExpressionOr } from "./expressions/Expression";
+export declare const CASCADE = "CASCADE";
 export type Type = DataTypeID;
 export declare enum DataTypeID {
     SMALLINT = 0,
