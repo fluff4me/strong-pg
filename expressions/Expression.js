@@ -91,6 +91,10 @@ class Expression {
         this.parts.push(() => " = ");
         return this.value(value);
     }
+    notEquals(value) {
+        this.parts.push(() => " != ");
+        return this.value(value);
+    }
     as(type) {
         this.parts.push(() => ` :: ${type}`);
         return this;

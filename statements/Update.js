@@ -42,7 +42,7 @@ class UpdateTable extends Statement_1.default {
         return this;
     }
     compile() {
-        const returning = !this.returningColumns ? ""
+        const returning = !this.returningColumns?.length ? ""
             : `RETURNING ${this.returningColumns.join(",")}`;
         return this.queryable(`UPDATE ${this.tableName ?? ""} SET ${this.assignments.join(",")} ${this.condition ?? ""} ${returning}`, undefined, this.vars);
     }
