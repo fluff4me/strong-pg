@@ -6,6 +6,7 @@ export interface ExpressionOperations<VARS = never, CURRENT_VALUE = null> {
 	lessThan: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
 	isNull (): ExpressionOperations<VARS, boolean>;
 	equals: ExpressionValue<VARS, CURRENT_VALUE, boolean>;
+	notEquals: ExpressionValue<VARS, CURRENT_VALUE, boolean>;
 	or: ExpressionValue<VARS, boolean, boolean>;
 	and: ExpressionValue<VARS, boolean, boolean>;
 	matches: CURRENT_VALUE extends string ? ExpressionValue<VARS, RegExp, boolean> : never;
@@ -139,6 +140,11 @@ export default class Expression<VARS = never> implements ImplementableExpression
 
 	public equals (value: ValidType | Initialiser<Expression>) {
 		this.parts.push(() => " = ");
+		return this.value(value);
+	}
+
+	public notEquals (value: ValidType | Initialiser<Expression>) {
+		this.parts.push(() => " != ");
 		return this.value(value);
 	}
 
