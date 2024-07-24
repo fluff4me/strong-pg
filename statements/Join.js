@@ -33,9 +33,15 @@ class Join extends Statement_1.default {
     }
     select(...params) {
         const initialiser = typeof params[params.length - 1] === "function" ? params.pop() : undefined;
+        let input;
         if (params.length === 0)
-            params.push("*");
-        const query = new SelectFromJoin(this, params);
+            input = "*";
+        else if (params.length !== 1 || typeof params[0] !== "object")
+            input = Object.fromEntries(params.map(param => [param, param]));
+        else
+            input = params[0];
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        const query = new SelectFromJoin(this, input);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return initialiser?.(query) ?? query;
     }
@@ -79,7 +85,11 @@ class SelectFromJoin extends Statement_1.default {
         const offset = this._offset ? `OFFSET ${this._offset}` : "";
         const limit = this._limit ? `LIMIT ${this._limit}` : "";
         const join = this.join.compile();
-        return this.queryable(`SELECT ${this.columns.join(",")} FROM ${join.text} ${this.condition ?? ""} ${orderBy} ${offset} ${limit}`, undefined, this.vars);
+        const columns = this.columns === "*" ? "*"
+            : Object.entries(this.columns)
+                .map(([column, alias]) => column === alias ? column : `${column} ${alias}`)
+                .join(",");
+        return this.queryable(`SELECT ${columns} FROM ${join.text} ${this.condition ?? ""} ${orderBy} ${offset} ${limit}`, undefined, this.vars);
     }
     async queryOne(pool) {
         return this.limit(1).query(pool);

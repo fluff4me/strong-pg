@@ -28,7 +28,11 @@ export default class Join<DATABASE extends DatabaseSchema, VIRTUAL_TABLE extends
     /**
      * SELECT *
      */
-    select(): SelectFromJoin<VIRTUAL_TABLE, "*"[]>;
+    select(): SelectFromJoin<VIRTUAL_TABLE, ["*"]>;
+    /**
+     * SELECT columns AS aliases
+     */
+    select<COLUMNS extends Partial<Record<Schema.Column<VIRTUAL_TABLE>, string>>>(columns: COLUMNS): SelectFromJoin<VIRTUAL_TABLE, ((keyof COLUMNS) & Schema.Column<VIRTUAL_TABLE>)[], COLUMNS>;
     /**
      * SELECT columns
      */
@@ -37,7 +41,7 @@ export default class Join<DATABASE extends DatabaseSchema, VIRTUAL_TABLE extends
      * SELECT *
      * ...then provide an initialiser for tweaking the query
      */
-    select<RETURN extends SelectFromJoin<VIRTUAL_TABLE, "*"[], any> = SelectFromJoin<VIRTUAL_TABLE, "*"[]>>(initialiser: Initialiser<SelectFromJoin<VIRTUAL_TABLE, "*"[]>, RETURN>): RETURN;
+    select<RETURN extends SelectFromJoin<VIRTUAL_TABLE, ["*"], any, any> = SelectFromJoin<VIRTUAL_TABLE, ["*"]>>(initialiser: Initialiser<SelectFromJoin<VIRTUAL_TABLE, ["*"]>, RETURN>): RETURN;
     /**
      * SELECT columns
      * ...then provide an initialiser for tweaking the query
@@ -45,28 +49,33 @@ export default class Join<DATABASE extends DatabaseSchema, VIRTUAL_TABLE extends
     select<COLUMNS extends Schema.Column<VIRTUAL_TABLE>[], RETURN extends SelectFromJoin<VIRTUAL_TABLE, COLUMNS, any>>(...columnsAndInitialiser: [...COLUMNS, Initialiser<SelectFromJoin<VIRTUAL_TABLE, COLUMNS>, RETURN>]): RETURN;
     compile(): Statement.Queryable;
 }
-type JoinedTablesOutput<TABLE extends TableSchema, COLUMNS extends (Schema.Column<TABLE> | "*")[]> = "*" extends COLUMNS[number] ? Schema.Column<TABLE> : Exclude<COLUMNS[number], "*"> extends infer COLUMNS extends Schema.Column<TABLE> ? ({
-    [COLUMN in COLUMNS as (COLUMN extends `${string}.${infer REAL_COLUMN}` ? Extract<Exclude<COLUMNS, COLUMN>, `${string}.${REAL_COLUMN}`> extends infer OTHER_COLUMNS ? [OTHER_COLUMNS] extends [never] ? REAL_COLUMN : `strong-pg error: Unable to resolve duplicate column name: ${Extract<COLUMN | OTHER_COLUMNS, string>}` : never : COLUMN)]: OutputTypeFromString<TABLE[COLUMN]>;
+type JoinedTablesOutput<TABLE extends TableSchema, COLUMNS extends ("*" | Schema.Column<TABLE>)[], COLUMN_ALIASES extends Partial<Record<Schema.Column<TABLE>, string>> = {}> = ("*" extends COLUMNS[number] ? Schema.Column<TABLE> : Extract<COLUMNS[number], Schema.Column<TABLE>>) extends infer COLUMNS ? ({
+    [COLUMN in COLUMNS as (COLUMN extends keyof COLUMN_ALIASES ? COLUMN_ALIASES[COLUMN] & string : (COLUMN extends `${string}.${infer REAL_COLUMN}` ? Extract<Exclude<COLUMNS, COLUMN>, `${string}.${REAL_COLUMN}`> extends infer OTHER_COLUMNS ? [OTHER_COLUMNS] extends [never] ? REAL_COLUMN : `strong-pg error: Unable to resolve duplicate column name: ${Extract<COLUMN | OTHER_COLUMNS, string>}` : never : COLUMN & string))]: OutputTypeFromString<TABLE[COLUMN & Schema.Column<TABLE>]>;
 }) extends infer RESULT ? [
     Extract<keyof RESULT, `strong-pg error:${string}`>
 ] extends infer ERROR ? ERROR extends [never] ? RESULT : ERROR extends [`strong-pg error: ${infer ERROR_TEXT}`] ? ERROR_TEXT : never : never : never : never;
-export declare class SelectFromJoin<SCHEMA extends TableSchema, COLUMNS extends (Schema.Column<SCHEMA> | "*")[] = Schema.Column<SCHEMA>[], RESULT = JoinedTablesOutput<SCHEMA, COLUMNS>[]> extends Statement<RESULT> {
+export declare class SelectFromJoin<SCHEMA extends TableSchema, COLUMNS extends (Schema.Column<SCHEMA> | "*")[] = (Schema.Column<SCHEMA> | "*")[], COLUMN_ALIASES extends Partial<Record<Schema.Column<SCHEMA>, string>> = {
+    [COLUMN in COLUMNS[number]]: COLUMN & string;
+}, RESULT = JoinedTablesOutput<SCHEMA, COLUMNS, COLUMN_ALIASES>[]> extends Statement<RESULT> {
     private readonly join;
-    readonly columns: COLUMNS;
+    readonly columns: "*" | COLUMN_ALIASES;
     private vars;
-    constructor(join: Join<DatabaseSchema, TableSchema>, columns: COLUMNS);
+    constructor(join: Join<DatabaseSchema, TableSchema>, columns: "*" | COLUMN_ALIASES);
+    test: Schema.Columns<SCHEMA, COLUMN_ALIASES>;
+    test2: COLUMN_ALIASES;
+    test3: ("*" extends COLUMNS[number] ? Schema.Column<SCHEMA> : Extract<COLUMNS[number], Schema.Column<SCHEMA>>) extends infer COLUMNS ? COLUMNS : never;
     private condition?;
-    where(initialiser: ExpressionInitialiser<Schema.Columns<SCHEMA>, boolean>): this;
+    where(initialiser: ExpressionInitialiser<Schema.Columns<SCHEMA, COLUMN_ALIASES>, boolean>): this;
     private _limit?;
-    limit(count: 1): SelectFromJoin<SCHEMA, COLUMNS, JoinedTablesOutput<SCHEMA, COLUMNS> | undefined>;
-    limit(count: number): SelectFromJoin<SCHEMA, COLUMNS, JoinedTablesOutput<SCHEMA, COLUMNS>[]>;
+    limit(count: 1): SelectFromJoin<SCHEMA, COLUMNS, COLUMN_ALIASES, JoinedTablesOutput<SCHEMA, COLUMNS, COLUMN_ALIASES> | undefined>;
+    limit(count: number): SelectFromJoin<SCHEMA, COLUMNS, COLUMN_ALIASES, JoinedTablesOutput<SCHEMA, COLUMNS, COLUMN_ALIASES>[]>;
     private _orderByColumn?;
     private _orderByDirection?;
     orderBy(column: Schema.Column<SCHEMA>, order?: string): this;
     private _offset?;
     offset(amount: number): this;
     compile(): Statement.Queryable[];
-    queryOne(pool: Pool | PoolClient): Promise<JoinedTablesOutput<SCHEMA, COLUMNS> | undefined>;
+    queryOne(pool: Pool | PoolClient): Promise<JoinedTablesOutput<SCHEMA, COLUMNS, COLUMN_ALIASES> | undefined>;
     protected resolveQueryOutput(output: QueryResult<any>): any;
 }
 export {};

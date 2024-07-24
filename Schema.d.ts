@@ -82,8 +82,8 @@ declare namespace Schema {
     export type ColumnTyped<SCHEMA, TYPE> = Vaguify<TYPE extends OptionalTypeString<infer TYPE2> ? TYPE2 : TYPE> extends infer TYPE2 ? keyof {
         [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : SCHEMA[COLUMN] extends TYPE2 ? COLUMN : never]: SCHEMA[COLUMN];
     } : never;
-    export type Columns<SCHEMA, PREFIX extends string = ""> = {
-        [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : `${PREFIX}${COLUMN & string}`]: SCHEMA[COLUMN];
+    export type Columns<SCHEMA, ALIASES = {}> = {
+        [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : COLUMN extends keyof ALIASES ? ALIASES[COLUMN] & string : COLUMN]: SCHEMA[COLUMN];
     };
     export type RowOutput<SCHEMA> = ({
         [COLUMN in keyof SCHEMA as COLUMN extends keyof SpecialKeys<any> ? never : SCHEMA[COLUMN] extends OptionalTypeString ? never : COLUMN]: OutputTypeFromString<Extract<SCHEMA[COLUMN], TypeString>>;
