@@ -46,8 +46,7 @@ type ColumnsToAliases<TABLE extends TableSchema, COLUMNS extends Schema.Column<T
 
 export default class Join<DATABASE extends DatabaseSchema, VIRTUAL_TABLE extends TableSchema> extends Statement {
 
-	private vars: any[] = [];
-	public constructor (private readonly type: JoinTypeName, private readonly table1: string | undefined, private readonly table2: string, private readonly alias1?: string, private readonly alias2?: string) {
+	public constructor (private readonly type: JoinTypeName, private readonly table1: string | Join<DATABASE, any>, private readonly table2: string, private readonly alias1?: string, private readonly alias2?: string, private vars: any[] = []) {
 		super();
 	}
 
@@ -59,7 +58,7 @@ export default class Join<DATABASE extends DatabaseSchema, VIRTUAL_TABLE extends
 	}
 
 	public innerJoin<TABLE2_NAME extends DatabaseSchema.TableName<DATABASE>, TABLE2_ALIAS extends string = TABLE2_NAME> (tableName: TABLE2_NAME, alias?: TABLE2_ALIAS) {
-		return new Join<DATABASE, JoinTables<VIRTUAL_TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME>, "", TABLE2_ALIAS>>("INNER", undefined, tableName, undefined, alias);
+		return new Join<DATABASE, JoinTables<VIRTUAL_TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME>, "", TABLE2_ALIAS>>("INNER", this, tableName, undefined, alias, this.vars);
 	}
 
 	/**
@@ -103,12 +102,19 @@ export default class Join<DATABASE extends DatabaseSchema, VIRTUAL_TABLE extends
 		return initialiser?.(query) ?? query;
 	}
 
-	public override compile (): Statement.Queryable {
+	private compileJoin (): string {
 		if (this.type !== "INNER" && !this.condition)
-			throw new Error(`Unable to join ${this.table1 ?? "(joined table)"} and ${this.table2}, no ON expression provided`);
+			throw new Error(`Unable to join ${typeof this.table1 === "string" ? this.table1 : "(joined table)"} and ${this.table2}, no ON expression provided`);
 
 		const type = this.type === "INNER" && !this.condition ? "CROSS" : this.type;
-		return new Statement.Queryable(`${this.table1 ?? ""} ${this.alias1 ?? ""} ${type} JOIN ${this.table2} ${this.alias2 ?? ""} ${this.condition ?? ""}`, undefined, this.vars);
+		const table1 = typeof this.table1 === "string" ? `${this.table1 ?? ""} ${this.alias1 ?? ""}`
+			: this.table1.compileJoin();
+
+		return `${table1} ${type} JOIN ${this.table2} ${this.alias2 ?? ""} ${this.condition ?? ""}`;
+	}
+
+	public override compile (): Statement.Queryable {
+		return new Statement.Queryable(this.compileJoin(), undefined, this.vars);
 	}
 }
 
