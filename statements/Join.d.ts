@@ -21,7 +21,7 @@ export default class Join<DATABASE extends DatabaseSchema, VIRTUAL_TABLE extends
     private readonly alias1?;
     private readonly alias2?;
     private vars;
-    constructor(type: JoinTypeName, table1: string | undefined, table2: string, alias1?: string | undefined, alias2?: string | undefined);
+    constructor(type: JoinTypeName, table1: string | Join<DATABASE, any>, table2: string, alias1?: string | undefined, alias2?: string | undefined, vars?: any[]);
     private condition?;
     on(initialiser: ExpressionInitialiser<Schema.Columns<VIRTUAL_TABLE>, boolean>): this;
     innerJoin<TABLE2_NAME extends DatabaseSchema.TableName<DATABASE>, TABLE2_ALIAS extends string = TABLE2_NAME>(tableName: TABLE2_NAME, alias?: TABLE2_ALIAS): Join<DATABASE, JoinTables<VIRTUAL_TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME>, "", TABLE2_ALIAS>>;
@@ -47,6 +47,7 @@ export default class Join<DATABASE extends DatabaseSchema, VIRTUAL_TABLE extends
      * ...then provide an initialiser for tweaking the query
      */
     select<COLUMNS extends Schema.Column<VIRTUAL_TABLE>[], RETURN extends SelectFromJoin<VIRTUAL_TABLE, COLUMNS, any>>(...columnsAndInitialiser: [...COLUMNS, Initialiser<SelectFromJoin<VIRTUAL_TABLE, COLUMNS>, RETURN>]): RETURN;
+    private compileJoin;
     compile(): Statement.Queryable;
 }
 type JoinedTablesOutput<TABLE extends TableSchema, COLUMNS extends ("*" | Schema.Column<TABLE>)[], COLUMN_ALIASES extends Partial<Record<Schema.Column<TABLE>, string>> = {}> = ("*" extends COLUMNS[number] ? Schema.Column<TABLE> : Extract<COLUMNS[number], Schema.Column<TABLE>>) extends infer COLUMNS ? ({

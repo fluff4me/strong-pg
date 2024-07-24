@@ -14,14 +14,14 @@ var JoinType;
     JoinType[JoinType["Right Outer"] = 3] = "Right Outer";
 })(JoinType || (JoinType = {}));
 class Join extends Statement_1.default {
-    constructor(type, table1, table2, alias1, alias2) {
+    constructor(type, table1, table2, alias1, alias2, vars = []) {
         super();
         this.type = type;
         this.table1 = table1;
         this.table2 = table2;
         this.alias1 = alias1;
         this.alias2 = alias2;
-        this.vars = [];
+        this.vars = vars;
     }
     on(initialiser) {
         const queryable = Expression_1.default.compile(initialiser, undefined, this.vars);
@@ -29,7 +29,7 @@ class Join extends Statement_1.default {
         return this;
     }
     innerJoin(tableName, alias) {
-        return new Join("INNER", undefined, tableName, undefined, alias);
+        return new Join("INNER", this, tableName, undefined, alias, this.vars);
     }
     select(...params) {
         const initialiser = typeof params[params.length - 1] === "function" ? params.pop() : undefined;
@@ -45,11 +45,16 @@ class Join extends Statement_1.default {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return initialiser?.(query) ?? query;
     }
-    compile() {
+    compileJoin() {
         if (this.type !== "INNER" && !this.condition)
-            throw new Error(`Unable to join ${this.table1 ?? "(joined table)"} and ${this.table2}, no ON expression provided`);
+            throw new Error(`Unable to join ${typeof this.table1 === "string" ? this.table1 : "(joined table)"} and ${this.table2}, no ON expression provided`);
         const type = this.type === "INNER" && !this.condition ? "CROSS" : this.type;
-        return new Statement_1.default.Queryable(`${this.table1 ?? ""} ${this.alias1 ?? ""} ${type} JOIN ${this.table2} ${this.alias2 ?? ""} ${this.condition ?? ""}`, undefined, this.vars);
+        const table1 = typeof this.table1 === "string" ? `${this.table1 ?? ""} ${this.alias1 ?? ""}`
+            : this.table1.compileJoin();
+        return `${table1} ${type} JOIN ${this.table2} ${this.alias2 ?? ""} ${this.condition ?? ""}`;
+    }
+    compile() {
+        return new Statement_1.default.Queryable(this.compileJoin(), undefined, this.vars);
     }
 }
 exports.default = Join;
