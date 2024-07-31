@@ -64,10 +64,28 @@ class Table {
             innerJoin: (tableName, alias2) => {
                 return new Join_1.default("INNER", this.name, tableName, alias1, alias2);
             },
+            leftOuterJoin: (tableName, alias2) => {
+                return new Join_1.default("LEFT OUTER", this.name, tableName, alias1, alias2);
+            },
+            rightOuterJoin: (tableName, alias2) => {
+                return new Join_1.default("RIGHT OUTER", this.name, tableName, alias1, alias2);
+            },
+            fullOuterJoin: (tableName, alias2) => {
+                return new Join_1.default("FULL OUTER", this.name, tableName, alias1, alias2);
+            },
         };
     }
     innerJoin(tableName, alias) {
         return new Join_1.default("INNER", this.name, tableName, undefined, alias);
+    }
+    leftOuterJoin(tableName, alias) {
+        return new Join_1.default("LEFT OUTER", this.name, tableName, undefined, alias);
+    }
+    rightOuterJoin(tableName, alias) {
+        return new Join_1.default("RIGHT OUTER", this.name, tableName, undefined, alias);
+    }
+    fullOuterJoin(tableName, alias) {
+        return new Join_1.default("FULL OUTER", this.name, tableName, undefined, alias);
     }
 }
 exports.default = Table;

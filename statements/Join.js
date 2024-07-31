@@ -31,6 +31,15 @@ class Join extends Statement_1.default {
     innerJoin(tableName, alias) {
         return new Join("INNER", this, tableName, undefined, alias, this.vars);
     }
+    leftOuterJoin(tableName, alias) {
+        return new Join("LEFT OUTER", this, tableName, undefined, alias, this.vars);
+    }
+    rightOuterJoin(tableName, alias) {
+        return new Join("RIGHT OUTER", this, tableName, undefined, alias, this.vars);
+    }
+    fullOuterJoin(tableName, alias) {
+        return new Join("FULL OUTER", this, tableName, undefined, alias, this.vars);
+    }
     select(...params) {
         const initialiser = typeof params[params.length - 1] === "function" ? params.pop() : undefined;
         let input;
