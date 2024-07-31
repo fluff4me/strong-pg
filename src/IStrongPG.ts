@@ -144,6 +144,8 @@ export interface OptionalTypeString<TYPE extends TypeString = TypeString> {
 	optional: true;
 }
 
+export type MakeOptional<TYPE> = TYPE extends TypeString ? OptionalTypeString<TYPE> : TYPE;
+
 export type ExtractTypeString<TYPE extends TypeString | OptionalTypeString> = TYPE extends OptionalTypeString<infer TYPE2> ? TYPE2 : TYPE;
 
 export type DataTypeFromString<STR extends TypeString | OptionalTypeString> =
@@ -211,7 +213,11 @@ export type ValidType = string | boolean | number | symbol | Date | RegExp | und
 export const SYMBOL_COLUMNS = Symbol("COLUMNS");
 export type MigrationTypeFromString<STR extends TypeString | OptionalTypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : MigrationTypeMap[DataTypeFromString<STR>];
 export type InputTypeFromString<STR extends TypeString | OptionalTypeString, VARS = {}> = STR extends "*" ? typeof SYMBOL_COLUMNS : ExpressionOr<VARS, InputTypeMap[DataTypeFromString<STR>]>;
-export type OutputTypeFromString<STR extends TypeString | OptionalTypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : OutputTypeMap[DataTypeFromString<STR>];
+export type OutputTypeFromString<STR extends TypeString | OptionalTypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : (
+	OutputTypeMap[DataTypeFromString<STR>] extends infer OUTPUT_TYPE ?
+	STR extends OptionalTypeString ? OUTPUT_TYPE | null : OUTPUT_TYPE
+	: never
+);
 
 export namespace TypeString {
 	export function resolve (typeString: TypeString | OptionalTypeString) {

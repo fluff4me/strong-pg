@@ -1,5 +1,5 @@
 import { Pool, PoolClient, QueryResult } from "pg";
-import { Initialiser, OutputTypeFromString } from "../IStrongPG";
+import { Initialiser, MakeOptional, OutputTypeFromString } from "../IStrongPG";
 import Schema, { DatabaseSchema, TableSchema } from "../Schema";
 import Expression, { ExpressionInitialiser } from "../expressions/Expression";
 import Statement from "./Statement";
@@ -24,17 +24,17 @@ export type JoinColumns<TABLE1 extends TableSchema, TABLE2 extends TableSchema, 
 
 	: never : never : never;
 
-export type JoinTables<TABLE1 extends TableSchema, TABLE2 extends TableSchema, TABLE1_NAME extends string, TABLE2_NAME extends string> =
+export type JoinTables<TYPE extends JoinTypeName, TABLE1 extends TableSchema, TABLE2 extends TableSchema, TABLE1_NAME extends string, TABLE2_NAME extends string> =
 	Schema.Column<TABLE1> extends infer TABLE1_COLUMNS extends string ?
 	Schema.Column<TABLE2> extends infer TABLE2_COLUMNS extends string ?
 	JoinColumns<TABLE1, TABLE2, TABLE1_NAME, TABLE2_NAME> extends infer COLUMNS extends string ?
 
 	{
 		[COLUMN in COLUMNS]:
-		| COLUMN extends TABLE1_COLUMNS ? TABLE1[COLUMN]
-		: COLUMN extends TABLE2_COLUMNS ? TABLE2[COLUMN]
-		: COLUMN extends `${TABLE1_NAME}.${infer BASENAME extends TABLE1_COLUMNS}` ? TABLE1[BASENAME]
-		: COLUMN extends `${TABLE2_NAME}.${infer BASENAME extends TABLE2_COLUMNS}` ? TABLE2[BASENAME]
+		| COLUMN extends TABLE1_COLUMNS ? (TYPE extends "RIGHT OUTER" | "FULL OUTER" ? MakeOptional<TABLE1[COLUMN]> : TABLE1[COLUMN])
+		: COLUMN extends TABLE2_COLUMNS ? (TYPE extends "LEFT OUTER" | "FULL OUTER" ? MakeOptional<TABLE2[COLUMN]> : TABLE2[COLUMN])
+		: COLUMN extends `${TABLE1_NAME}.${infer BASENAME extends TABLE1_COLUMNS}` ? (TYPE extends "RIGHT OUTER" | "FULL OUTER" ? MakeOptional<TABLE1[BASENAME]> : TABLE1[BASENAME])
+		: COLUMN extends `${TABLE2_NAME}.${infer BASENAME extends TABLE2_COLUMNS}` ? (TYPE extends "LEFT OUTER" | "FULL OUTER" ? MakeOptional<TABLE2[BASENAME]> : TABLE2[BASENAME])
 		: never
 	}
 
@@ -42,11 +42,9 @@ export type JoinTables<TABLE1 extends TableSchema, TABLE2 extends TableSchema, T
 	: never
 	: never
 
-type ColumnsToAliases<TABLE extends TableSchema, COLUMNS extends Schema.Column<TABLE>[]> = { [INDEX in keyof COLUMNS as COLUMNS[INDEX] & Schema.Column<TABLE>]: COLUMNS[INDEX] } & Record<Schema.Column<TABLE>, string>;
+export default class Join<DATABASE extends DatabaseSchema, VIRTUAL_TABLE extends TableSchema, TYPE extends JoinTypeName> extends Statement {
 
-export default class Join<DATABASE extends DatabaseSchema, VIRTUAL_TABLE extends TableSchema> extends Statement {
-
-	public constructor (private readonly type: JoinTypeName, private readonly table1: string | Join<DATABASE, any>, private readonly table2: string, private readonly alias1?: string, private readonly alias2?: string, private vars: any[] = []) {
+	public constructor (private readonly type: TYPE, private readonly table1: string | Join<DATABASE, any, JoinTypeName>, private readonly table2: string, private readonly alias1?: string, private readonly alias2?: string, private vars: any[] = []) {
 		super();
 	}
 
@@ -58,7 +56,19 @@ export default class Join<DATABASE extends DatabaseSchema, VIRTUAL_TABLE extends
 	}
 
 	public innerJoin<TABLE2_NAME extends DatabaseSchema.TableName<DATABASE>, TABLE2_ALIAS extends string = TABLE2_NAME> (tableName: TABLE2_NAME, alias?: TABLE2_ALIAS) {
-		return new Join<DATABASE, JoinTables<VIRTUAL_TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME>, "", TABLE2_ALIAS>>("INNER", this, tableName, undefined, alias, this.vars);
+		return new Join<DATABASE, JoinTables<"INNER", VIRTUAL_TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME>, "", TABLE2_ALIAS>, "INNER">("INNER", this, tableName, undefined, alias, this.vars);
+	}
+
+	public leftOuterJoin<TABLE2_NAME extends DatabaseSchema.TableName<DATABASE>, TABLE2_ALIAS extends string = TABLE2_NAME> (tableName: TABLE2_NAME, alias?: TABLE2_ALIAS) {
+		return new Join<DATABASE, JoinTables<"LEFT OUTER", VIRTUAL_TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME>, "", TABLE2_ALIAS>, "LEFT OUTER">("LEFT OUTER", this, tableName, undefined, alias, this.vars);
+	}
+
+	public rightOuterJoin<TABLE2_NAME extends DatabaseSchema.TableName<DATABASE>, TABLE2_ALIAS extends string = TABLE2_NAME> (tableName: TABLE2_NAME, alias?: TABLE2_ALIAS) {
+		return new Join<DATABASE, JoinTables<"RIGHT OUTER", VIRTUAL_TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME>, "", TABLE2_ALIAS>, "RIGHT OUTER">("RIGHT OUTER", this, tableName, undefined, alias, this.vars);
+	}
+
+	public fullOuterJoin<TABLE2_NAME extends DatabaseSchema.TableName<DATABASE>, TABLE2_ALIAS extends string = TABLE2_NAME> (tableName: TABLE2_NAME, alias?: TABLE2_ALIAS) {
+		return new Join<DATABASE, JoinTables<"FULL OUTER", VIRTUAL_TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME>, "", TABLE2_ALIAS>, "FULL OUTER">("FULL OUTER", this, tableName, undefined, alias, this.vars);
 	}
 
 	/**
@@ -97,7 +107,7 @@ export default class Join<DATABASE extends DatabaseSchema, VIRTUAL_TABLE extends
 			input = params[0];
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-		const query = new SelectFromJoin<VIRTUAL_TABLE>(this as Join<DatabaseSchema, TableSchema>, input as any);
+		const query = new SelectFromJoin<VIRTUAL_TABLE>(this as any as Join<DatabaseSchema, TableSchema, JoinTypeName>, input as any);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return initialiser?.(query) ?? query;
 	}
@@ -152,7 +162,7 @@ type JoinedTablesOutput<TABLE extends TableSchema, COLUMNS extends ("*" | Schema
 export class SelectFromJoin<SCHEMA extends TableSchema, COLUMNS extends (Schema.Column<SCHEMA> | "*")[] = (Schema.Column<SCHEMA> | "*")[], COLUMN_ALIASES extends Partial<Record<Schema.Column<SCHEMA>, string>> = { [COLUMN in COLUMNS[number]]: COLUMN & string }, RESULT = JoinedTablesOutput<SCHEMA, COLUMNS, COLUMN_ALIASES>[]> extends Statement<RESULT> {
 
 	private vars: any[];
-	public constructor (private readonly join: Join<DatabaseSchema, TableSchema>, public readonly columns: "*" | COLUMN_ALIASES) {
+	public constructor (private readonly join: Join<DatabaseSchema, TableSchema, JoinTypeName>, public readonly columns: "*" | COLUMN_ALIASES) {
 		super();
 		this.vars = join["vars"];
 	}
