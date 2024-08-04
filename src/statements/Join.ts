@@ -172,7 +172,7 @@ export class SelectFromJoin<SCHEMA extends TableSchema, COLUMNS extends (Schema.
 	public test3!: ("*" extends COLUMNS[number] ? Schema.Column<SCHEMA> : Extract<COLUMNS[number], Schema.Column<SCHEMA>>) extends infer COLUMNS ? COLUMNS : never;
 
 	private condition?: string;
-	public where (initialiser: ExpressionInitialiser<Schema.Columns<SCHEMA, COLUMN_ALIASES>, boolean>) {
+	public where (initialiser: ExpressionInitialiser<Schema.Columns<SCHEMA>, boolean>) {
 		const queryable = Expression.compile(initialiser, undefined, this.vars);
 		this.condition = `WHERE (${queryable.text})`;
 		return this;
