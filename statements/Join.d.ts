@@ -69,7 +69,7 @@ export declare class SelectFromJoin<SCHEMA extends TableSchema, COLUMNS extends 
     test2: COLUMN_ALIASES;
     test3: ("*" extends COLUMNS[number] ? Schema.Column<SCHEMA> : Extract<COLUMNS[number], Schema.Column<SCHEMA>>) extends infer COLUMNS ? COLUMNS : never;
     private condition?;
-    where(initialiser: ExpressionInitialiser<Schema.Columns<SCHEMA, COLUMN_ALIASES>, boolean>): this;
+    where(initialiser: ExpressionInitialiser<Schema.Columns<SCHEMA>, boolean>): this;
     private _limit?;
     limit(count: 1): SelectFromJoin<SCHEMA, COLUMNS, COLUMN_ALIASES, JoinedTablesOutput<SCHEMA, COLUMNS, COLUMN_ALIASES> | undefined>;
     limit(count: number): SelectFromJoin<SCHEMA, COLUMNS, COLUMN_ALIASES, JoinedTablesOutput<SCHEMA, COLUMNS, COLUMN_ALIASES>[]>;
