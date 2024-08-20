@@ -74,13 +74,15 @@ export default class Table<TABLE extends TableSchema, DATABASE extends DatabaseS
 		return (this.insert as any)(true, ...params as Schema.Column<TABLE>[]);
 	}
 
+	public update (): UpdateTable<TABLE>;
 	public update (data: Partial<Schema.RowInput<TABLE>>): UpdateTable<TABLE>;
 	public update<RETURN extends UpdateTable<TABLE, any>> (data: Partial<Schema.RowInput<TABLE>>, initialiser: Initialiser<UpdateTable<TABLE>, RETURN>): RETURN;
-	public update (data: Partial<Schema.RowInput<TABLE>>, initialiser?: Initialiser<UpdateTable<TABLE>, UpdateTable<TABLE, any>>): UpdateTable<TABLE, any> {
+	public update (data?: Partial<Schema.RowInput<TABLE>>, initialiser?: Initialiser<UpdateTable<TABLE>, UpdateTable<TABLE, any>>): UpdateTable<TABLE, any> {
 		const query = new UpdateTable<TABLE, any>(this.name, this.schema);
-		for (const key of Object.keys(data))
-			if (data[key as keyof Schema.RowInput<TABLE>] !== undefined)
-				query.set(key as Schema.Column<TABLE>, data[key as keyof Schema.RowInput<TABLE>] as never);
+		if (data)
+			for (const key of Object.keys(data))
+				if (data[key as keyof Schema.RowInput<TABLE>] !== undefined)
+					query.set(key as Schema.Column<TABLE>, data[key as keyof Schema.RowInput<TABLE>] as never);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument
 		return initialiser?.(query) ?? query;

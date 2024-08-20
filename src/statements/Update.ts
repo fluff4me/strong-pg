@@ -13,12 +13,12 @@ export default class UpdateTable<SCHEMA extends TableSchema, RESULT = [], VARS =
 	}
 
 	private assignments: string[] = [];
-	public set (input: Partial<Schema.RowInput<SCHEMA, VARS>>): this;
-	public set<COLUMN_NAME extends Schema.Column<SCHEMA>> (column: COLUMN_NAME, value: InputTypeFromString<SCHEMA[COLUMN_NAME], VARS>): this;
-	public set (input: Schema.Column<SCHEMA> | Partial<Schema.RowInput<SCHEMA, VARS>>, value?: ValidType) {
+	public set (input: Partial<Schema.RowInput<SCHEMA, VARS & Schema.Columns<SCHEMA>>>): this;
+	public set<COLUMN_NAME extends Schema.Column<SCHEMA>> (column: COLUMN_NAME, value: InputTypeFromString<SCHEMA[COLUMN_NAME], VARS & Schema.Columns<SCHEMA>>): this;
+	public set (input: Schema.Column<SCHEMA> | Partial<Schema.RowInput<SCHEMA, VARS & Schema.Columns<SCHEMA>>>, value?: ValidType) {
 		if (typeof input === "object") {
 			for (const column of Object.keys(input))
-				this.set(column as Schema.Column<SCHEMA>, input[column as keyof Schema.RowInput<SCHEMA, VARS>] as never);
+				this.set(column as Schema.Column<SCHEMA>, input[column as keyof Schema.RowInput<SCHEMA, VARS & Schema.Columns<SCHEMA>>] as never);
 
 		} else {
 			if (Schema.isColumn(this.schema, input, "TIMESTAMP") && typeof value === "number")
