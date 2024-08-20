@@ -45,9 +45,10 @@ class Table {
     }
     update(data, initialiser) {
         const query = new Update_1.default(this.name, this.schema);
-        for (const key of Object.keys(data))
-            if (data[key] !== undefined)
-                query.set(key, data[key]);
+        if (data)
+            for (const key of Object.keys(data))
+                if (data[key] !== undefined)
+                    query.set(key, data[key]);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument
         return initialiser?.(query) ?? query;
     }

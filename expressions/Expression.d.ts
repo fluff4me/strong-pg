@@ -12,10 +12,16 @@ export interface ExpressionOperations<VARS = never, CURRENT_VALUE = null> {
     as<TYPE extends TypeString>(type: TYPE): ExpressionOperations<VARS, MigrationTypeFromString<TYPE>>;
 }
 export interface ExpressionValue<VARS = never, EXPECTED_VALUE = null, RESULT = null> {
-    <VALUE extends (EXPECTED_VALUE extends null ? ValidType : EXPECTED_VALUE)>(value: VALUE): ExpressionOperations<VARS, RESULT extends null ? VALUE : RESULT>;
-    (value: ExpressionInitialiser<VARS, EXPECTED_VALUE>): ExpressionOperations<VARS, RESULT>;
+    <VALUE extends (EXPECTED_VALUE extends null ? ValidType : EXPECTED_VALUE)>(value: ExpressionOr<VARS, VALUE>): ExpressionOperations<VARS, RESULT extends null ? VALUE : RESULT>;
+}
+export interface ExpressionCase<VARS = never, RESULT = null> {
+    when(value: ExpressionOr<VARS, boolean>): ExpressionCaseWhen<VARS, RESULT>;
+}
+export interface ExpressionCaseWhen<VARS = never, RESULT = null> {
+    then(value: ExpressionOr<VARS, RESULT>): ExpressionCase<VARS, RESULT>;
 }
 export interface ExpressionValues<VARS = never, VALUE = null, RESULT = null> {
+    case<R extends ValidType>(initialiser: Initialiser<ExpressionCase<VARS, R>, ExpressionCase<VARS, R>[]>): ExpressionOperations<VARS, R>;
     some<T>(values: T[], predicate: (e: ExpressionValues<VARS, null, boolean>, value: T, index: number, values: T[]) => ExpressionOperations<VARS, boolean>): ExpressionOperations<VARS, boolean>;
     every<T>(values: T[], predicate: (e: ExpressionValues<VARS, null, boolean>, value: T, index: number, values: T[]) => ExpressionOperations<VARS, boolean>): ExpressionOperations<VARS, boolean>;
     value: ExpressionValue<VARS, VALUE, RESULT>;
@@ -24,9 +30,11 @@ export interface ExpressionValues<VARS = never, VALUE = null, RESULT = null> {
     uppercase: ExpressionValue<VARS, string, string>;
     nextValue(sequenceId: string): ExpressionOperations<VARS, number>;
     currentValue(sequenceId: string): ExpressionOperations<VARS, number>;
+    true: ExpressionOperations<VARS, boolean>;
+    false: ExpressionOperations<VARS, boolean>;
 }
 export type ExpressionInitialiser<VARS, RESULT = any> = Initialiser<ExpressionValues<VARS, null, null>, ExpressionOperations<VARS, RESULT>>;
-export type ExpressionOr<VARS, T> = T | ExpressionInitialiser<VARS, T>;
+export type ExpressionOr<VARS, T> = T | ExpressionInitialiser<VARS, T> | ExpressionOperations<any, T>;
 export type ImplementableExpression = {
     [KEY in keyof ExpressionValues | keyof ExpressionOperations]: any;
 };
@@ -42,21 +50,25 @@ export default class Expression<VARS = never> implements ImplementableExpression
     readonly parts: (() => string)[];
     private constructor();
     compile(): string;
-    greaterThan(value: ValidType | Initialiser<Expression>): this;
-    lessThan(value: ValidType | Initialiser<Expression>): this;
-    matches(value: ValidType | Initialiser<Expression>): this;
+    greaterThan(value: ExpressionOr<VARS, ValidType>): this;
+    lessThan(value: ExpressionOr<VARS, ValidType>): this;
+    matches(value: ExpressionOr<VARS, ValidType>): this;
     isNull(): this;
-    or(value: ValidType | Initialiser<Expression>): this;
-    and(value: ValidType | Initialiser<Expression>): this;
-    equals(value: ValidType | Initialiser<Expression>): this;
-    notEquals(value: ValidType | Initialiser<Expression>): this;
+    or(value: ExpressionOr<VARS, boolean>): this;
+    and(value: ExpressionOr<VARS, boolean>): this;
+    equals(value: ExpressionOr<VARS, ValidType>): this;
+    notEquals(value: ExpressionOr<VARS, ValidType>): this;
     as(type: TypeString): this;
-    some(values: any[], predicate: (e: ExpressionValues, value: any, index: number, values: any[]) => any): void;
-    every(values: any[], predicate: (e: ExpressionValues, value: any, index: number, values: any[]) => any): void;
-    value(value: ValidType | Initialiser<Expression>, mapper?: (value: string) => string): this;
-    var(name: keyof VARS): this;
-    lowercase(value: string | Initialiser<Expression>): this;
-    uppercase(value: string | Initialiser<Expression>): this;
+    get true(): this;
+    get false(): this;
+    case<R extends ValidType>(initialiser: Initialiser<ExpressionCase<VARS, R>, ExpressionCase<VARS, R>[]>): this;
+    some(values: any[], predicate: (e: ExpressionValues, value: any, index: number, values: any[]) => any): this;
+    every(values: any[], predicate: (e: ExpressionValues, value: any, index: number, values: any[]) => any): this;
+    private innerValue;
+    value(value: ExpressionOr<VARS, ValidType>, mapper?: (value: string) => string): Expression<never>;
+    var(name: keyof VARS): Expression<never>;
+    lowercase(value: ExpressionOr<VARS, string>): Expression<never>;
+    uppercase(value: ExpressionOr<VARS, string>): Expression<never>;
     nextValue(sequenceId: string): this;
     currentValue(sequenceId: string): this;
 }
