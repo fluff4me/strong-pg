@@ -106,6 +106,10 @@ class Expression {
         this.parts.push(() => ` :: ${type}`);
         return this;
     }
+    asEnum(enumName) {
+        this.parts.push(() => ` :: ${enumName}`);
+        return this;
+    }
     ////////////////////////////////////
     // Values
     get true() {

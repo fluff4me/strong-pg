@@ -1,4 +1,5 @@
 import { Initialiser, MigrationTypeFromString, TypeString, ValidType } from "../IStrongPG";
+import { DatabaseSchema } from "../Schema";
 import Statement from "../statements/Statement";
 export interface ExpressionOperations<VARS = never, CURRENT_VALUE = null> {
     greaterThan: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
@@ -59,6 +60,7 @@ export default class Expression<VARS = never> implements ImplementableExpression
     equals(value: ExpressionOr<VARS, ValidType>): this;
     notEquals(value: ExpressionOr<VARS, ValidType>): this;
     as(type: TypeString): this;
+    asEnum<SCHEMA extends DatabaseSchema>(enumName: DatabaseSchema.EnumName<SCHEMA>): this;
     get true(): this;
     get false(): this;
     case<R extends ValidType>(initialiser: Initialiser<ExpressionCase<VARS, R>, ExpressionCase<VARS, R>[]>): this;
