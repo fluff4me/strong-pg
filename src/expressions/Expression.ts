@@ -12,6 +12,7 @@ export interface ExpressionOperations<VARS = never, CURRENT_VALUE = null> {
 	and: ExpressionValue<VARS, boolean, boolean>;
 	matches: CURRENT_VALUE extends string ? ExpressionValue<VARS, RegExp, boolean> : never;
 	as<TYPE extends TypeString> (type: TYPE): ExpressionOperations<VARS, MigrationTypeFromString<TYPE>>;
+	asEnum<SCHEMA extends DatabaseSchema> (enumName: DatabaseSchema.EnumName<SCHEMA>): ExpressionOperations<VARS, CURRENT_VALUE>;
 }
 
 export interface ExpressionValue<VARS = never, EXPECTED_VALUE = null, RESULT = null> {
