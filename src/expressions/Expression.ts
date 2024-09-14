@@ -1,4 +1,5 @@
 import { Initialiser, MigrationTypeFromString, TypeString, ValidType } from "../IStrongPG";
+import { DatabaseSchema } from "../Schema";
 import Statement from "../statements/Statement";
 
 export interface ExpressionOperations<VARS = never, CURRENT_VALUE = null> {
@@ -172,6 +173,11 @@ export default class Expression<VARS = never> implements ImplementableExpression
 
 	public as (type: TypeString) {
 		this.parts.push(() => ` :: ${type}`);
+		return this;
+	}
+
+	public asEnum<SCHEMA extends DatabaseSchema> (enumName: DatabaseSchema.EnumName<SCHEMA>) {
+		this.parts.push(() => ` :: ${enumName}`);
 		return this;
 	}
 
