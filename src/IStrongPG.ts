@@ -155,7 +155,7 @@ export type DataTypeFromString<STR extends TypeString | OptionalTypeString> =
 	: never
 	: never;
 
-export type ValidDate = Date | number | typeof Keyword.CurrentTimestamp;
+export type ValidDate = Date | number | typeof CURRENT_TIMESTAMP;
 
 export interface MigrationTypeMap {
 	// numeric
@@ -243,9 +243,13 @@ export type Value<T> = T[keyof T];
 
 export type SingleStringUnion<T> = ((k: ((T extends any ? () => T : never) extends infer U ? ((U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never) extends () => (infer R) ? R : never : never)) => any) extends (k: T) => any ? T : never;
 
-export namespace Keyword {
-	export const CurrentTimestamp = Symbol("CURRENT_TIMESTAMP");
-}
+export const CURRENT_TIMESTAMP = Symbol("CURRENT_TIMESTAMP");
+export const DEPTH = Symbol("DEPTH")
+export const BREADTH = Symbol("BREADTH")
+export type SearchType = typeof DEPTH | typeof BREADTH
+export const ASC = Symbol("ASC")
+export const DESC = Symbol("DESC")
+export type SortDirection = typeof ASC | typeof DESC
 
 let ansicolor: typeof import("ansicolor") | undefined;
 function color (color: keyof typeof import("ansicolor"), text: string) {

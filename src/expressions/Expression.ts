@@ -109,7 +109,7 @@ export default class Expression<VARS = never> implements ImplementableExpression
 		}
 	}
 
-	public static compile (initialiser: ExpressionInitialiser<any, any>, enableStringConcatenation = false, vars?: any[]) {
+	public static compile (initialiser: ExpressionInitialiser<any, any>, enableStringConcatenation = false, vars?: any[], varMapper?: (varName: string) => string) {
 		let expr = new Expression(vars ?? [], enableStringConcatenation);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -117,15 +117,15 @@ export default class Expression<VARS = never> implements ImplementableExpression
 		if (result instanceof Expression && result !== expr)
 			expr = result;
 
-		return new Statement.Queryable(expr.compile(), undefined, expr.vars);
+		return new Statement.Queryable(expr.compile(varMapper), undefined, expr.vars);
 	}
 
-	public readonly parts: (() => string)[] = [];
+	public readonly parts: ((varMapper?: (varName: string) => string) => string)[] = [];
 
 	private constructor (public vars: any[], private readonly enableStringConcatenation = false) { }
 
-	public compile () {
-		return this.parts.map(part => part()).join("");
+	public compile (varMapper?: (varName: string) => string) {
+		return this.parts.map(part => part(varMapper)).join("");
 	}
 
 
@@ -259,7 +259,7 @@ export default class Expression<VARS = never> implements ImplementableExpression
 
 	public var (name: keyof VARS) {
 		const e = new Expression(this.vars, this.enableStringConcatenation);
-		e.parts.push(() => name as string);
+		e.parts.push((varMapper?: (name: string) => string) => varMapper?.(name as string) ?? name as string);
 		return e;
 	}
 

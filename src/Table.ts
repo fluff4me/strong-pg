@@ -3,6 +3,7 @@ import Schema, { DatabaseSchema, TableSchema } from "./Schema";
 import DeleteFromTable from "./statements/Delete";
 import InsertIntoTable, { InsertIntoTableFactory } from "./statements/Insert";
 import Join, { JoinTables } from "./statements/Join";
+import Recursive from "./statements/Recursive";
 import SelectFromTable from "./statements/Select";
 import TruncateTable from "./statements/Truncate";
 import UpdateTable from "./statements/Update";
@@ -10,11 +11,14 @@ import UpdateTable from "./statements/Update";
 export default class Table<TABLE extends TableSchema, DATABASE extends DatabaseSchema, NAME extends DatabaseSchema.TableName<DATABASE>> {
 	public constructor (protected readonly name: NAME, protected readonly schema: TABLE) {
 	}
-
 	/**
 	 * SELECT *
 	 */
-	public select (): SelectFromTable<TABLE, "*"[]>;
+	public select (): SelectFromTable<TABLE, "*">;
+	/**
+	 * SELECT columns AS aliases
+	 */
+	public select<COLUMNS extends Partial<Record<Schema.Column<TABLE>, string>>> (columns: COLUMNS): SelectFromTable<TABLE, COLUMNS>;
 	/**
 	 * SELECT columns
 	 */
@@ -23,20 +27,23 @@ export default class Table<TABLE extends TableSchema, DATABASE extends DatabaseS
 	 * SELECT *
 	 * ...then provide an initialiser for tweaking the query
 	 */
-	public select<RETURN extends SelectFromTable<TABLE, "*"[], any> = SelectFromTable<TABLE, "*"[]>> (initialiser: Initialiser<SelectFromTable<TABLE, "*"[]>, RETURN>): RETURN;
+	public select<RETURN extends SelectFromTable<TABLE, "*"> = SelectFromTable<TABLE, "*">> (initialiser: Initialiser<SelectFromTable<TABLE, "*">, RETURN>): RETURN;
 	/**
 	 * SELECT columns
 	 * ...then provide an initialiser for tweaking the query
 	 */
-	public select<COLUMNS extends Schema.Column<TABLE>[], RETURN extends SelectFromTable<TABLE, COLUMNS, any>> (...columnsAndInitialiser: [...COLUMNS, Initialiser<SelectFromTable<TABLE, COLUMNS>, RETURN>]): RETURN;
-	public select (...params: (Schema.Column<TABLE> | "*" | Initialiser<SelectFromTable<TABLE>> | Initialiser<SelectFromTable<TABLE, "*"[]>>)[]): SelectFromTable<TABLE, Schema.Column<TABLE>[]> | SelectFromTable<TABLE, "*"[]> {
+	public select<COLUMNS extends Schema.Column<TABLE>[], RETURN extends SelectFromTable<TABLE, COLUMNS>> (...columnsAndInitialiser: [...COLUMNS, Initialiser<SelectFromTable<TABLE, COLUMNS>, RETURN>]): RETURN;
+	public select (...params: (Partial<Record<Schema.Column<TABLE>, string>> | Schema.Column<TABLE> | "*" | Initialiser<SelectFromTable<TABLE>> | Initialiser<SelectFromTable<TABLE, "*">>)[]): SelectFromTable<TABLE, any> | SelectFromTable<TABLE, "*"> {
 		const initialiser = typeof params[params.length - 1] === "function" ? params.pop() as Initialiser<SelectFromTable<TABLE>> : undefined;
-		if (params.length === 0)
-			params.push("*");
 
-		const query = new SelectFromTable<TABLE>(this.name, this.schema, params as Schema.Column<TABLE>[]);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return initialiser?.(query) ?? query;
+		const input =
+			params.length === 0 ? "*"
+				: params.length === 1 && typeof params[0] === "object" ? params[0]
+					: params as Schema.Column<TABLE>[];
+
+		const query = new SelectFromTable(this.name, this.schema, input)
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument
+		return initialiser?.(query as any) ?? query;
 	}
 
 	public insert<COLUMNS extends Schema.Column<TABLE>[]> (...columns: COLUMNS): InsertIntoTableFactory<TABLE, COLUMNS>;
@@ -132,5 +139,11 @@ export default class Table<TABLE extends TableSchema, DATABASE extends DatabaseS
 
 	public fullOuterJoin<TABLE2_NAME extends DatabaseSchema.TableName<DATABASE>, TABLE2_ALIAS extends string = TABLE2_NAME> (tableName: TABLE2_NAME, alias?: TABLE2_ALIAS) {
 		return new Join<DATABASE, JoinTables<"FULL OUTER", TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME>, NAME, TABLE2_ALIAS>, "FULL OUTER">("FULL OUTER", this.name, tableName, undefined, alias);
+	}
+
+	public recursive<COLUMNS extends Schema.Column<TABLE>[]> (columns: COLUMNS, initialiser: (query: Recursive<TABLE, Pick<TABLE, COLUMNS[number]>>) => any) {
+		const recursive = new Recursive<TABLE, Pick<TABLE, COLUMNS[number]>>(this.name, columns)
+		initialiser(recursive)
+		return recursive
 	}
 }
