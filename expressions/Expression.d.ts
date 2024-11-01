@@ -48,10 +48,10 @@ export default class Expression<VARS = never> implements ImplementableExpression
      * Warning: Do not use outside of migrations
      */
     static stringifyValueRaw(value: ValidType): string;
-    static compile(initialiser: ExpressionInitialiser<any, any>, enableStringConcatenation?: boolean, vars?: any[]): Statement.Queryable;
-    readonly parts: (() => string)[];
+    static compile(initialiser: ExpressionInitialiser<any, any>, enableStringConcatenation?: boolean, vars?: any[], varMapper?: (varName: string) => string): Statement.Queryable;
+    readonly parts: ((varMapper?: (varName: string) => string) => string)[];
     private constructor();
-    compile(): string;
+    compile(varMapper?: (varName: string) => string): string;
     greaterThan(value: ExpressionOr<VARS, ValidType>): this;
     lessThan(value: ExpressionOr<VARS, ValidType>): this;
     matches(value: ExpressionOr<VARS, ValidType>): this;

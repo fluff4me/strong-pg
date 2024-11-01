@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Delete_1 = __importDefault(require("./statements/Delete"));
 const Insert_1 = __importDefault(require("./statements/Insert"));
 const Join_1 = __importDefault(require("./statements/Join"));
+const Recursive_1 = __importDefault(require("./statements/Recursive"));
 const Select_1 = __importDefault(require("./statements/Select"));
 const Truncate_1 = __importDefault(require("./statements/Truncate"));
 const Update_1 = __importDefault(require("./statements/Update"));
@@ -16,10 +17,11 @@ class Table {
     }
     select(...params) {
         const initialiser = typeof params[params.length - 1] === "function" ? params.pop() : undefined;
-        if (params.length === 0)
-            params.push("*");
-        const query = new Select_1.default(this.name, this.schema, params);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        const input = params.length === 0 ? "*"
+            : params.length === 1 && typeof params[0] === "object" ? params[0]
+                : params;
+        const query = new Select_1.default(this.name, this.schema, input);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument
         return initialiser?.(query) ?? query;
     }
     insert(...params) {
@@ -87,6 +89,11 @@ class Table {
     }
     fullOuterJoin(tableName, alias) {
         return new Join_1.default("FULL OUTER", this.name, tableName, undefined, alias);
+    }
+    recursive(columns, initialiser) {
+        const recursive = new Recursive_1.default(this.name, columns);
+        initialiser(recursive);
+        return recursive;
     }
 }
 exports.default = Table;

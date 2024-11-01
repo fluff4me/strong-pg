@@ -86,7 +86,7 @@ export type ExtractTypeString<TYPE extends TypeString | OptionalTypeString> = TY
 export type DataTypeFromString<STR extends TypeString | OptionalTypeString> = (STR extends OptionalTypeString<infer TYPE> ? TYPE : STR) extends infer TYPE ? {
     [DATATYPE in DataTypeID as TYPE extends TypeStringMap[DATATYPE] ? DATATYPE : never]: DATATYPE;
 } extends infer DATATYPE_RESULT ? DATATYPE_RESULT[keyof DATATYPE_RESULT] & DataTypeID : never : never;
-export type ValidDate = Date | number | typeof Keyword.CurrentTimestamp;
+export type ValidDate = Date | number | typeof CURRENT_TIMESTAMP;
 export interface MigrationTypeMap {
     [DataTypeID.SMALLINT]: number;
     [DataTypeID.INTEGER]: number;
@@ -138,9 +138,13 @@ export type EnumToTuple<ENUM, LENGTH extends 1[] = []> = Key<ENUM, LENGTH["lengt
 ] extends [never] ? [] : [KEY, ...EnumToTuple<ENUM, [...LENGTH, 1]>] : [];
 export type Value<T> = T[keyof T];
 export type SingleStringUnion<T> = ((k: ((T extends any ? () => T : never) extends infer U ? ((U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never) extends () => (infer R) ? R : never : never)) => any) extends (k: T) => any ? T : never;
-export declare namespace Keyword {
-    const CurrentTimestamp: unique symbol;
-}
+export declare const CURRENT_TIMESTAMP: unique symbol;
+export declare const DEPTH: unique symbol;
+export declare const BREADTH: unique symbol;
+export type SearchType = typeof DEPTH | typeof BREADTH;
+export declare const ASC: unique symbol;
+export declare const DESC: unique symbol;
+export type SortDirection = typeof ASC | typeof DESC;
 export declare namespace StackUtil {
     interface CallSite extends NodeJS.CallSite {
         baseFormat: string;

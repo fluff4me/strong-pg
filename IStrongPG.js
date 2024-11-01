@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.StackUtil = exports.Keyword = exports.TypeString = exports.SYMBOL_COLUMNS = exports.DataType = exports.DataTypeID = exports.CASCADE = void 0;
+exports.StackUtil = exports.DESC = exports.ASC = exports.BREADTH = exports.DEPTH = exports.CURRENT_TIMESTAMP = exports.TypeString = exports.SYMBOL_COLUMNS = exports.DataType = exports.DataTypeID = exports.CASCADE = void 0;
 exports.CASCADE = "CASCADE";
 var DataTypeID;
 (function (DataTypeID) {
@@ -108,10 +108,11 @@ var TypeString;
     }
     TypeString.resolve = resolve;
 })(TypeString || (exports.TypeString = TypeString = {}));
-var Keyword;
-(function (Keyword) {
-    Keyword.CurrentTimestamp = Symbol("CURRENT_TIMESTAMP");
-})(Keyword || (exports.Keyword = Keyword = {}));
+exports.CURRENT_TIMESTAMP = Symbol("CURRENT_TIMESTAMP");
+exports.DEPTH = Symbol("DEPTH");
+exports.BREADTH = Symbol("BREADTH");
+exports.ASC = Symbol("ASC");
+exports.DESC = Symbol("DESC");
 let ansicolor;
 function color(color, text) {
     if (!ansicolor) {

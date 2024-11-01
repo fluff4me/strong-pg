@@ -3,50 +3,52 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.SelectFromVirtualTable = void 0;
+const IStrongPG_1 = require("../IStrongPG");
 const Schema_1 = __importDefault(require("../Schema"));
 const Expression_1 = __importDefault(require("../expressions/Expression"));
 const Statement_1 = __importDefault(require("./Statement"));
-class SelectFromTable extends Statement_1.default {
-    constructor(tableName, schema, columns) {
+class SelectFromVirtualTable extends Statement_1.default {
+    constructor(from, columns) {
         super();
-        this.tableName = tableName;
-        this.schema = schema;
+        this.from = from;
         this.columns = columns;
-        this.vars = [];
+        this.vars = (typeof from === "string" ? undefined : from?.["vars"]) ?? [];
     }
     where(initialiser) {
         const queryable = Expression_1.default.compile(initialiser, undefined, this.vars);
         this.condition = `WHERE (${queryable.text})`;
         return this;
     }
-    primaryKeyed(id, initialiser) {
-        const primaryKey = Schema_1.default.getSingleColumnPrimaryKey(this.schema);
-        this.where(expr => {
-            const e2 = expr.var(primaryKey).equals(id);
-            if (initialiser)
-                e2.and(initialiser);
-            return e2;
-        });
-        return this.limit(1);
-    }
     limit(count) {
         this._limit = count;
         return this;
     }
-    orderBy(column, order = "ASC") {
+    orderBy(column, order = IStrongPG_1.ASC) {
         this._orderByColumn = column;
         this._orderByDirection = order;
         return this;
     }
     offset(amount) {
+        if (typeof amount !== "number")
+            throw new Error("Unsafe value for offset");
         this._offset = amount;
         return this;
     }
     compile() {
-        const orderBy = this._orderByColumn && this._orderByDirection ? `ORDER BY ${String(this._orderByColumn)} ${this._orderByDirection}` : "";
+        const orderBy = this._orderByColumn && this._orderByDirection ? `ORDER BY ${String(this._orderByColumn)} ${this._orderByDirection.description}` : "";
         const offset = this._offset ? `OFFSET ${this._offset}` : "";
         const limit = this._limit ? `LIMIT ${this._limit}` : "";
-        return this.queryable(`SELECT ${this.columns.join(",")} FROM ${this.tableName} ${this.condition ?? ""} ${orderBy} ${offset} ${limit}`, undefined, this.vars);
+        const from = typeof this.from === "string" ? this.from : this.from.compileFrom?.() ?? this.from["name"];
+        const columns = this.columns === "*" ? "*"
+            : Object.entries(this.columns)
+                .map(([column, alias]) => column === alias ? column : `${column} ${alias}`)
+                .join(",");
+        return this.queryable(`${this.compileWith()}SELECT ${columns} FROM ${from} ${this.condition ?? ""} ${orderBy} ${offset} ${limit}`, undefined, this.vars);
+    }
+    compileWith() {
+        const withExpr = typeof this.from === "string" ? undefined : this.from.compileWith?.();
+        return !withExpr ? "" : `WITH ${withExpr} `;
     }
     async queryOne(pool) {
         return this.limit(1).query(pool);
@@ -57,6 +59,24 @@ class SelectFromTable extends Statement_1.default {
             return output.rows;
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return output.rows[0];
+    }
+}
+exports.SelectFromVirtualTable = SelectFromVirtualTable;
+class SelectFromTable extends SelectFromVirtualTable {
+    constructor(tableName, schema, columns) {
+        super(tableName, columns);
+        this.tableName = tableName;
+        this.schema = schema;
+    }
+    primaryKeyed(id, initialiser) {
+        const primaryKey = Schema_1.default.getSingleColumnPrimaryKey(this.schema);
+        this.where(expr => {
+            const e2 = expr.var(primaryKey).equals(id);
+            if (initialiser)
+                e2.and(initialiser);
+            return e2;
+        });
+        return this.limit(1);
     }
 }
 exports.default = SelectFromTable;

@@ -52,21 +52,21 @@ class Expression {
                 return `${value}`;
         }
     }
-    static compile(initialiser, enableStringConcatenation = false, vars) {
+    static compile(initialiser, enableStringConcatenation = false, vars, varMapper) {
         let expr = new Expression(vars ?? [], enableStringConcatenation);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const result = initialiser(expr);
         if (result instanceof Expression && result !== expr)
             expr = result;
-        return new Statement_1.default.Queryable(expr.compile(), undefined, expr.vars);
+        return new Statement_1.default.Queryable(expr.compile(varMapper), undefined, expr.vars);
     }
     constructor(vars, enableStringConcatenation = false) {
         this.vars = vars;
         this.enableStringConcatenation = enableStringConcatenation;
         this.parts = [];
     }
-    compile() {
-        return this.parts.map(part => part()).join("");
+    compile(varMapper) {
+        return this.parts.map(part => part(varMapper)).join("");
     }
     ////////////////////////////////////
     // Operations
@@ -177,7 +177,7 @@ class Expression {
     }
     var(name) {
         const e = new Expression(this.vars, this.enableStringConcatenation);
-        e.parts.push(() => name);
+        e.parts.push((varMapper) => varMapper?.(name) ?? name);
         return e;
     }
     lowercase(value) {
