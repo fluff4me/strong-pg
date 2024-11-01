@@ -95,9 +95,10 @@ export class SelectFromVirtualTable<SCHEMA extends TableSchema, COLUMNS extends 
 		const limit = this._limit ? `LIMIT ${this._limit}` : "";
 		const from = typeof this.from === "string" ? this.from : this.from.compileFrom?.() ?? this.from["name"]
 		const columns = this.columns === "*" ? "*"
-			: Object.entries(this.columns)
-				.map(([column, alias]) => column === alias ? column : `${column} ${alias as string}`)
-				.join(",");
+			: Array.isArray(this.columns) ? this.columns.join(",")
+				: Object.entries(this.columns)
+					.map(([column, alias]) => column === alias ? column : `${column} ${alias as string}`)
+					.join(",");
 		return this.queryable(`${this.compileWith()}SELECT ${columns} FROM ${from} ${this.condition ?? ""} ${orderBy} ${offset} ${limit}`, undefined, this.vars);
 	}
 
