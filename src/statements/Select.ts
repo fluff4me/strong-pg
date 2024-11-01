@@ -90,7 +90,7 @@ export class SelectFromVirtualTable<SCHEMA extends TableSchema, COLUMNS extends 
 	}
 
 	public compile () {
-		const orderBy = this._orderByColumn && this._orderByDirection ? `ORDER BY ${String(this._orderByColumn)} ${this._orderByDirection.description!}` : "";
+		const orderBy = this._orderByColumn && this._orderByDirection ? `ORDER BY ${String(this._orderByColumn)} ${this._orderByDirection.description ?? ""}` : "";
 		const offset = this._offset ? `OFFSET ${this._offset}` : "";
 		const limit = this._limit ? `LIMIT ${this._limit}` : "";
 		const from = typeof this.from === "string" ? this.from : this.from.compileFrom?.() ?? this.from["name"]
