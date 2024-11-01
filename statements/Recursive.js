@@ -34,7 +34,7 @@ class Recursive extends VirtualTable_1.VirtualTable {
         if (!this.recursiveCondition)
             throw new Error("A recursive condition is required");
         const anchorQuery = `SELECT ${this.columnNames.join(",")} FROM ${this.tableName} ${this.anchorCondition ?? ""}`;
-        const recursiveQuery = `SELECT ${this.columnNames.map(name => `recursive_table.${String(name)}`).join(",")} FROM ${this.tableName} recursive_table, ${this.name} current`;
+        const recursiveQuery = `SELECT ${this.columnNames.map(name => `recursive_table.${String(name)}`).join(",")} FROM ${this.tableName} recursive_table, ${this.name} current ${this.recursiveCondition}`;
         const searchQuery = !this.search ? "" : `SEARCH ${this.search.type.description} FIRST BY ${String(this.search.column)} SET with_recursive_search_order`;
         return `RECURSIVE ${this.name}(${this.columnNames.join(",")}) AS (${anchorQuery} UNION ALL ${recursiveQuery}) ${searchQuery}`;
     }
