@@ -11,20 +11,28 @@ class InsertIntoTable extends Statement_1.default {
     static columns(tableName, schema, columns, isUpsert = false) {
         const primaryKey = !isUpsert ? undefined : Schema_1.default.getPrimaryKey(schema);
         return {
-            prepare: () => new InsertIntoTable(tableName, schema, columns, []),
+            prepare: () => {
+                const query = new InsertIntoTable(tableName, schema, columns, []);
+                if (isUpsert)
+                    registerUpsert(query);
+                return query;
+            },
             values: (...values) => {
                 const query = new InsertIntoTable(tableName, schema, columns, columns.length && !values.length ? [] : [values]);
-                if (isUpsert) {
-                    query.onConflict(...primaryKey).doUpdate(update => {
-                        for (let i = 0; i < columns.length; i++) {
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-                            update.set(columns[i], ((expr) => expr.var(`EXCLUDED.${String(columns[i])}`)));
-                        }
-                    });
-                }
+                if (isUpsert)
+                    registerUpsert(query);
                 return query;
             },
         };
+        function registerUpsert(query) {
+            query.onConflict(...primaryKey).doUpdate(update => {
+                for (let i = 0; i < columns.length; i++) {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                    update.set(columns[i], ((expr) => expr.var(`EXCLUDED.${String(columns[i])}`)));
+                }
+            });
+            return query;
+        }
     }
     constructor(tableName, schema, columns, rows) {
         super();
