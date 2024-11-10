@@ -1,4 +1,4 @@
-import { Initialiser } from "./IStrongPG";
+import { Initialiser, ValidType } from "./IStrongPG";
 import Schema, { DatabaseSchema, TableSchema } from "./Schema";
 import DeleteFromTable from "./statements/Delete";
 import InsertIntoTable, { InsertIntoTableFactory } from "./statements/Insert";
@@ -58,11 +58,12 @@ export default class Table<TABLE extends TableSchema, DATABASE extends DatabaseS
 		const initialiser = typeof params[params.length - 1] === "function" ? params.pop() as Initialiser<InsertIntoTableFactory<TABLE> | InsertIntoTable<TABLE>> : undefined;
 
 		if (typeof params[0] === "object") {
-			const keys = Object.keys(params[0]);
+			const row = params[0] as Record<string, ValidType>
+			const columns = Object.keys(row).filter(column => row[column] !== undefined);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-			const query = ((this.insert as any)(isUpsert as any, ...keys as Schema.Column<TABLE>[]) as InsertIntoTableFactory<TABLE>)
+			const query = ((this.insert as any)(isUpsert as any, ...columns as Schema.Column<TABLE>[]) as InsertIntoTableFactory<TABLE>)
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
-				.values(...keys.map(key => (params[0] as any)[key]));
+				.values(...columns.map(key => row[key] as any));
 
 			return initialiser?.(query) as InsertIntoTable<TABLE> ?? query;
 		}
