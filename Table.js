@@ -30,11 +30,12 @@ class Table {
             params.shift();
         const initialiser = typeof params[params.length - 1] === "function" ? params.pop() : undefined;
         if (typeof params[0] === "object") {
-            const keys = Object.keys(params[0]);
+            const row = params[0];
+            const columns = Object.keys(row).filter(column => row[column] !== undefined);
             // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            const query = this.insert(isUpsert, ...keys)
+            const query = this.insert(isUpsert, ...columns)
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
-                .values(...keys.map(key => params[0][key]));
+                .values(...columns.map(key => row[key]));
             return initialiser?.(query) ?? query;
         }
         const query = Insert_1.default.columns(this.name, this.schema, params, isUpsert);
