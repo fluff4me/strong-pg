@@ -4,7 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SelectFromVirtualTable = void 0;
-const IStrongPG_1 = require("../IStrongPG");
 const Schema_1 = __importDefault(require("../Schema"));
 const Expression_1 = __importDefault(require("../expressions/Expression"));
 const Statement_1 = __importDefault(require("./Statement"));
@@ -24,9 +23,11 @@ class SelectFromVirtualTable extends Statement_1.default {
         this._limit = count;
         return this;
     }
-    orderBy(column, order = IStrongPG_1.ASC) {
-        this._orderByColumn = column;
-        this._orderByDirection = order;
+    orderBy(...args) {
+        if (Array.isArray(args[0]))
+            this._orderBy = args[0];
+        else
+            this._orderBy = [args];
         return this;
     }
     offset(amount) {
@@ -36,7 +37,9 @@ class SelectFromVirtualTable extends Statement_1.default {
         return this;
     }
     compile() {
-        const orderBy = this._orderByColumn && this._orderByDirection ? `ORDER BY ${String(this._orderByColumn)} ${this._orderByDirection.description ?? ""}` : "";
+        const orderBy = this._orderBy?.length ? `ORDER BY ${this._orderBy
+            .map(order => order[0] === null ? `${String(order[1])} IS NULL ${order[2]?.description ?? ""}` : `${String(order[0])} ${order[1]?.description ?? ""}`)
+            .join(",")}` : "";
         const offset = this._offset ? `OFFSET ${this._offset}` : "";
         const limit = this._limit ? `LIMIT ${this._limit}` : "";
         const from = typeof this.from === "string" ? this.from : this.from.compileFrom?.() ?? this.from["name"];

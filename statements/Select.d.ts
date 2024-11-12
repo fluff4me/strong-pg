@@ -10,6 +10,7 @@ type SelectResult<SCHEMA extends TableSchema, COLUMNS extends SelectColumns<SCHE
 } : (COLUMNS extends any[] ? COLUMNS[number] : Schema.Column<SCHEMA>) extends infer COLUMNS ? {
     [K in COLUMNS & PropertyKey]: OutputTypeFromString<SCHEMA[K & keyof SCHEMA]>;
 } : never;
+type Order<SCHEMA extends TableSchema> = [column: Schema.Column<SCHEMA>, order?: SortDirection] | [null: null, column: Schema.Column<SCHEMA>, order?: SortDirection];
 export declare class SelectFromVirtualTable<SCHEMA extends TableSchema, COLUMNS extends SelectColumns<SCHEMA> = Schema.Column<SCHEMA>[], RESULT = SelectResult<SCHEMA, COLUMNS>[]> extends Statement<RESULT> {
     private readonly from;
     readonly columns: COLUMNS;
@@ -20,9 +21,9 @@ export declare class SelectFromVirtualTable<SCHEMA extends TableSchema, COLUMNS 
     private _limit?;
     limit(count: 1): SelectFromVirtualTable<SCHEMA, COLUMNS, SelectResult<SCHEMA, COLUMNS> | undefined>;
     limit(count: number): SelectFromVirtualTable<SCHEMA, COLUMNS, SelectResult<SCHEMA, COLUMNS>[]>;
-    private _orderByColumn?;
-    private _orderByDirection?;
+    private _orderBy?;
     orderBy(column: Schema.Column<SCHEMA>, order?: SortDirection): this;
+    orderBy(orders: Order<SCHEMA>[]): this;
     private _offset?;
     offset(amount: number): this;
     compile(): Statement.Queryable[];
