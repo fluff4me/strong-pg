@@ -1,5 +1,5 @@
 import { Pool, PoolClient, QueryResult } from "pg";
-import { ASC, InputTypeFromString, OutputTypeFromString, SingleStringUnion, SortDirection } from "../IStrongPG";
+import { InputTypeFromString, OutputTypeFromString, SingleStringUnion, SortDirection } from "../IStrongPG";
 import Schema, { TableSchema } from "../Schema";
 import { VirtualTable } from "../VirtualTable";
 import Expression, { ExpressionInitialiser } from "../expressions/Expression";
@@ -50,6 +50,10 @@ type SelectResult<SCHEMA extends TableSchema, COLUMNS extends SelectColumns<SCHE
 
 	: never
 
+type Order<SCHEMA extends TableSchema> =
+	| [column: Schema.Column<SCHEMA>, order?: SortDirection]
+	| [null: null, column: Schema.Column<SCHEMA>, order?: SortDirection]
+
 export class SelectFromVirtualTable<SCHEMA extends TableSchema, COLUMNS extends SelectColumns<SCHEMA> = Schema.Column<SCHEMA>[], RESULT = SelectResult<SCHEMA, COLUMNS>[]> extends Statement<RESULT> {
 
 	private vars: any[];
@@ -73,11 +77,14 @@ export class SelectFromVirtualTable<SCHEMA extends TableSchema, COLUMNS extends 
 		return this;
 	}
 
-	private _orderByColumn?: Schema.Column<SCHEMA>;
-	private _orderByDirection?: SortDirection;
-	public orderBy (column: Schema.Column<SCHEMA>, order: SortDirection = ASC) {
-		this._orderByColumn = column;
-		this._orderByDirection = order;
+	private _orderBy?: Order<SCHEMA>[]
+	public orderBy (column: Schema.Column<SCHEMA>, order?: SortDirection): this;
+	public orderBy (orders: Order<SCHEMA>[]): this;
+	public orderBy (...args: Order<SCHEMA> | [Order<SCHEMA>[]]) {
+		if (Array.isArray(args[0]))
+			this._orderBy = args[0]
+		else
+			this._orderBy = [args as Order<SCHEMA>];
 		return this;
 	}
 
@@ -90,7 +97,9 @@ export class SelectFromVirtualTable<SCHEMA extends TableSchema, COLUMNS extends 
 	}
 
 	public compile () {
-		const orderBy = this._orderByColumn && this._orderByDirection ? `ORDER BY ${String(this._orderByColumn)} ${this._orderByDirection.description ?? ""}` : "";
+		const orderBy = this._orderBy?.length ? `ORDER BY ${this._orderBy
+			.map(order => order[0] === null ? `${String(order[1])} IS NULL ${order[2]?.description ?? ""}` : `${String(order[0])} ${(order[1] as symbol)?.description ?? ""}`)
+			.join(",")}` : "";
 		const offset = this._offset ? `OFFSET ${this._offset}` : "";
 		const limit = this._limit ? `LIMIT ${this._limit}` : "";
 		const from = typeof this.from === "string" ? this.from : this.from.compileFrom?.() ?? this.from["name"]
