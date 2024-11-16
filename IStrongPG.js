@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.StackUtil = exports.DESC = exports.ASC = exports.BREADTH = exports.DEPTH = exports.CURRENT_TIMESTAMP = exports.TypeString = exports.SYMBOL_COLUMNS = exports.DataType = exports.DataTypeID = exports.CASCADE = void 0;
+exports.StackUtil = exports.GENERATE_UUID = exports.DESC = exports.ASC = exports.BREADTH = exports.DEPTH = exports.CURRENT_TIMESTAMP = exports.TypeString = exports.SYMBOL_COLUMNS = exports.DataType = exports.DataTypeID = exports.CASCADE = void 0;
 exports.CASCADE = "CASCADE";
 var DataTypeID;
 (function (DataTypeID) {
@@ -27,11 +27,12 @@ var DataTypeID;
     DataTypeID[DataTypeID["VARBIT"] = 16] = "VARBIT";
     DataTypeID[DataTypeID["TEXT"] = 17] = "TEXT";
     DataTypeID[DataTypeID["ENUM"] = 18] = "ENUM";
+    DataTypeID[DataTypeID["UUID"] = 19] = "UUID";
     // other
-    DataTypeID[DataTypeID["BOOLEAN"] = 19] = "BOOLEAN";
+    DataTypeID[DataTypeID["BOOLEAN"] = 20] = "BOOLEAN";
     // special
-    DataTypeID[DataTypeID["TSVECTOR"] = 20] = "TSVECTOR";
-    DataTypeID[DataTypeID["JSON"] = 21] = "JSON";
+    DataTypeID[DataTypeID["TSVECTOR"] = 21] = "TSVECTOR";
+    DataTypeID[DataTypeID["JSON"] = 22] = "JSON";
 })(DataTypeID || (exports.DataTypeID = DataTypeID = {}));
 var DataType;
 (function (DataType) {
@@ -90,6 +91,7 @@ var DataType;
         return `ENUM(${name})`;
     }
     DataType.ENUM = ENUM;
+    DataType.UUID = "UUID";
     // other
     DataType.BOOLEAN = "BOOLEAN";
     // special
@@ -113,6 +115,7 @@ exports.DEPTH = Symbol("DEPTH");
 exports.BREADTH = Symbol("BREADTH");
 exports.ASC = Symbol("ASC");
 exports.DESC = Symbol("DESC");
+exports.GENERATE_UUID = Symbol("gen_random_uuid()");
 let ansicolor;
 function color(color, text) {
     if (!ansicolor) {

@@ -22,9 +22,10 @@ export declare enum DataTypeID {
     VARBIT = 16,
     TEXT = 17,
     ENUM = 18,
-    BOOLEAN = 19,
-    TSVECTOR = 20,
-    JSON = 21
+    UUID = 19,
+    BOOLEAN = 20,
+    TSVECTOR = 21,
+    JSON = 22
 }
 export interface TypeStringMap {
     [DataTypeID.SMALLINT]: "SMALLINT";
@@ -49,6 +50,7 @@ export interface TypeStringMap {
     [DataTypeID.BOOLEAN]: "BOOLEAN";
     [DataTypeID.TSVECTOR]: "TSVECTOR";
     [DataTypeID.JSON]: "JSON";
+    [DataTypeID.UUID]: "UUID";
 }
 export declare namespace DataType {
     const SMALLINT: TypeStringMap[DataTypeID.SMALLINT];
@@ -72,6 +74,7 @@ export declare namespace DataType {
     function ENUM<NAME extends string>(name: NAME): Enum<NAME>;
     type Enum<NAME extends string> = `ENUM(${NAME})`;
     type EnumName<ENUM_TYPE extends `ENUM(${string})`> = ENUM_TYPE extends `ENUM(${infer NAME})` ? NAME : never;
+    const UUID: TypeStringMap[DataTypeID.UUID];
     const BOOLEAN: TypeStringMap[DataTypeID.BOOLEAN];
     const TSVECTOR: TypeStringMap[DataTypeID.TSVECTOR];
     const JSON: TypeStringMap[DataTypeID.JSON];
@@ -107,6 +110,7 @@ export interface MigrationTypeMap {
     [DataTypeID.VARBIT]: string;
     [DataTypeID.TEXT]: string;
     [DataTypeID.ENUM]: string;
+    [DataTypeID.UUID]: string | typeof GENERATE_UUID;
     [DataTypeID.BOOLEAN]: boolean;
     [DataTypeID.TSVECTOR]: null;
     [DataTypeID.JSON]: null;
@@ -114,9 +118,10 @@ export interface MigrationTypeMap {
 export interface InputTypeMap extends Omit<MigrationTypeMap, DataTypeID.JSON> {
     [DataTypeID.JSON]: any;
 }
-export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | DataTypeID.TIMESTAMP | DataTypeID.TIME> {
+export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | DataTypeID.TIMESTAMP | DataTypeID.TIME | DataTypeID.UUID> {
     [DataTypeID.BIGINT]: `${bigint}`;
     [DataTypeID.BIGSERIAL]: `${bigint}`;
+    [DataTypeID.UUID]: string;
     [DataTypeID.DATE]: Date;
     [DataTypeID.TIMESTAMP]: Date;
     [DataTypeID.TIME]: Date;
@@ -145,6 +150,7 @@ export type SearchType = typeof DEPTH | typeof BREADTH;
 export declare const ASC: unique symbol;
 export declare const DESC: unique symbol;
 export type SortDirection = typeof ASC | typeof DESC;
+export declare const GENERATE_UUID: unique symbol;
 export declare namespace StackUtil {
     interface CallSite extends NodeJS.CallSite {
         baseFormat: string;
