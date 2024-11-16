@@ -30,6 +30,7 @@ export enum DataTypeID {
 	VARBIT,
 	TEXT,
 	ENUM,
+	UUID,
 
 	// other
 	BOOLEAN,
@@ -73,6 +74,7 @@ export interface TypeStringMap {
 	// special
 	[DataTypeID.TSVECTOR]: "TSVECTOR",
 	[DataTypeID.JSON]: "JSON",
+	[DataTypeID.UUID]: "UUID",
 }
 
 export namespace DataType {
@@ -128,6 +130,7 @@ export namespace DataType {
 
 	export type Enum<NAME extends string> = `ENUM(${NAME})`;
 	export type EnumName<ENUM_TYPE extends `ENUM(${string})`> = ENUM_TYPE extends `ENUM(${infer NAME})` ? NAME : never;
+	export const UUID: TypeStringMap[DataTypeID.UUID] = "UUID";
 
 	// other
 	export const BOOLEAN: TypeStringMap[DataTypeID.BOOLEAN] = "BOOLEAN";
@@ -183,6 +186,7 @@ export interface MigrationTypeMap {
 	[DataTypeID.VARBIT]: string;
 	[DataTypeID.TEXT]: string;
 	[DataTypeID.ENUM]: string;
+	[DataTypeID.UUID]: string | typeof GENERATE_UUID;
 
 	// other
 	[DataTypeID.BOOLEAN]: boolean;
@@ -196,10 +200,13 @@ export interface InputTypeMap extends Omit<MigrationTypeMap, DataTypeID.JSON> {
 	[DataTypeID.JSON]: any;
 }
 
-export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | DataTypeID.TIMESTAMP | DataTypeID.TIME> {
+export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | DataTypeID.TIMESTAMP | DataTypeID.TIME | DataTypeID.UUID> {
 	// numeric
 	[DataTypeID.BIGINT]: `${bigint}`;
 	[DataTypeID.BIGSERIAL]: `${bigint}`;
+
+	// string
+	[DataTypeID.UUID]: string;
 
 	// datetime
 	[DataTypeID.DATE]: Date;
@@ -250,6 +257,7 @@ export type SearchType = typeof DEPTH | typeof BREADTH
 export const ASC = Symbol("ASC")
 export const DESC = Symbol("DESC")
 export type SortDirection = typeof ASC | typeof DESC
+export const GENERATE_UUID = Symbol("gen_random_uuid()")
 
 let ansicolor: typeof import("ansicolor") | undefined;
 function color (color: keyof typeof import("ansicolor"), text: string) {
