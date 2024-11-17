@@ -250,7 +250,7 @@ export type Value<T> = T[keyof T];
 
 export type SingleStringUnion<T> = ((k: ((T extends any ? () => T : never) extends infer U ? ((U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never) extends () => (infer R) ? R : never : never)) => any) extends (k: T) => any ? T : never;
 
-export const CURRENT_TIMESTAMP = Symbol("CURRENT_TIMESTAMP");
+export const CURRENT_TIMESTAMP = Symbol("CURRENT_TIMESTAMP AT TIME ZONE 'UTC'");
 export const DEPTH = Symbol("DEPTH")
 export const BREADTH = Symbol("BREADTH")
 export type SearchType = typeof DEPTH | typeof BREADTH
