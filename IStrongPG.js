@@ -110,7 +110,7 @@ var TypeString;
     }
     TypeString.resolve = resolve;
 })(TypeString || (exports.TypeString = TypeString = {}));
-exports.CURRENT_TIMESTAMP = Symbol("CURRENT_TIMESTAMP");
+exports.CURRENT_TIMESTAMP = Symbol("CURRENT_TIMESTAMP AT TIME ZONE 'UTC'");
 exports.DEPTH = Symbol("DEPTH");
 exports.BREADTH = Symbol("BREADTH");
 exports.ASC = Symbol("ASC");
