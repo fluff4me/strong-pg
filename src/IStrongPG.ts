@@ -60,7 +60,7 @@ export interface TypeStringMap {
 	// [DataType.INTERVAL]: `INTERVAL (${bigint})`,
 
 	// string
-	[DataTypeID.BYTECHAR]: "\"CHAR\"",
+	[DataTypeID.BYTECHAR]: "\"char\"",
 	[DataTypeID.CHAR]: "CHARACTER" | `CHARACTER(${bigint})`,
 	[DataTypeID.VARCHAR]: "CHARACTER VARYING" | `CHARACTER VARYING(${bigint})`,
 	[DataTypeID.BIT]: `BIT(${bigint})`,
@@ -114,7 +114,7 @@ export namespace DataType {
 		return length === undefined ? "CHARACTER VARYING"
 			: `CHARACTER VARYING(${Math.round(length)})` as TypeStringMap[DataTypeID.VARCHAR];
 	}
-	export const BYTECHAR: TypeStringMap[DataTypeID.BYTECHAR] = "\"CHAR\"";
+	export const BYTECHAR: TypeStringMap[DataTypeID.BYTECHAR] = "\"char\"";
 	export function BIT (length: number) {
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 		return `BIT(${Math.round(length)})` as string as TypeStringMap[DataTypeID.BIT];
