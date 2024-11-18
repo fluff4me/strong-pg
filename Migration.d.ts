@@ -60,7 +60,7 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
             [ENUM_NAME in Exclude<keyof SCHEMA_END["enums"], NAME>]: SCHEMA_END["enums"][ENUM_NAME];
         }) : SCHEMA_END[KEY];
     }>;
-    createTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends string>(on: TABLE, name: NAME, initialiser: CreateTriggerInitialiser<DatabaseSchema.Table<SCHEMA_END, TABLE>, Exclude<SCHEMA_END["functions"], undefined>>): Migration<SCHEMA_START, {
+    createOrReplaceTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends string>(on: TABLE, name: NAME, initialiser: CreateTriggerInitialiser<DatabaseSchema.Table<SCHEMA_END, TABLE>, Exclude<SCHEMA_END["functions"], undefined>>): Migration<SCHEMA_START, {
         [KEY in keyof SCHEMA_END]: KEY extends "triggers" ? ({
             [TRIGGER_NAME in NAME | keyof SCHEMA_END["triggers"]]: {};
         }) : SCHEMA_END[KEY];

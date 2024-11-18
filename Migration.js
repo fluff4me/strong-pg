@@ -85,7 +85,7 @@ class Migration extends Transaction_1.default {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
-    createTrigger(on, name, initialiser) {
+    createOrReplaceTrigger(on, name, initialiser) {
         const createTrigger = new CreateTrigger_1.default(name, on).setCaller();
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         initialiser(createTrigger);
