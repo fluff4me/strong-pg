@@ -1,5 +1,5 @@
 import Database from "./Database";
-import { DatabaseSchema } from "./Schema";
+import { DatabaseSchema, TableSchema } from "./Schema";
 import { AlterEnumInitialiser } from "./statements/enum/AlterEnum";
 import { CreateOrReplaceFunctionInitialiser } from "./statements/function/CreateOrReplaceFunction";
 import { CreateIndexInitialiser } from "./statements/index/CreateIndex";
@@ -15,14 +15,14 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
     private db;
     constructor(schemaStart?: SCHEMA_START);
     then(statementSupplier: (db: Database<SCHEMA_END>) => Statement<any>): this;
-    createTable<NAME extends string, TABLE_SCHEMA_NEW>(table: NAME, alter: NAME extends DatabaseSchema.TableName<SCHEMA_END> ? never : AlterTableInitialiser<SCHEMA_END, null, TABLE_SCHEMA_NEW>): Migration<SCHEMA_START, {
+    createTable<NAME extends string, TABLE_SCHEMA_NEW extends TableSchema>(table: NAME, alter: NAME extends DatabaseSchema.TableName<SCHEMA_END> ? never : AlterTableInitialiser<SCHEMA_END, null, TABLE_SCHEMA_NEW>): Migration<SCHEMA_START, {
         [KEY in keyof SCHEMA_END]: KEY extends "tables" ? ({
-            [TABLE_NAME in NAME | keyof SCHEMA_END["tables"]]: TABLE_NAME extends NAME ? TABLE_SCHEMA_NEW & Record<string, any> : SCHEMA_END["tables"][TABLE_NAME];
+            [TABLE_NAME in NAME | keyof SCHEMA_END["tables"]]: TABLE_NAME extends NAME ? TABLE_SCHEMA_NEW : SCHEMA_END["tables"][TABLE_NAME];
         }) : SCHEMA_END[KEY];
     }>;
-    alterTable<NAME extends DatabaseSchema.TableName<SCHEMA_END>, TABLE_SCHEMA_NEW>(table: NAME, alter: AlterTableInitialiser<SCHEMA_END, DatabaseSchema.Table<SCHEMA_END, NAME>, TABLE_SCHEMA_NEW>): Migration<SCHEMA_START, {
+    alterTable<NAME extends DatabaseSchema.TableName<SCHEMA_END>, TABLE_SCHEMA_NEW extends TableSchema>(table: NAME, alter: AlterTableInitialiser<SCHEMA_END, DatabaseSchema.Table<SCHEMA_END, NAME>, TABLE_SCHEMA_NEW>): Migration<SCHEMA_START, {
         [KEY in keyof SCHEMA_END]: KEY extends "tables" ? ({
-            [TABLE_NAME in NAME | keyof SCHEMA_END["tables"]]: TABLE_NAME extends NAME ? TABLE_SCHEMA_NEW & Record<string, any> : SCHEMA_END["tables"][TABLE_NAME];
+            [TABLE_NAME in NAME | keyof SCHEMA_END["tables"]]: TABLE_NAME extends NAME ? TABLE_SCHEMA_NEW : SCHEMA_END["tables"][TABLE_NAME];
         }) : SCHEMA_END[KEY];
     }>;
     renameTable<NAME extends DatabaseSchema.TableName<SCHEMA_END>, NEW_NAME extends string>(table: NAME, newName: NEW_NAME): Migration<SCHEMA_START, {
