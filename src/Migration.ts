@@ -162,7 +162,7 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		return this as any;
 	}
 
-	public createTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends string> (
+	public createOrReplaceTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends string> (
 		on: TABLE,
 		name: NAME,
 		initialiser: CreateTriggerInitialiser<DatabaseSchema.Table<SCHEMA_END, TABLE>, Exclude<SCHEMA_END["functions"], undefined>>,
