@@ -75,7 +75,7 @@ var DataType;
             : `CHARACTER VARYING(${Math.round(length)})`;
     }
     DataType.VARCHAR = VARCHAR;
-    DataType.BYTECHAR = "\"CHAR\"";
+    DataType.BYTECHAR = "\"char\"";
     function BIT(length) {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         return `BIT(${Math.round(length)})`;

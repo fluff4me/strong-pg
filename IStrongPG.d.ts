@@ -40,7 +40,7 @@ export interface TypeStringMap {
     [DataTypeID.DATE]: "DATE";
     [DataTypeID.TIMESTAMP]: "TIMESTAMP" | `TIMESTAMP(${bigint})` | `TIMESTAMP(${bigint}) WITHOUT TIME ZONE`;
     [DataTypeID.TIME]: "TIME" | `TIME(${bigint})` | `TIME(${bigint}) WITHOUT TIME ZONE`;
-    [DataTypeID.BYTECHAR]: "\"CHAR\"";
+    [DataTypeID.BYTECHAR]: "\"char\"";
     [DataTypeID.CHAR]: "CHARACTER" | `CHARACTER(${bigint})`;
     [DataTypeID.VARCHAR]: "CHARACTER VARYING" | `CHARACTER VARYING(${bigint})`;
     [DataTypeID.BIT]: `BIT(${bigint})`;
