@@ -1,6 +1,6 @@
 import Database from "./Database";
 import { StackUtil } from "./IStrongPG";
-import { DatabaseSchema } from "./Schema";
+import { DatabaseSchema, TableSchema } from "./Schema";
 import CreateCollation from "./statements/collation/CreateCollation";
 import DropCollation from "./statements/collation/DropCollation";
 import AlterEnum, { AlterEnumInitialiser } from "./statements/enum/AlterEnum";
@@ -42,12 +42,12 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		return this;
 	}
 
-	public createTable<NAME extends string, TABLE_SCHEMA_NEW> (
+	public createTable<NAME extends string, TABLE_SCHEMA_NEW extends TableSchema> (
 		table: NAME,
 		alter: NAME extends DatabaseSchema.TableName<SCHEMA_END> ? never : AlterTableInitialiser<SCHEMA_END, null, TABLE_SCHEMA_NEW>,
 	): Migration<SCHEMA_START, {
 		[KEY in keyof SCHEMA_END]: KEY extends "tables"
-		? ({ [TABLE_NAME in NAME | keyof SCHEMA_END["tables"]]: TABLE_NAME extends NAME ? TABLE_SCHEMA_NEW & Record<string, any> : SCHEMA_END["tables"][TABLE_NAME] })
+		? ({ [TABLE_NAME in NAME | keyof SCHEMA_END["tables"]]: TABLE_NAME extends NAME ? TABLE_SCHEMA_NEW : SCHEMA_END["tables"][TABLE_NAME] })
 		: SCHEMA_END[KEY]
 	}> {
 		this.add(new CreateTable(table).setCaller());
@@ -56,12 +56,12 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		return this as any;
 	}
 
-	public alterTable<NAME extends DatabaseSchema.TableName<SCHEMA_END>, TABLE_SCHEMA_NEW> (
+	public alterTable<NAME extends DatabaseSchema.TableName<SCHEMA_END>, TABLE_SCHEMA_NEW extends TableSchema> (
 		table: NAME,
 		alter: AlterTableInitialiser<SCHEMA_END, DatabaseSchema.Table<SCHEMA_END, NAME>, TABLE_SCHEMA_NEW>,
 	): Migration<SCHEMA_START, {
 		[KEY in keyof SCHEMA_END]: KEY extends "tables"
-		? ({ [TABLE_NAME in NAME | keyof SCHEMA_END["tables"]]: TABLE_NAME extends NAME ? TABLE_SCHEMA_NEW & Record<string, any> : SCHEMA_END["tables"][TABLE_NAME] })
+		? ({ [TABLE_NAME in NAME | keyof SCHEMA_END["tables"]]: TABLE_NAME extends NAME ? TABLE_SCHEMA_NEW : SCHEMA_END["tables"][TABLE_NAME] })
 		: SCHEMA_END[KEY]
 	}> {
 		this.add(alter(new AlterTable(table)).setCaller());
