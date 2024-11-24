@@ -49,6 +49,23 @@ class CreateTrigger extends Statement_1.default {
         super();
         this.id = id;
         this.on = on;
+        this.constraint = false;
+    }
+    setConstraint() {
+        this.constraint = true;
+        return this;
+    }
+    deferred() {
+        this.deferrable = "DEFERRED";
+        return this;
+    }
+    deferredImmediate() {
+        this.deferrable = "IMMEDIATE";
+        return this;
+    }
+    notDeferrable() {
+        this.deferrable = undefined;
+        return this;
     }
     before(initialiser) {
         this.events = `BEFORE ${initialiser(new TriggerEvents()).compile()}`;
@@ -71,7 +88,7 @@ class CreateTrigger extends Statement_1.default {
         return this;
     }
     compile() {
-        return this.queryable(`CREATE OR REPLACE TRIGGER ${this.id} ${this.events} ON ${this.on} FOR EACH ROW ${this.condition ?? ""} EXECUTE FUNCTION ${this.fn}()`);
+        return this.queryable(`CREATE OR REPLACE ${this.constraint ? "CONSTRAINT" : ""} TRIGGER ${this.id} ${this.events} ON ${this.on} ${!this.deferrable ? "" : `DEFERRABLE INITIALLY ${this.deferrable}`} FOR EACH ROW ${this.condition ?? ""} EXECUTE FUNCTION ${this.fn}()`);
     }
 }
 exports.default = CreateTrigger;

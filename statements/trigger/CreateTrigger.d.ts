@@ -22,7 +22,13 @@ export default class CreateTrigger<SCHEMA extends Record<string, any>, FUNCTIONS
     private readonly on;
     protected readonly hasEvents: HAS_EVENTS;
     protected readonly hasProcedure: HAS_PROCEDURE;
+    private constraint;
+    private deferrable?;
     constructor(id: string, on: string);
+    setConstraint(): this;
+    deferred(): this;
+    deferredImmediate(): this;
+    notDeferrable(): this;
     private events;
     before(initialiser: Initialiser<TriggerEvents<SCHEMA>, TriggerEvents<SCHEMA, true>>): CreateTrigger<SCHEMA, FUNCTIONS, true, HAS_PROCEDURE>;
     after(initialiser: Initialiser<TriggerEvents<SCHEMA>, TriggerEvents<SCHEMA, true>>): CreateTrigger<SCHEMA, FUNCTIONS, true, HAS_PROCEDURE>;
