@@ -57,15 +57,9 @@ export default class CreateTrigger<SCHEMA extends Record<string, any>, FUNCTIONS
 
 	protected readonly hasEvents!: HAS_EVENTS;
 	protected readonly hasProcedure!: HAS_PROCEDURE;
-	private constraint = false;
 	private deferrable?: "IMMEDIATE" | "DEFERRED"
-	public constructor (private readonly id: string, private readonly on: string) {
+	public constructor (private readonly id: string, private readonly on: string, private readonly constraint?: true) {
 		super();
-	}
-
-	public setConstraint () {
-		this.constraint = true;
-		return this
 	}
 
 	public deferred () {
@@ -111,6 +105,6 @@ export default class CreateTrigger<SCHEMA extends Record<string, any>, FUNCTIONS
 	}
 
 	public compile () {
-		return this.queryable(`CREATE OR REPLACE ${this.constraint ? "CONSTRAINT" : ""} TRIGGER ${this.id} ${this.events} ON ${this.on} ${!this.deferrable ? "" : `DEFERRABLE INITIALLY ${this.deferrable}`} FOR EACH ROW ${this.condition ?? ""} EXECUTE FUNCTION ${this.fn}()`);
+		return this.queryable(`CREATE ${this.constraint ? "" : "OR REPLACE"} ${this.constraint ? "CONSTRAINT" : ""} TRIGGER ${this.id} ${this.events} ON ${this.on} ${!this.deferrable ? "" : `DEFERRABLE INITIALLY ${this.deferrable}`} FOR EACH ROW ${this.condition ?? ""} EXECUTE FUNCTION ${this.fn}()`);
 	}
 }

@@ -179,6 +179,23 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		return this as any;
 	}
 
+	public createConstraintTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends string> (
+		on: TABLE,
+		name: NAME,
+		initialiser: CreateTriggerInitialiser<DatabaseSchema.Table<SCHEMA_END, TABLE>, Exclude<SCHEMA_END["functions"], undefined>>,
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "triggers"
+		? ({ [TRIGGER_NAME in NAME | keyof SCHEMA_END["triggers"]]: {} })
+		: SCHEMA_END[KEY]
+	}> {
+		const createTrigger = new CreateTrigger(name, on, true).setCaller();
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+		initialiser(createTrigger as any)
+		this.add(createTrigger);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+		return this as any;
+	}
+
 	public renameTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends DatabaseSchema.TriggerName<SCHEMA_END>, NEW_NAME extends string> (
 		on: TABLE,
 		name: NAME,
