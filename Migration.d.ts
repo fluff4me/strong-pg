@@ -65,6 +65,11 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
             [TRIGGER_NAME in NAME | keyof SCHEMA_END["triggers"]]: {};
         }) : SCHEMA_END[KEY];
     }>;
+    createConstraintTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends string>(on: TABLE, name: NAME, initialiser: CreateTriggerInitialiser<DatabaseSchema.Table<SCHEMA_END, TABLE>, Exclude<SCHEMA_END["functions"], undefined>>): Migration<SCHEMA_START, {
+        [KEY in keyof SCHEMA_END]: KEY extends "triggers" ? ({
+            [TRIGGER_NAME in NAME | keyof SCHEMA_END["triggers"]]: {};
+        }) : SCHEMA_END[KEY];
+    }>;
     renameTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends DatabaseSchema.TriggerName<SCHEMA_END>, NEW_NAME extends string>(on: TABLE, name: NAME, newName: NEW_NAME): Migration<SCHEMA_START, {
         [KEY in keyof SCHEMA_END]: KEY extends "triggers" ? ({
             [TRIGGER_NAME in NEW_NAME | Exclude<keyof SCHEMA_END["triggers"], NAME>]: {};

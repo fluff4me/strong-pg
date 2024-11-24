@@ -20,12 +20,11 @@ export type CreateTriggerInitialiser<SCHEMA extends Record<string, any>, FUNCTIO
 export default class CreateTrigger<SCHEMA extends Record<string, any>, FUNCTIONS extends Record<string, any>, HAS_EVENTS extends boolean = false, HAS_PROCEDURE extends boolean = false> extends Statement {
     private readonly id;
     private readonly on;
+    private readonly constraint?;
     protected readonly hasEvents: HAS_EVENTS;
     protected readonly hasProcedure: HAS_PROCEDURE;
-    private constraint;
     private deferrable?;
-    constructor(id: string, on: string);
-    setConstraint(): this;
+    constructor(id: string, on: string, constraint?: true | undefined);
     deferred(): this;
     deferredImmediate(): this;
     notDeferrable(): this;

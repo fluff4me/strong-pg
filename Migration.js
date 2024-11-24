@@ -93,6 +93,14 @@ class Migration extends Transaction_1.default {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
+    createConstraintTrigger(on, name, initialiser) {
+        const createTrigger = new CreateTrigger_1.default(name, on, true).setCaller();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        initialiser(createTrigger);
+        this.add(createTrigger);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return this;
+    }
     renameTrigger(on, name, newName) {
         this.add(new RenameTrigger_1.default(on, name, newName).setCaller());
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
