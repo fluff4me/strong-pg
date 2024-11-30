@@ -3,7 +3,7 @@ import { InputTypeFromString, OutputTypeFromString, SingleStringUnion } from "..
 import Schema, { TableSchema } from "../Schema";
 import { ExpressionInitialiser } from "../expressions/Expression";
 import Statement from "./Statement";
-export default class UpdateTable<SCHEMA extends TableSchema, RESULT = [], VARS = {}> extends Statement<RESULT> {
+export default class UpdateTable<SCHEMA extends TableSchema, RESULT = Record<string, never>[], VARS = {}> extends Statement<RESULT> {
     readonly tableName: string | undefined;
     readonly schema: SCHEMA;
     private vars;

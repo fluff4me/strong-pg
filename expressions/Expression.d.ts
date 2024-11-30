@@ -7,14 +7,17 @@ export interface ExpressionOperations<VARS = never, CURRENT_VALUE = null> {
     isNull(): ExpressionOperations<VARS, boolean>;
     equals: ExpressionValue<VARS, CURRENT_VALUE, boolean>;
     notEquals: ExpressionValue<VARS, CURRENT_VALUE, boolean>;
-    or: ExpressionValue<VARS, boolean, boolean>;
-    and: ExpressionValue<VARS, boolean, boolean>;
+    or: ExpressionValueAddBooleanExpr<VARS>;
+    and: ExpressionValueAddBooleanExpr<VARS>;
     matches: CURRENT_VALUE extends string ? ExpressionValue<VARS, RegExp, boolean> : never;
     as<TYPE extends TypeString>(type: TYPE): ExpressionOperations<VARS, MigrationTypeFromString<TYPE>>;
     asEnum<SCHEMA extends DatabaseSchema>(enumName: DatabaseSchema.EnumName<SCHEMA>): ExpressionOperations<VARS, CURRENT_VALUE>;
 }
 export interface ExpressionValue<VARS = never, EXPECTED_VALUE = null, RESULT = null> {
     <VALUE extends (EXPECTED_VALUE extends null ? ValidType : EXPECTED_VALUE)>(value: ExpressionOr<VARS, VALUE>): ExpressionOperations<VARS, RESULT extends null ? VALUE : RESULT>;
+}
+export interface ExpressionValueAddBooleanExpr<VARS = never> {
+    (value?: ExpressionOr<VARS, boolean>): ExpressionOperations<VARS, boolean>;
 }
 export interface ExpressionCase<VARS = never, RESULT = null> {
     when(value: ExpressionOr<VARS, boolean>): ExpressionCaseWhen<VARS, RESULT>;
@@ -56,8 +59,8 @@ export default class Expression<VARS = never> implements ImplementableExpression
     lessThan(value: ExpressionOr<VARS, ValidType>): this;
     matches(value: ExpressionOr<VARS, ValidType>): this;
     isNull(): this;
-    or(value: ExpressionOr<VARS, boolean>): this;
-    and(value: ExpressionOr<VARS, boolean>): this;
+    or(value?: ExpressionOr<VARS, boolean>): this;
+    and(value?: ExpressionOr<VARS, boolean>): this;
     equals(value: ExpressionOr<VARS, ValidType>): this;
     notEquals(value: ExpressionOr<VARS, ValidType>): this;
     as(type: TypeString): this;

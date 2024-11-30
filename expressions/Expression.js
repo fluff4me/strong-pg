@@ -87,10 +87,14 @@ class Expression {
         return this;
     }
     or(value) {
+        if (value === undefined)
+            return this;
         this.parts.push(() => " OR ");
         return this.innerValue(value);
     }
     and(value) {
+        if (value === undefined)
+            return this;
         this.parts.push(() => " AND ");
         return this.innerValue(value);
     }
