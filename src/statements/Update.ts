@@ -4,7 +4,7 @@ import Schema, { TableSchema } from "../Schema";
 import Expression, { ExpressionInitialiser } from "../expressions/Expression";
 import Statement from "./Statement";
 
-export default class UpdateTable<SCHEMA extends TableSchema, RESULT = [], VARS = {}> extends Statement<RESULT> {
+export default class UpdateTable<SCHEMA extends TableSchema, RESULT = Record<string, never>[], VARS = {}> extends Statement<RESULT> {
 
 	private vars: any[];
 	public constructor (public readonly tableName: string | undefined, public readonly schema: SCHEMA, vars?: any[]) {
