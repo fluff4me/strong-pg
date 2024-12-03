@@ -4,7 +4,7 @@ import Schema, { TableSchema } from "../Schema";
 import Expression, { ExpressionInitialiser } from "../expressions/Expression";
 import Statement from "./Statement";
 
-export default class UpdateTable<SCHEMA extends TableSchema, RESULT = Record<string, never>[], VARS = {}> extends Statement<RESULT> {
+export default class UpdateTable<SCHEMA extends TableSchema, RESULT = number, VARS = {}> extends Statement<RESULT> {
 
 	private vars: any[];
 	public constructor (public readonly tableName: string | undefined, public readonly schema: SCHEMA, vars?: any[]) {
@@ -43,6 +43,7 @@ export default class UpdateTable<SCHEMA extends TableSchema, RESULT = Record<str
 	}
 
 	private returningColumns?: (Schema.Column<SCHEMA> | "*")[];
+	public returning (): UpdateTable<SCHEMA, number, VARS>;
 	public returning<RETURNING_COLUMNS extends Schema.Column<SCHEMA>[]> (...columns: RETURNING_COLUMNS): UpdateTable<SCHEMA, { [KEY in RETURNING_COLUMNS[number]]: OutputTypeFromString<SCHEMA[KEY]> }[], VARS>;
 	public returning<RETURNING_COLUMN extends Schema.Column<SCHEMA> | "*"> (columns: RETURNING_COLUMN): UpdateTable<SCHEMA, { [KEY in RETURNING_COLUMN extends "*" ? Schema.Column<SCHEMA> : RETURNING_COLUMN]: OutputTypeFromString<SCHEMA[KEY]> }[], VARS>;
 	public returning (...columns: (Schema.Column<SCHEMA> | "*")[]) {
@@ -58,6 +59,6 @@ export default class UpdateTable<SCHEMA extends TableSchema, RESULT = Record<str
 	}
 
 	protected override resolveQueryOutput (output: QueryResult<any>) {
-		return output.rows as RESULT;
+		return (!this.returningColumns?.length ? output.rowCount : output.rows) as RESULT;
 	}
 }
