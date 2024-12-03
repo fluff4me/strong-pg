@@ -47,7 +47,7 @@ class UpdateTable extends Statement_1.default {
         return this.queryable(`UPDATE ${this.tableName ?? ""} SET ${this.assignments.join(",")} ${this.condition ?? ""} ${returning}`, undefined, this.vars);
     }
     resolveQueryOutput(output) {
-        return output.rows;
+        return (!this.returningColumns?.length ? output.rowCount : output.rows);
     }
 }
 exports.default = UpdateTable;

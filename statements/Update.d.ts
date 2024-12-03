@@ -3,7 +3,7 @@ import { InputTypeFromString, OutputTypeFromString, SingleStringUnion } from "..
 import Schema, { TableSchema } from "../Schema";
 import { ExpressionInitialiser } from "../expressions/Expression";
 import Statement from "./Statement";
-export default class UpdateTable<SCHEMA extends TableSchema, RESULT = Record<string, never>[], VARS = {}> extends Statement<RESULT> {
+export default class UpdateTable<SCHEMA extends TableSchema, RESULT = number, VARS = {}> extends Statement<RESULT> {
     readonly tableName: string | undefined;
     readonly schema: SCHEMA;
     private vars;
@@ -15,6 +15,7 @@ export default class UpdateTable<SCHEMA extends TableSchema, RESULT = Record<str
     where(initialiser: ExpressionInitialiser<Schema.Columns<SCHEMA>, boolean>): this;
     primaryKeyed(id: InputTypeFromString<SCHEMA[SingleStringUnion<Schema.PrimaryKey<SCHEMA>[number]>]>): this;
     private returningColumns?;
+    returning(): UpdateTable<SCHEMA, number, VARS>;
     returning<RETURNING_COLUMNS extends Schema.Column<SCHEMA>[]>(...columns: RETURNING_COLUMNS): UpdateTable<SCHEMA, {
         [KEY in RETURNING_COLUMNS[number]]: OutputTypeFromString<SCHEMA[KEY]>;
     }[], VARS>;
