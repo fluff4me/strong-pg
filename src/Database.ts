@@ -38,6 +38,6 @@ export default class Database<SCHEMA extends DatabaseSchema> {
 
 	public function<FUNCTION_NAME extends DatabaseSchema.FunctionName<SCHEMA>> (functionName: FUNCTION_NAME, ...params: FunctionParameters<DatabaseSchema.Function<SCHEMA, FUNCTION_NAME>>) {
 		type FUNCTION = DatabaseSchema.Function<SCHEMA, FUNCTION_NAME>;
-		return FunctionCall<FUNCTION, SCHEMA, FUNCTION_NAME>(functionName, params);
+		return new FunctionCall<FUNCTION, SCHEMA, FUNCTION_NAME>(functionName, params);
 	}
 }

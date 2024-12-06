@@ -1,6 +1,7 @@
+import Expression from "./expressions/Expression";
 import { OptionalTypeString, TypeString } from "./IStrongPG";
-import Schema, { DatabaseSchema, FunctionParameters, FunctionSchema, TableSchema } from "./Schema";
-import { SelectFromVirtualTable } from "./statements/Select";
+import { DatabaseSchema, FunctionParameters, FunctionSchema, TableSchema } from "./Schema";
+import { VirtualTable } from "./VirtualTable";
 
 export type FunctionOutput<SCHEMA extends DatabaseSchema, FUNCTION extends FunctionSchema, FUNCTION_NAME extends DatabaseSchema.FunctionName<SCHEMA>> =
 	FUNCTION extends FunctionSchema<(TypeString | OptionalTypeString)[], infer OUT, infer RETURN> ?
@@ -16,13 +17,17 @@ export type FunctionOutput<SCHEMA extends DatabaseSchema, FUNCTION extends Funct
 	: never
 	: never
 
-interface FunctionCall<FUNCTION extends FunctionSchema, SCHEMA extends DatabaseSchema, FUNCTION_NAME extends DatabaseSchema.FunctionName<SCHEMA>, OUTPUT = FunctionOutput<SCHEMA, FUNCTION, FUNCTION_NAME>> {
-	select<COLUMNS extends Schema.Column<OUTPUT>[]> (...columns: COLUMNS): SelectFromVirtualTable<Extract<OUTPUT, TableSchema>, never, COLUMNS>
-}
+class FunctionCall<FUNCTION extends FunctionSchema, SCHEMA extends DatabaseSchema, FUNCTION_NAME extends DatabaseSchema.FunctionName<SCHEMA>, OUTPUT extends TableSchema = Extract<FunctionOutput<SCHEMA, FUNCTION, FUNCTION_NAME>, TableSchema>> extends VirtualTable<OUTPUT, never> {
 
-function FunctionCall<FUNCTION extends FunctionSchema, SCHEMA extends DatabaseSchema, FUNCTION_NAME extends DatabaseSchema.FunctionName<SCHEMA>> (name: FUNCTION_NAME, params: FunctionParameters<DatabaseSchema.Function<SCHEMA, FUNCTION_NAME>>): FunctionCall<FUNCTION, SCHEMA, FUNCTION_NAME> {
-	return {
-		select: (...columns) => new SelectFromVirtualTable<never, never, never>(name, columns as never) as never,
+	private readonly params: string[];
+	public constructor (private readonly functionName: FUNCTION_NAME, params: FunctionParameters<FUNCTION>) {
+		super(null as never);
+		this.params = params.map(param => Expression.stringifyValue(param, this.vars));
+	}
+
+	public override compileWith = undefined;
+	public override compileFrom (): string {
+		return `${this.functionName}(${this.params.join(",")})`;
 	}
 }
 
