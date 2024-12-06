@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { ExpressionOr } from "./expressions/Expression";
 export declare const CASCADE = "CASCADE";
 export type Type = DataTypeID;
@@ -25,7 +24,11 @@ export declare enum DataTypeID {
     UUID = 19,
     BOOLEAN = 20,
     TSVECTOR = 21,
-    JSON = 22
+    JSON = 22,
+    RECORD = 23,
+    SETOF = 24,
+    TRIGGER = 25,
+    VOID = 26
 }
 export interface TypeStringMap {
     [DataTypeID.SMALLINT]: "SMALLINT";
@@ -51,24 +54,28 @@ export interface TypeStringMap {
     [DataTypeID.TSVECTOR]: "TSVECTOR";
     [DataTypeID.JSON]: "JSON";
     [DataTypeID.UUID]: "UUID";
+    [DataTypeID.RECORD]: "RECORD";
+    [DataTypeID.SETOF]: `SETOF ${string}`;
+    [DataTypeID.TRIGGER]: "TRIGGER";
+    [DataTypeID.VOID]: "VOID";
 }
 export declare namespace DataType {
     const SMALLINT: TypeStringMap[DataTypeID.SMALLINT];
     const INTEGER: TypeStringMap[DataTypeID.INTEGER];
     const BIGINT: TypeStringMap[DataTypeID.BIGINT];
-    function NUMERIC(precision?: number, scale?: number): "NUMERIC" | `NUMERIC(${bigint})` | `NUMERIC(${bigint},${bigint})`;
+    function NUMERIC(precision?: number, scale?: number): TypeStringMap[DataTypeID.NUMERIC];
     const REAL: TypeStringMap[DataTypeID.REAL];
     const DOUBLE: TypeStringMap[DataTypeID.DOUBLE];
     const SMALLSERIAL: TypeStringMap[DataTypeID.SMALLSERIAL];
     const SERIAL: TypeStringMap[DataTypeID.SERIAL];
     const BIGSERIAL: TypeStringMap[DataTypeID.BIGSERIAL];
     const DATE = "DATE";
-    function TIMESTAMP(precision?: number, withoutTimeZone?: true): "TIMESTAMP" | `TIMESTAMP(${bigint})` | `TIMESTAMP(${bigint}) WITHOUT TIME ZONE`;
-    function TIME(precision?: number, withoutTimeZone?: true): "TIMESTAMP" | `TIMESTAMP(${bigint})` | `TIMESTAMP(${bigint}) WITHOUT TIME ZONE`;
+    function TIMESTAMP(precision?: number, withoutTimeZone?: true): TypeStringMap[DataTypeID.TIMESTAMP];
+    function TIME(precision?: number, withoutTimeZone?: true): TypeStringMap[DataTypeID.TIMESTAMP];
     function CHAR(length?: number): TypeStringMap[DataTypeID.CHAR];
     function VARCHAR(length?: number): TypeStringMap[DataTypeID.VARCHAR];
     const BYTECHAR: TypeStringMap[DataTypeID.BYTECHAR];
-    function BIT(length: number): `BIT(${bigint})`;
+    function BIT(length: number): TypeStringMap[DataTypeID.BIT];
     function VARBIT(length?: number): "BIT VARYING" | `BIT VARYING(${bigint})`;
     const TEXT: TypeStringMap[DataTypeID.TEXT];
     function ENUM<NAME extends string>(name: NAME): Enum<NAME>;
@@ -78,6 +85,10 @@ export declare namespace DataType {
     const BOOLEAN: TypeStringMap[DataTypeID.BOOLEAN];
     const TSVECTOR: TypeStringMap[DataTypeID.TSVECTOR];
     const JSON: TypeStringMap[DataTypeID.JSON];
+    const RECORD: TypeStringMap[DataTypeID.RECORD];
+    const TRIGGER: TypeStringMap[DataTypeID.TRIGGER];
+    const VOID: TypeStringMap[DataTypeID.VOID];
+    function SETOF<TABLENAME extends string>(tablename: TABLENAME): `SETOF ${TABLENAME}`;
 }
 export type TypeString = TypeStringMap[DataTypeID] | "*";
 export interface OptionalTypeString<TYPE extends TypeString = TypeString> {
@@ -114,9 +125,14 @@ export interface MigrationTypeMap {
     [DataTypeID.BOOLEAN]: boolean;
     [DataTypeID.TSVECTOR]: null;
     [DataTypeID.JSON]: null;
+    [DataTypeID.RECORD]: null;
 }
 export interface InputTypeMap extends Omit<MigrationTypeMap, DataTypeID.JSON> {
     [DataTypeID.JSON]: any;
+    [DataTypeID.RECORD]: never;
+    [DataTypeID.SETOF]: never;
+    [DataTypeID.VOID]: void;
+    [DataTypeID.TRIGGER]: never;
 }
 export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | DataTypeID.TIMESTAMP | DataTypeID.TIME | DataTypeID.UUID> {
     [DataTypeID.BIGINT]: `${bigint}`;

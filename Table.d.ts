@@ -12,27 +12,36 @@ export default class Table<TABLE extends TableSchema, DATABASE extends DatabaseS
     protected readonly schema: TABLE;
     constructor(name: NAME, schema: TABLE);
     /**
+     * SELECT 1
+     */
+    select(): SelectFromTable<TABLE, NAME, 1>;
+    /**
      * SELECT *
      */
-    select(): SelectFromTable<TABLE, "*">;
+    select(column: "*"): SelectFromTable<TABLE, NAME, "*">;
     /**
      * SELECT columns AS aliases
      */
-    select<COLUMNS extends Partial<Record<Schema.Column<TABLE>, string>>>(columns: COLUMNS): SelectFromTable<TABLE, COLUMNS>;
+    select<COLUMNS extends Partial<Record<Schema.Column<TABLE>, string>>>(columns: COLUMNS): SelectFromTable<TABLE, NAME, COLUMNS>;
     /**
      * SELECT columns
      */
-    select<COLUMNS extends Schema.Column<TABLE>[]>(...columns: COLUMNS): SelectFromTable<TABLE, COLUMNS>;
+    select<COLUMNS extends Schema.Column<TABLE>[]>(...columns: COLUMNS): SelectFromTable<TABLE, NAME, COLUMNS>;
     /**
      * SELECT *
      * ...then provide an initialiser for tweaking the query
      */
-    select<RETURN extends SelectFromTable<TABLE, "*"> = SelectFromTable<TABLE, "*">>(initialiser: Initialiser<SelectFromTable<TABLE, "*">, RETURN>): RETURN;
+    select<RETURN extends SelectFromTable<TABLE, "*"> = SelectFromTable<TABLE, "*">>(column: "*", initialiser: Initialiser<SelectFromTable<TABLE, "*">, RETURN>): RETURN;
+    /**
+     * SELECT 1
+     * ...then provide an initialiser for tweaking the query
+     */
+    select<RETURN extends SelectFromTable<TABLE, NAME, 1> = SelectFromTable<TABLE, NAME, 1>>(initialiser: Initialiser<SelectFromTable<TABLE, NAME, 1>, RETURN>): RETURN;
     /**
      * SELECT columns
      * ...then provide an initialiser for tweaking the query
      */
-    select<COLUMNS extends Schema.Column<TABLE>[], RETURN extends SelectFromTable<TABLE, COLUMNS>>(...columnsAndInitialiser: [...COLUMNS, Initialiser<SelectFromTable<TABLE, COLUMNS>, RETURN>]): RETURN;
+    select<COLUMNS extends Schema.Column<TABLE>[], RETURN extends SelectFromTable<TABLE, NAME, COLUMNS>>(...columnsAndInitialiser: [...COLUMNS, Initialiser<SelectFromTable<TABLE, NAME, COLUMNS>, RETURN>]): RETURN;
     insert<COLUMNS extends Schema.Column<TABLE>[]>(...columns: COLUMNS): InsertIntoTableFactory<TABLE, COLUMNS>;
     insert<COLUMNS extends Schema.Column<TABLE>[], RETURN extends InsertIntoTableFactory<TABLE, COLUMNS> | InsertIntoTable<TABLE>>(...columnsAndInitialiser: [...COLUMNS, Initialiser<InsertIntoTableFactory<TABLE, COLUMNS>, RETURN>]): RETURN;
     insert(data: Partial<Schema.RowInput<TABLE>>): InsertIntoTable<TABLE>;
@@ -48,14 +57,14 @@ export default class Table<TABLE extends TableSchema, DATABASE extends DatabaseS
     delete<RETURN extends DeleteFromTable<TABLE, any> = DeleteFromTable<TABLE>>(initialiser: Initialiser<DeleteFromTable<TABLE>, RETURN>): RETURN;
     truncate(): TruncateTable;
     as<TABLE1_ALIAS extends string>(alias1: TABLE1_ALIAS): {
-        innerJoin: <TABLE2_NAME extends DatabaseSchema.TableName<DATABASE>, TABLE2_ALIAS extends string = TABLE2_NAME>(tableName: TABLE2_NAME, alias2?: TABLE2_ALIAS | undefined) => Join<DATABASE, JoinTables<"INNER", TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME>, TABLE1_ALIAS, TABLE2_ALIAS>, "INNER">;
-        leftOuterJoin: <TABLE2_NAME_1 extends DatabaseSchema.TableName<DATABASE>, TABLE2_ALIAS_1 extends string = TABLE2_NAME_1>(tableName: TABLE2_NAME_1, alias2?: TABLE2_ALIAS_1 | undefined) => Join<DATABASE, JoinTables<"LEFT OUTER", TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME_1>, TABLE1_ALIAS, TABLE2_ALIAS_1>, "LEFT OUTER">;
-        rightOuterJoin: <TABLE2_NAME_2 extends DatabaseSchema.TableName<DATABASE>, TABLE2_ALIAS_2 extends string = TABLE2_NAME_2>(tableName: TABLE2_NAME_2, alias2?: TABLE2_ALIAS_2 | undefined) => Join<DATABASE, JoinTables<"RIGHT OUTER", TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME_2>, TABLE1_ALIAS, TABLE2_ALIAS_2>, "RIGHT OUTER">;
-        fullOuterJoin: <TABLE2_NAME_3 extends DatabaseSchema.TableName<DATABASE>, TABLE2_ALIAS_3 extends string = TABLE2_NAME_3>(tableName: TABLE2_NAME_3, alias2?: TABLE2_ALIAS_3 | undefined) => Join<DATABASE, JoinTables<"FULL OUTER", TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME_3>, TABLE1_ALIAS, TABLE2_ALIAS_3>, "FULL OUTER">;
+        innerJoin: <TABLE2_NAME extends DatabaseSchema.TableName<DATABASE>, TABLE2_ALIAS extends string = TABLE2_NAME>(tableName: TABLE2_NAME, alias2?: TABLE2_ALIAS) => Join<DATABASE, JoinTables<"INNER", TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME>, TABLE1_ALIAS, TABLE2_ALIAS>, "INNER">;
+        leftOuterJoin: <TABLE2_NAME extends DatabaseSchema.TableName<DATABASE>, TABLE2_ALIAS extends string = TABLE2_NAME>(tableName: TABLE2_NAME, alias2?: TABLE2_ALIAS) => Join<DATABASE, JoinTables<"LEFT OUTER", TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME>, TABLE1_ALIAS, TABLE2_ALIAS>, "LEFT OUTER">;
+        rightOuterJoin: <TABLE2_NAME extends DatabaseSchema.TableName<DATABASE>, TABLE2_ALIAS extends string = TABLE2_NAME>(tableName: TABLE2_NAME, alias2?: TABLE2_ALIAS) => Join<DATABASE, JoinTables<"RIGHT OUTER", TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME>, TABLE1_ALIAS, TABLE2_ALIAS>, "RIGHT OUTER">;
+        fullOuterJoin: <TABLE2_NAME extends DatabaseSchema.TableName<DATABASE>, TABLE2_ALIAS extends string = TABLE2_NAME>(tableName: TABLE2_NAME, alias2?: TABLE2_ALIAS) => Join<DATABASE, JoinTables<"FULL OUTER", TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME>, TABLE1_ALIAS, TABLE2_ALIAS>, "FULL OUTER">;
     };
     innerJoin<TABLE2_NAME extends DatabaseSchema.TableName<DATABASE>, TABLE2_ALIAS extends string = TABLE2_NAME>(tableName: TABLE2_NAME, alias?: TABLE2_ALIAS): Join<DATABASE, JoinTables<"INNER", TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME>, NAME, TABLE2_ALIAS>, "INNER">;
     leftOuterJoin<TABLE2_NAME extends DatabaseSchema.TableName<DATABASE>, TABLE2_ALIAS extends string = TABLE2_NAME>(tableName: TABLE2_NAME, alias?: TABLE2_ALIAS): Join<DATABASE, JoinTables<"LEFT OUTER", TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME>, NAME, TABLE2_ALIAS>, "LEFT OUTER">;
     rightOuterJoin<TABLE2_NAME extends DatabaseSchema.TableName<DATABASE>, TABLE2_ALIAS extends string = TABLE2_NAME>(tableName: TABLE2_NAME, alias?: TABLE2_ALIAS): Join<DATABASE, JoinTables<"RIGHT OUTER", TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME>, NAME, TABLE2_ALIAS>, "RIGHT OUTER">;
     fullOuterJoin<TABLE2_NAME extends DatabaseSchema.TableName<DATABASE>, TABLE2_ALIAS extends string = TABLE2_NAME>(tableName: TABLE2_NAME, alias?: TABLE2_ALIAS): Join<DATABASE, JoinTables<"FULL OUTER", TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME>, NAME, TABLE2_ALIAS>, "FULL OUTER">;
-    recursive<COLUMNS extends Schema.Column<TABLE>[]>(columns: COLUMNS, initialiser: (query: Recursive<TABLE, Pick<TABLE, COLUMNS[number]>>) => any): Recursive<TABLE, Pick<TABLE, COLUMNS[number]>>;
+    recursive<COLUMNS extends Schema.Column<TABLE>[]>(columns: COLUMNS, initialiser: (query: Recursive<TABLE, Pick<TABLE, COLUMNS[number]>, NAME>) => any): Recursive<TABLE, Pick<TABLE, COLUMNS[number]>, NAME>;
 }

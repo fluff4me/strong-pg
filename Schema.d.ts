@@ -1,4 +1,5 @@
 import { DataTypeID, EnumToTuple, InputTypeFromString, OptionalTypeString, OutputTypeFromString, TypeString, TypeStringMap } from "./IStrongPG";
+import { Function } from "./statements/function/CreateOrReplaceFunction";
 interface SpecialKeys<SCHEMA> {
     PRIMARY_KEY?: keyof SCHEMA | (keyof SCHEMA)[];
 }
@@ -44,6 +45,11 @@ type ValidateDatabaseSchemaEnumTableColumns<SCHEMA extends DatabaseSchema> = SCH
 export interface SchemaEnum<ENUM> {
     VALUES: ENUM;
 }
+export interface SchemaFunctionFactory<IN extends TypeString[], OUT extends [TypeString, string][] = [], RETURNS extends TypeString = "VOID"> {
+    out<TYPE extends TypeString, NAME extends string>(type: TYPE, name: NAME): SchemaFunctionFactory<IN, [...OUT, [TYPE, NAME]]>;
+    returns<TYPE extends TypeString>(returns: TYPE): SchemaFunctionFactory<IN, OUT, TYPE>;
+    get(): Function<IN, OUT, RETURNS>;
+}
 declare class Schema {
     static database<SCHEMA extends Partial<DatabaseSchema> | null>(schema: SCHEMA): SCHEMA extends null ? null : SCHEMA extends infer S extends Partial<DatabaseSchema> ? ValidateDatabaseSchema<{
         tables: S["tables"] extends undefined ? {} : S["tables"] & {};
@@ -57,8 +63,9 @@ declare class Schema {
     static table<SCHEMA>(schema: SCHEMA): ValidateTableSchema<SCHEMA>;
     static readonly INDEX: {};
     static readonly TRIGGER: {};
-    static readonly FUNCTION: (...args: any[]) => any;
+    static readonly TRIGGER_FUNCTION: Function<[], [], "TRIGGER">;
     static readonly COLLATION: {};
+    static function<IN extends TypeString[]>(...args: IN): SchemaFunctionFactory<IN>;
     static primaryKey<KEYS extends string[]>(...keys: KEYS): KEYS[number][];
     static optional<TYPE extends TypeString>(type: TYPE): {
         type: TYPE;

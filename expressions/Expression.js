@@ -86,6 +86,10 @@ class Expression {
         this.parts.push(() => " IS NULL");
         return this;
     }
+    isNotNull() {
+        this.parts.push(() => " IS NOT NULL");
+        return this;
+    }
     or(value) {
         if (value === undefined)
             return this;
@@ -196,6 +200,13 @@ class Expression {
     }
     currentValue(sequenceId) {
         this.parts.push(() => `currval('${sequenceId}')`);
+        return this;
+    }
+    notExists(database, table, initialiser) {
+        const select = database.table(table).select();
+        select["vars"] = this.vars;
+        initialiser(select);
+        this.parts.push(() => `NOT EXISTS (${select.compile()[0].text})`);
         return this;
     }
 }

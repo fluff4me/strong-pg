@@ -24,6 +24,14 @@ class Schema {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return schema;
     }
+    static function(...args) {
+        const factory = {
+            out: (type, name) => factory,
+            returns: returns => factory,
+            get: () => () => 0,
+        };
+        return factory;
+    }
     static primaryKey(...keys) {
         return keys;
     }
@@ -62,6 +70,6 @@ class Schema {
 }
 Schema.INDEX = {};
 Schema.TRIGGER = {};
-Schema.FUNCTION = () => undefined;
+Schema.TRIGGER_FUNCTION = () => ({ return: "TRIGGER", out: [] });
 Schema.COLLATION = {};
 exports.default = Schema;

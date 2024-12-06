@@ -13,7 +13,7 @@ export type JoinColumns<TABLE1 extends TableSchema, TABLE2 extends TableSchema, 
 export type JoinTables<TYPE extends JoinTypeName, TABLE1 extends TableSchema, TABLE2 extends TableSchema, TABLE1_NAME extends string, TABLE2_NAME extends string> = Schema.Column<TABLE1> extends infer TABLE1_COLUMNS extends string ? Schema.Column<TABLE2> extends infer TABLE2_COLUMNS extends string ? JoinColumns<TABLE1, TABLE2, TABLE1_NAME, TABLE2_NAME> extends infer COLUMNS extends string ? {
     [COLUMN in COLUMNS]: COLUMN extends TABLE1_COLUMNS ? (TYPE extends "RIGHT OUTER" | "FULL OUTER" ? MakeOptional<TABLE1[COLUMN]> : TABLE1[COLUMN]) : COLUMN extends TABLE2_COLUMNS ? (TYPE extends "LEFT OUTER" | "FULL OUTER" ? MakeOptional<TABLE2[COLUMN]> : TABLE2[COLUMN]) : COLUMN extends `${TABLE1_NAME}.${infer BASENAME extends TABLE1_COLUMNS}` ? (TYPE extends "RIGHT OUTER" | "FULL OUTER" ? MakeOptional<TABLE1[BASENAME]> : TABLE1[BASENAME]) : COLUMN extends `${TABLE2_NAME}.${infer BASENAME extends TABLE2_COLUMNS}` ? (TYPE extends "LEFT OUTER" | "FULL OUTER" ? MakeOptional<TABLE2[BASENAME]> : TABLE2[BASENAME]) : never;
 } : never : never : never;
-export default class Join<DATABASE extends DatabaseSchema, VIRTUAL_TABLE extends TableSchema, TYPE extends JoinTypeName> extends VirtualTable<VIRTUAL_TABLE> {
+export default class Join<DATABASE extends DatabaseSchema, VIRTUAL_TABLE extends TableSchema, TYPE extends JoinTypeName> extends VirtualTable<VIRTUAL_TABLE, never> {
     private readonly type;
     private readonly table1;
     private readonly table2;

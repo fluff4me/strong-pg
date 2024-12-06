@@ -3,10 +3,10 @@ import { SearchType, SortDirection } from "../IStrongPG";
 import Schema, { TableSchema } from "../Schema";
 import { VirtualTable } from "../VirtualTable";
 import { SelectFromVirtualTable } from "./Select";
-export default class Recursive<TABLE extends TableSchema, VIRTUAL_TABLE extends TableSchema> extends VirtualTable<VIRTUAL_TABLE> {
+export default class Recursive<TABLE extends TableSchema, VIRTUAL_TABLE extends TableSchema, NAME extends string> extends VirtualTable<VIRTUAL_TABLE, never> {
     private readonly tableName;
     private readonly columnNames;
-    constructor(tableName: string, columnNames: Schema.Column<TABLE>[]);
+    constructor(tableName: NAME, columnNames: Schema.Column<TABLE>[]);
     private anchorCondition?;
     where(initialiser: ExpressionInitialiser<Schema.Columns<TABLE>, boolean>): this;
     private recursiveCondition?;

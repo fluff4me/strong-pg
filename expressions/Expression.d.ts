@@ -1,10 +1,14 @@
-import { Initialiser, MigrationTypeFromString, TypeString, ValidType } from "../IStrongPG";
-import { DatabaseSchema } from "../Schema";
+import Database from "../Database";
+import { Initialiser, MigrationTypeFromString, OptionalTypeString, TypeString, ValidType } from "../IStrongPG";
+import { DatabaseSchema, TableSchema } from "../Schema";
+import { JoinTables } from "../statements/Join";
+import { SelectFromVirtualTable } from "../statements/Select";
 import Statement from "../statements/Statement";
 export interface ExpressionOperations<VARS = never, CURRENT_VALUE = null> {
     greaterThan: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
     lessThan: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
     isNull(): ExpressionOperations<VARS, boolean>;
+    isNotNull(): ExpressionOperations<VARS, boolean>;
     equals: ExpressionValue<VARS, CURRENT_VALUE, boolean>;
     notEquals: ExpressionValue<VARS, CURRENT_VALUE, boolean>;
     or: ExpressionValueAddBooleanExpr<VARS>;
@@ -30,13 +34,14 @@ export interface ExpressionValues<VARS = never, VALUE = null, RESULT = null> {
     some<T>(values: T[], predicate: (e: ExpressionValues<VARS, null, boolean>, value: T, index: number, values: T[]) => ExpressionOperations<VARS, boolean>): ExpressionOperations<VARS, boolean>;
     every<T>(values: T[], predicate: (e: ExpressionValues<VARS, null, boolean>, value: T, index: number, values: T[]) => ExpressionOperations<VARS, boolean>): ExpressionOperations<VARS, boolean>;
     value: ExpressionValue<VARS, VALUE, RESULT>;
-    var<VAR extends keyof VARS>(name: VAR): ExpressionOperations<VARS, MigrationTypeFromString<VARS[VAR] & TypeString>>;
+    var<VAR extends keyof VARS>(name: VAR): ExpressionOperations<VARS, MigrationTypeFromString<Extract<VARS[VAR], TypeString | OptionalTypeString>>>;
     lowercase: ExpressionValue<VARS, string, string>;
     uppercase: ExpressionValue<VARS, string, string>;
     nextValue(sequenceId: string): ExpressionOperations<VARS, number>;
     currentValue(sequenceId: string): ExpressionOperations<VARS, number>;
     true: ExpressionOperations<VARS, boolean>;
     false: ExpressionOperations<VARS, boolean>;
+    notExists<DATABASE_SCHEMA extends DatabaseSchema, TABLE extends DatabaseSchema.TableName<DATABASE_SCHEMA>>(database: Database<DATABASE_SCHEMA>, table: TABLE, initialiser: NoInfer<Initialiser<SelectFromVirtualTable<JoinTables<"INNER", Extract<VARS, TableSchema>, DatabaseSchema.Table<DATABASE_SCHEMA, TABLE>, never, TABLE>, never, 1>>>): ExpressionOperations<VARS, boolean>;
 }
 export type ExpressionInitialiser<VARS, RESULT = any> = Initialiser<ExpressionValues<VARS, null, null>, ExpressionOperations<VARS, RESULT>>;
 export type ExpressionOr<VARS, T> = T | ExpressionInitialiser<VARS, T> | ExpressionOperations<any, T>;
@@ -59,6 +64,7 @@ export default class Expression<VARS = never> implements ImplementableExpression
     lessThan(value: ExpressionOr<VARS, ValidType>): this;
     matches(value: ExpressionOr<VARS, ValidType>): this;
     isNull(): this;
+    isNotNull(): this;
     or(value?: ExpressionOr<VARS, boolean>): this;
     and(value?: ExpressionOr<VARS, boolean>): this;
     equals(value: ExpressionOr<VARS, ValidType>): this;
@@ -77,4 +83,5 @@ export default class Expression<VARS = never> implements ImplementableExpression
     uppercase(value: ExpressionOr<VARS, string>): Expression<never>;
     nextValue(sequenceId: string): this;
     currentValue(sequenceId: string): this;
+    notExists(database: Database<any>, table: string, initialiser: Initialiser<SelectFromVirtualTable<any, string, 1>>): this;
 }

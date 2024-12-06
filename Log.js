@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.color = void 0;
+exports.color = color;
 function log(prefix, text) {
     if (!process.env.DEBUG_PG)
         return;
@@ -39,4 +39,3 @@ function color(color, text) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     return ansicolor[color](text);
 }
-exports.color = color;
