@@ -1,8 +1,8 @@
 import Database from "./Database";
-import { TypeString } from "./IStrongPG";
-import { DatabaseSchema, TableSchema } from "./Schema";
+import { OptionalTypeString, TypeString } from "./IStrongPG";
+import { DatabaseSchema, FunctionSchema, TableSchema } from "./Schema";
 import { AlterEnumInitialiser } from "./statements/enum/AlterEnum";
-import { CreateOrReplaceFunctionInitialiser, Function } from "./statements/function/CreateOrReplaceFunction";
+import { CreateOrReplaceFunctionInitialiser } from "./statements/function/CreateOrReplaceFunction";
 import { CreateIndexInitialiser } from "./statements/index/CreateIndex";
 import Statement from "./statements/Statement";
 import { AlterTableInitialiser } from "./statements/table/AlterTable";
@@ -81,9 +81,9 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
             [TRIGGER_NAME in Exclude<keyof SCHEMA_END["triggers"], NAME>]: {};
         }) : SCHEMA_END[KEY];
     }>;
-    createOrReplaceFunction<NAME extends string, IN extends TypeString[], OUT extends [TypeString, string][], RETURN extends TypeString>(name: NAME, initialiser: CreateOrReplaceFunctionInitialiser<IN, OUT, RETURN>): Migration<SCHEMA_START, {
+    createOrReplaceFunction<NAME extends string, IN extends (TypeString | OptionalTypeString)[], OUT extends [TypeString, string][], RETURN extends TypeString>(name: NAME, initialiser: CreateOrReplaceFunctionInitialiser<IN, OUT, RETURN>): Migration<SCHEMA_START, {
         [KEY in keyof SCHEMA_END]: KEY extends "functions" ? ({
-            [FUNCTION_NAME in NAME | keyof SCHEMA_END["functions"]]: FUNCTION_NAME extends NAME ? Function<IN, OUT, RETURN> : SCHEMA_END["functions"][FUNCTION_NAME];
+            [FUNCTION_NAME in NAME | keyof SCHEMA_END["functions"]]: FUNCTION_NAME extends NAME ? FunctionSchema<IN, OUT, RETURN> : SCHEMA_END["functions"][FUNCTION_NAME];
         }) : SCHEMA_END[KEY];
     }>;
     dropFunction<NAME extends DatabaseSchema.FunctionName<SCHEMA_END>>(name: NAME): Migration<SCHEMA_START, {

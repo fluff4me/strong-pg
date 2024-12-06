@@ -1,5 +1,4 @@
 import { DataTypeID, EnumToTuple, InputTypeFromString, OptionalTypeString, OutputTypeFromString, TypeString, TypeStringMap } from "./IStrongPG";
-import { Function } from "./statements/function/CreateOrReplaceFunction";
 interface SpecialKeys<SCHEMA> {
     PRIMARY_KEY?: keyof SCHEMA | (keyof SCHEMA)[];
 }
@@ -10,9 +9,17 @@ export interface DatabaseSchema {
     indices: Record<string, {}>;
     enums: Record<string, string[]>;
     triggers: Record<string, {}>;
-    functions: Record<string, (...args: any[]) => any>;
+    functions: Record<string, FunctionSchema>;
     collations: Record<string, {}>;
 }
+export interface FunctionSchema<IN extends (TypeString | OptionalTypeString)[] = (TypeString | OptionalTypeString)[], OUT extends [TypeString, string][] = [TypeString, string][], RETURN extends TypeString = TypeString> {
+    in: IN;
+    out: OUT;
+    return: RETURN;
+}
+export type FunctionParameters<SCHEMA extends FunctionSchema> = SCHEMA extends FunctionSchema<infer IN, any, any> ? {
+    [I in keyof IN]: InputTypeFromString<IN[I]> | (IN[I] extends OptionalTypeString ? null | undefined : never);
+} : never;
 export declare namespace DatabaseSchema {
     interface Empty {
         tables: {};
@@ -29,6 +36,7 @@ export declare namespace DatabaseSchema {
     type FunctionName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["functions"] & string;
     type CollationName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["collations"] & string;
     type Table<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> = SCHEMA["tables"][NAME] extends infer TABLE ? TABLE extends TableSchema ? TABLE : never : never;
+    type Function<SCHEMA extends DatabaseSchema, NAME extends FunctionName<SCHEMA>> = SCHEMA["functions"][NAME] extends infer FUNCTION extends FunctionSchema<infer IN, infer OUT, infer RETURN> ? FUNCTION : never;
     type Enum<SCHEMA extends DatabaseSchema, NAME extends EnumName<SCHEMA>> = SCHEMA["enums"][NAME] extends infer ENUM ? ENUM extends string[] ? ENUM : never : never;
 }
 type ValidateTableSchema<SCHEMA> = SpecialKeys<SCHEMA> extends infer SPECIAL_DATA ? keyof SPECIAL_DATA extends infer SPECIAL_KEYS ? Exclude<keyof SCHEMA, SPECIAL_KEYS> extends infer KEYS ? Pick<SCHEMA, KEYS & keyof SCHEMA> extends infer SCHEMA_CORE ? Pick<SCHEMA, SPECIAL_KEYS & keyof SCHEMA> extends infer SCHEMA_SPECIAL ? SCHEMA_CORE extends SchemaBase ? SCHEMA_SPECIAL extends SPECIAL_DATA ? SCHEMA : "Unknown or invalid special keys in schema" : "Invalid column types" : never : never : never : never : never;
@@ -45,10 +53,10 @@ type ValidateDatabaseSchemaEnumTableColumns<SCHEMA extends DatabaseSchema> = SCH
 export interface SchemaEnum<ENUM> {
     VALUES: ENUM;
 }
-export interface SchemaFunctionFactory<IN extends TypeString[], OUT extends [TypeString, string][] = [], RETURNS extends TypeString = "VOID"> {
+export interface SchemaFunctionFactory<IN extends (TypeString | OptionalTypeString)[], OUT extends [TypeString, string][] = [], RETURNS extends TypeString = "VOID"> {
     out<TYPE extends TypeString, NAME extends string>(type: TYPE, name: NAME): SchemaFunctionFactory<IN, [...OUT, [TYPE, NAME]]>;
     returns<TYPE extends TypeString>(returns: TYPE): SchemaFunctionFactory<IN, OUT, TYPE>;
-    get(): Function<IN, OUT, RETURNS>;
+    get(): FunctionSchema<IN, OUT, RETURNS>;
 }
 declare class Schema {
     static database<SCHEMA extends Partial<DatabaseSchema> | null>(schema: SCHEMA): SCHEMA extends null ? null : SCHEMA extends infer S extends Partial<DatabaseSchema> ? ValidateDatabaseSchema<{
@@ -63,9 +71,9 @@ declare class Schema {
     static table<SCHEMA>(schema: SCHEMA): ValidateTableSchema<SCHEMA>;
     static readonly INDEX: {};
     static readonly TRIGGER: {};
-    static readonly TRIGGER_FUNCTION: Function<[], [], "TRIGGER">;
+    static readonly TRIGGER_FUNCTION: FunctionSchema<[], [], "TRIGGER">;
     static readonly COLLATION: {};
-    static function<IN extends TypeString[]>(...args: IN): SchemaFunctionFactory<IN>;
+    static function<IN extends (TypeString | OptionalTypeString)[]>(...args: IN): SchemaFunctionFactory<IN>;
     static primaryKey<KEYS extends string[]>(...keys: KEYS): KEYS[number][];
     static optional<TYPE extends TypeString>(type: TYPE): {
         type: TYPE;

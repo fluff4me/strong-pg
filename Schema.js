@@ -28,7 +28,7 @@ class Schema {
         const factory = {
             out: (type, name) => factory,
             returns: returns => factory,
-            get: () => () => 0,
+            get: () => 0,
         };
         return factory;
     }
@@ -70,6 +70,6 @@ class Schema {
 }
 Schema.INDEX = {};
 Schema.TRIGGER = {};
-Schema.TRIGGER_FUNCTION = () => ({ return: "TRIGGER", out: [] });
+Schema.TRIGGER_FUNCTION = { in: [], out: [], return: "TRIGGER" };
 Schema.COLLATION = {};
 exports.default = Schema;

@@ -1,6 +1,7 @@
 import { Pool, PoolClient } from "pg";
+import FunctionCall from "./FunctionCall";
 import { History } from "./History";
-import { DatabaseSchema } from "./Schema";
+import { DatabaseSchema, FunctionParameters } from "./Schema";
 import Table from "./Table";
 export default class Database<SCHEMA extends DatabaseSchema> {
     protected readonly schema: SCHEMA;
@@ -13,4 +14,5 @@ export default class Database<SCHEMA extends DatabaseSchema> {
      */
     dropIfShould(pool: Pool | PoolClient): Promise<import("pg").QueryResult<any> | undefined>;
     table<TABLE_NAME extends DatabaseSchema.TableName<SCHEMA>>(tableName: TABLE_NAME): Table<DatabaseSchema.Table<SCHEMA, TABLE_NAME>, SCHEMA, TABLE_NAME>;
+    function<FUNCTION_NAME extends DatabaseSchema.FunctionName<SCHEMA>>(functionName: FUNCTION_NAME, ...params: FunctionParameters<DatabaseSchema.Function<SCHEMA, FUNCTION_NAME>>): FunctionCall<DatabaseSchema.Function<SCHEMA, FUNCTION_NAME>, SCHEMA, FUNCTION_NAME, import("./FunctionCall").FunctionOutput<SCHEMA, DatabaseSchema.Function<SCHEMA, FUNCTION_NAME>, FUNCTION_NAME>>;
 }

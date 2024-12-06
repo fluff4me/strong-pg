@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const FunctionCall_1 = __importDefault(require("./FunctionCall"));
 const History_1 = require("./History");
 const Table_1 = __importDefault(require("./Table"));
 class Database {
@@ -26,6 +27,9 @@ class Database {
     }
     table(tableName) {
         return new Table_1.default(tableName, this.schema.tables[tableName]);
+    }
+    function(functionName, ...params) {
+        return (0, FunctionCall_1.default)(functionName, params);
     }
 }
 exports.default = Database;

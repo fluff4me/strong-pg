@@ -39,7 +39,7 @@ class CreateOrReplaceFunction extends Statement_1.default {
         return this;
     }
     compile() {
-        const params = this.argsIn.map(([type, name]) => `${name ?? ""} ${type}`)
+        const params = this.argsIn.map(([type, name]) => `${name ?? ""} ${typeof type === "string" ? type : type.type}`)
             .concat(this.argsOut.map(([type, name]) => `OUT ${name ?? ""} ${type}`))
             .join(", ");
         const out = this.returnType ?? "TRIGGER";
