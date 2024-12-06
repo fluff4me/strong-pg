@@ -38,6 +38,10 @@ export enum DataTypeID {
 	// special
 	TSVECTOR,
 	JSON,
+	RECORD,
+	SETOF,
+	TRIGGER,
+	VOID,
 }
 
 export interface TypeStringMap {
@@ -75,6 +79,10 @@ export interface TypeStringMap {
 	[DataTypeID.TSVECTOR]: "TSVECTOR",
 	[DataTypeID.JSON]: "JSON",
 	[DataTypeID.UUID]: "UUID",
+	[DataTypeID.RECORD]: "RECORD",
+	[DataTypeID.SETOF]: `SETOF ${string}`,
+	[DataTypeID.TRIGGER]: "TRIGGER",
+	[DataTypeID.VOID]: "VOID",
 }
 
 export namespace DataType {
@@ -138,6 +146,13 @@ export namespace DataType {
 	// special
 	export const TSVECTOR: TypeStringMap[DataTypeID.TSVECTOR] = "TSVECTOR";
 	export const JSON: TypeStringMap[DataTypeID.JSON] = "JSON";
+	export const RECORD: TypeStringMap[DataTypeID.RECORD] = "RECORD";
+	export const TRIGGER: TypeStringMap[DataTypeID.TRIGGER] = "TRIGGER";
+	export const VOID: TypeStringMap[DataTypeID.VOID] = "VOID";
+
+	export function SETOF<TABLENAME extends string> (tablename: TABLENAME): `SETOF ${TABLENAME}` {
+		return `SETOF ${tablename}` as const;
+	}
 }
 
 export type TypeString = TypeStringMap[DataTypeID] | "*";
@@ -194,10 +209,15 @@ export interface MigrationTypeMap {
 	// special
 	[DataTypeID.TSVECTOR]: null;
 	[DataTypeID.JSON]: null;
+	[DataTypeID.RECORD]: null;
 }
 
 export interface InputTypeMap extends Omit<MigrationTypeMap, DataTypeID.JSON> {
 	[DataTypeID.JSON]: any;
+	[DataTypeID.RECORD]: never;
+	[DataTypeID.SETOF]: never;
+	[DataTypeID.VOID]: void;
+	[DataTypeID.TRIGGER]: never;
 }
 
 export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | DataTypeID.TIMESTAMP | DataTypeID.TIME | DataTypeID.UUID> {

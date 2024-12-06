@@ -1,12 +1,12 @@
 import Database from "./Database";
-import { StackUtil } from "./IStrongPG";
+import { StackUtil, TypeString } from "./IStrongPG";
 import { DatabaseSchema, TableSchema } from "./Schema";
 import CreateCollation from "./statements/collation/CreateCollation";
 import DropCollation from "./statements/collation/DropCollation";
 import AlterEnum, { AlterEnumInitialiser } from "./statements/enum/AlterEnum";
 import CreateEnum from "./statements/enum/CreateEnum";
 import DropEnum from "./statements/enum/DropEnum";
-import CreateOrReplaceFunction, { CreateOrReplaceFunctionInitialiser } from "./statements/function/CreateOrReplaceFunction";
+import CreateOrReplaceFunction, { CreateOrReplaceFunctionInitialiser, Function } from "./statements/function/CreateOrReplaceFunction";
 import DropFunction from "./statements/function/DropFunction";
 import CreateIndex, { CreateIndexInitialiser } from "./statements/index/CreateIndex";
 import DropIndex from "./statements/index/DropIndex";
@@ -223,12 +223,12 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		return this as any;
 	}
 
-	public createOrReplaceFunction<NAME extends string> (
+	public createOrReplaceFunction<NAME extends string, IN extends TypeString[], OUT extends [TypeString, string][], RETURN extends TypeString> (
 		name: NAME,
-		initialiser: CreateOrReplaceFunctionInitialiser,
+		initialiser: CreateOrReplaceFunctionInitialiser<IN, OUT, RETURN>,
 	): Migration<SCHEMA_START, {
 		[KEY in keyof SCHEMA_END]: KEY extends "functions"
-		? ({ [FUNCTION_NAME in NAME | keyof SCHEMA_END["functions"]]: FUNCTION_NAME extends NAME ? (...args: any[]) => any : SCHEMA_END["functions"][FUNCTION_NAME] })
+		? ({ [FUNCTION_NAME in NAME | keyof SCHEMA_END["functions"]]: FUNCTION_NAME extends NAME ? Function<IN, OUT, RETURN> : SCHEMA_END["functions"][FUNCTION_NAME] })
 		: SCHEMA_END[KEY]
 	}> {
 		this.add(initialiser(new CreateOrReplaceFunction(name)).setCaller());

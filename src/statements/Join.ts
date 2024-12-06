@@ -41,10 +41,10 @@ export type JoinTables<TYPE extends JoinTypeName, TABLE1 extends TableSchema, TA
 	: never
 	: never
 
-export default class Join<DATABASE extends DatabaseSchema, VIRTUAL_TABLE extends TableSchema, TYPE extends JoinTypeName> extends VirtualTable<VIRTUAL_TABLE> {
+export default class Join<DATABASE extends DatabaseSchema, VIRTUAL_TABLE extends TableSchema, TYPE extends JoinTypeName> extends VirtualTable<VIRTUAL_TABLE, never> {
 
 	public constructor (private readonly type: TYPE, private readonly table1: string | Join<DATABASE, any, JoinTypeName>, private readonly table2: string, private readonly alias1?: string, private readonly alias2?: string, vars?: any[]) {
-		super(`vt_join_${typeof table1 === "string" ? table1 : table1.name}_${table2}`, vars);
+		super(`vt_join_${typeof table1 === "string" ? table1 : table1.name}_${table2}` as never, vars);
 	}
 
 	private condition?: string;

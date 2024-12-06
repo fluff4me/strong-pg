@@ -12,32 +12,41 @@ export default class Table<TABLE extends TableSchema, DATABASE extends DatabaseS
 	public constructor (protected readonly name: NAME, protected readonly schema: TABLE) {
 	}
 	/**
+	 * SELECT 1
+	 */
+	public select (): SelectFromTable<TABLE, NAME, 1>;
+	/**
 	 * SELECT *
 	 */
-	public select (): SelectFromTable<TABLE, "*">;
+	public select (column: "*"): SelectFromTable<TABLE, NAME, "*">;
 	/**
 	 * SELECT columns AS aliases
 	 */
-	public select<COLUMNS extends Partial<Record<Schema.Column<TABLE>, string>>> (columns: COLUMNS): SelectFromTable<TABLE, COLUMNS>;
+	public select<COLUMNS extends Partial<Record<Schema.Column<TABLE>, string>>> (columns: COLUMNS): SelectFromTable<TABLE, NAME, COLUMNS>;
 	/**
 	 * SELECT columns
 	 */
-	public select<COLUMNS extends Schema.Column<TABLE>[]> (...columns: COLUMNS): SelectFromTable<TABLE, COLUMNS>;
+	public select<COLUMNS extends Schema.Column<TABLE>[]> (...columns: COLUMNS): SelectFromTable<TABLE, NAME, COLUMNS>;
 	/**
 	 * SELECT *
 	 * ...then provide an initialiser for tweaking the query
 	 */
-	public select<RETURN extends SelectFromTable<TABLE, "*"> = SelectFromTable<TABLE, "*">> (initialiser: Initialiser<SelectFromTable<TABLE, "*">, RETURN>): RETURN;
+	public select<RETURN extends SelectFromTable<TABLE, "*"> = SelectFromTable<TABLE, "*">> (column: "*", initialiser: Initialiser<SelectFromTable<TABLE, "*">, RETURN>): RETURN;
+	/**
+	 * SELECT 1
+	 * ...then provide an initialiser for tweaking the query
+	 */
+	public select<RETURN extends SelectFromTable<TABLE, NAME, 1> = SelectFromTable<TABLE, NAME, 1>> (initialiser: Initialiser<SelectFromTable<TABLE, NAME, 1>, RETURN>): RETURN;
 	/**
 	 * SELECT columns
 	 * ...then provide an initialiser for tweaking the query
 	 */
-	public select<COLUMNS extends Schema.Column<TABLE>[], RETURN extends SelectFromTable<TABLE, COLUMNS>> (...columnsAndInitialiser: [...COLUMNS, Initialiser<SelectFromTable<TABLE, COLUMNS>, RETURN>]): RETURN;
-	public select (...params: (Partial<Record<Schema.Column<TABLE>, string>> | Schema.Column<TABLE> | "*" | Initialiser<SelectFromTable<TABLE>> | Initialiser<SelectFromTable<TABLE, "*">>)[]): SelectFromTable<TABLE, any> | SelectFromTable<TABLE, "*"> {
-		const initialiser = typeof params[params.length - 1] === "function" ? params.pop() as Initialiser<SelectFromTable<TABLE>> : undefined;
+	public select<COLUMNS extends Schema.Column<TABLE>[], RETURN extends SelectFromTable<TABLE, NAME, COLUMNS>> (...columnsAndInitialiser: [...COLUMNS, Initialiser<SelectFromTable<TABLE, NAME, COLUMNS>, RETURN>]): RETURN;
+	public select (...params: (Partial<Record<Schema.Column<TABLE>, string>> | Schema.Column<TABLE> | "*" | Initialiser<SelectFromTable<TABLE, NAME>> | Initialiser<SelectFromTable<TABLE, "*">> | Initialiser<SelectFromTable<TABLE, NAME, 1>>)[]): SelectFromTable<TABLE, any> | SelectFromTable<TABLE, "*"> | SelectFromTable<TABLE, NAME, 1> {
+		const initialiser = typeof params[params.length - 1] === "function" ? params.pop() as Initialiser<SelectFromTable<TABLE, NAME>> : undefined;
 
 		const input =
-			params.length === 0 ? "*"
+			params.length === 0 ? 1
 				: params.length === 1 && typeof params[0] === "object" ? params[0]
 					: params as Schema.Column<TABLE>[];
 
@@ -142,8 +151,8 @@ export default class Table<TABLE extends TableSchema, DATABASE extends DatabaseS
 		return new Join<DATABASE, JoinTables<"FULL OUTER", TABLE, DatabaseSchema.Table<DATABASE, TABLE2_NAME>, NAME, TABLE2_ALIAS>, "FULL OUTER">("FULL OUTER", this.name, tableName, undefined, alias);
 	}
 
-	public recursive<COLUMNS extends Schema.Column<TABLE>[]> (columns: COLUMNS, initialiser: (query: Recursive<TABLE, Pick<TABLE, COLUMNS[number]>>) => any) {
-		const recursive = new Recursive<TABLE, Pick<TABLE, COLUMNS[number]>>(this.name, columns)
+	public recursive<COLUMNS extends Schema.Column<TABLE>[]> (columns: COLUMNS, initialiser: (query: Recursive<TABLE, Pick<TABLE, COLUMNS[number]>, NAME>) => any) {
+		const recursive = new Recursive<TABLE, Pick<TABLE, COLUMNS[number]>, NAME>(this.name, columns)
 		initialiser(recursive)
 		return recursive
 	}

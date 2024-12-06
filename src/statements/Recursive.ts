@@ -4,10 +4,10 @@ import Schema, { TableSchema } from "../Schema";
 import { VirtualTable } from "../VirtualTable";
 import { SelectFromVirtualTable } from "./Select";
 
-export default class Recursive<TABLE extends TableSchema, VIRTUAL_TABLE extends TableSchema> extends VirtualTable<VIRTUAL_TABLE> {
+export default class Recursive<TABLE extends TableSchema, VIRTUAL_TABLE extends TableSchema, NAME extends string> extends VirtualTable<VIRTUAL_TABLE, never> {
 
-	public constructor (private readonly tableName: string, private readonly columnNames: Schema.Column<TABLE>[]) {
-		super(`vt_recursive_${tableName}`)
+	public constructor (private readonly tableName: NAME, private readonly columnNames: Schema.Column<TABLE>[]) {
+		super(`vt_recursive_${tableName}` as never)
 	}
 
 	private anchorCondition?: string;

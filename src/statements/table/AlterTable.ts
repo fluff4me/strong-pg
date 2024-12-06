@@ -161,7 +161,7 @@ class CreateColumnSubStatement extends Statement {
 	 * Warning: Do not use this outside of migrations
 	 */
 	public static setDefault<TYPE extends TypeString | OptionalTypeString> (value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>) {
-		const expr = typeof value === "function" ? Expression.compile(value) : undefined;
+		const expr = typeof value === "function" ? Expression.compile(value as never) : undefined;
 		const stringifiedValue = expr?.text ?? Expression.stringifyValueRaw(value as MigrationTypeFromString<ExtractTypeString<TYPE>>);
 		return new CreateColumnSubStatement(`DEFAULT (${stringifiedValue})`, expr?.values);
 	}
@@ -222,7 +222,7 @@ class AlterColumnSubStatement extends Statement {
 	 * Warning: Do not use this outside of migrations
 	 */
 	public static setDefault<TYPE extends TypeString> (value: MigrationTypeFromString<TYPE | OptionalTypeString<TYPE>> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE | OptionalTypeString<TYPE>>>) {
-		const expr = typeof value === "function" ? Expression.compile(value) : undefined;
+		const expr = typeof value === "function" ? Expression.compile(value as never) : undefined;
 		const stringifiedValue = expr?.text ?? Expression.stringifyValueRaw(value as MigrationTypeFromString<TYPE>);
 		return new AlterColumnSubStatement(`SET DEFAULT (${stringifiedValue})`, expr?.values);
 	}

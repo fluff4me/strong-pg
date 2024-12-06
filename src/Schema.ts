@@ -1,4 +1,5 @@
 import { DataTypeID, EnumToTuple, InputTypeFromString, OptionalTypeString, OutputTypeFromString, TypeString, TypeStringMap } from "./IStrongPG";
+import { Function } from "./statements/function/CreateOrReplaceFunction";
 
 interface SpecialKeys<SCHEMA> {
 	PRIMARY_KEY?: keyof SCHEMA | (keyof SCHEMA)[];
@@ -89,6 +90,12 @@ export interface SchemaEnum<ENUM> {
 	VALUES: ENUM;
 }
 
+export interface SchemaFunctionFactory<IN extends TypeString[], OUT extends [TypeString, string][] = [], RETURNS extends TypeString = "VOID"> {
+	out<TYPE extends TypeString, NAME extends string> (type: TYPE, name: NAME): SchemaFunctionFactory<IN, [...OUT, [TYPE, NAME]]>
+	returns<TYPE extends TypeString> (returns: TYPE): SchemaFunctionFactory<IN, OUT, TYPE>
+	get (): Function<IN, OUT, RETURNS>
+}
+
 class Schema {
 
 	public static database<SCHEMA extends Partial<DatabaseSchema> | null> (schema: SCHEMA): SCHEMA extends null ? null : SCHEMA extends infer S extends Partial<DatabaseSchema> ? ValidateDatabaseSchema<{
@@ -127,8 +134,18 @@ class Schema {
 
 	public static readonly INDEX = {};
 	public static readonly TRIGGER = {};
-	public static readonly FUNCTION: (...args: any[]) => any = () => undefined;
+	public static readonly TRIGGER_FUNCTION: Function<[], [], "TRIGGER"> = () => ({ return: "TRIGGER", out: [] });
 	public static readonly COLLATION = {};
+
+	public static function<IN extends TypeString[]> (...args: IN): SchemaFunctionFactory<IN> {
+		const factory: SchemaFunctionFactory<any[], any[], any> = {
+			out: (type, name) => factory as never,
+			returns: returns => factory as never,
+			get: () => () => 0 as never,
+		};
+
+		return factory as never;
+	}
 
 	public static primaryKey<KEYS extends string[]> (...keys: KEYS): KEYS[number][] {
 		return keys;

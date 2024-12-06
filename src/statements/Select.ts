@@ -41,8 +41,10 @@ export type SelectColumns<SCHEMA extends TableSchema> =
 	| Schema.Column<SCHEMA>[]
 	| Partial<Record<Schema.Column<SCHEMA>, string>>
 
-type SelectResult<SCHEMA extends TableSchema, COLUMNS extends SelectColumns<SCHEMA>> =
-	COLUMNS extends Partial<Record<Schema.Column<SCHEMA>, string>> ?
+type SelectResult<SCHEMA extends TableSchema, COLUMNS extends SelectColumns<SCHEMA> | 1> =
+	COLUMNS extends 1 ? 1[]
+
+	: COLUMNS extends Partial<Record<Schema.Column<SCHEMA>, string>> ?
 	| { [K in keyof COLUMNS as COLUMNS[K] & PropertyKey]: OutputTypeFromString<SCHEMA[K & Schema.Column<SCHEMA>]> }
 
 	: (COLUMNS extends any[] ? COLUMNS[number] : Schema.Column<SCHEMA>) extends infer COLUMNS ?
@@ -54,25 +56,29 @@ type Order<SCHEMA extends TableSchema> =
 	| [column: Schema.Column<SCHEMA>, order?: SortDirection]
 	| [null: null, column: Schema.Column<SCHEMA>, order?: SortDirection]
 
-export class SelectFromVirtualTable<SCHEMA extends TableSchema, COLUMNS extends SelectColumns<SCHEMA> = Schema.Column<SCHEMA>[], RESULT = SelectResult<SCHEMA, COLUMNS>[]> extends Statement<RESULT> {
+type SelectWhereVars<SCHEMA extends TableSchema, NAME extends string> = Schema.Columns<SCHEMA> extends infer BASE ?
+	BASE & { [KEY in keyof BASE as KEY extends string ? `${NAME}.${KEY}` : never]: BASE[KEY] }
+	: never
+
+export class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA> | 1 = Schema.Column<SCHEMA>[], RESULT = SelectResult<SCHEMA, COLUMNS>[]> extends Statement<RESULT> {
 
 	private vars: any[];
-	public constructor (private readonly from: VirtualTable<SCHEMA> | string, public readonly columns: COLUMNS) {
+	public constructor (private readonly from: VirtualTable<SCHEMA, NAME> | string, public readonly columns: COLUMNS) {
 		super();
 		this.vars = (typeof from === "string" ? undefined : from?.["vars"]) ?? [];
 	}
 
 	private condition?: string;
-	public where (initialiser: ExpressionInitialiser<Schema.Columns<SCHEMA>, boolean>) {
+	public where (initialiser: ExpressionInitialiser<SelectWhereVars<SCHEMA, NAME>, boolean>) {
 		const queryable = Expression.compile(initialiser, undefined, this.vars);
 		this.condition = `WHERE (${queryable.text})`;
 		return this;
 	}
 
 	private _limit?: number;
-	public limit (count: 1): SelectFromVirtualTable<SCHEMA, COLUMNS, SelectResult<SCHEMA, COLUMNS> | undefined>;
-	public limit (count: number): SelectFromVirtualTable<SCHEMA, COLUMNS, SelectResult<SCHEMA, COLUMNS>[]>;
-	public limit (count: number): SelectFromVirtualTable<SCHEMA, COLUMNS, any> {
+	public limit (count: 1): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, COLUMNS> | undefined>;
+	public limit (count: number): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, COLUMNS>[]>;
+	public limit (count: number): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, any> {
 		this._limit = count;
 		return this;
 	}
@@ -130,16 +136,16 @@ export class SelectFromVirtualTable<SCHEMA extends TableSchema, COLUMNS extends 
 	}
 }
 
-export default class SelectFromTable<SCHEMA extends TableSchema, COLUMNS extends SelectColumns<SCHEMA> = "*"> extends SelectFromVirtualTable<SCHEMA, COLUMNS> {
+export default class SelectFromTable<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA> | 1 = "*"> extends SelectFromVirtualTable<SCHEMA, NAME, COLUMNS> {
 
-	public constructor (public readonly tableName: string, public readonly schema: SCHEMA, columns: COLUMNS) {
+	public constructor (public readonly tableName: NAME, public readonly schema: SCHEMA, columns: COLUMNS) {
 		super(tableName, columns);
 	}
 
-	public primaryKeyed (id: InputTypeFromString<SCHEMA[SingleStringUnion<Schema.PrimaryKey<SCHEMA>[number]>]>, initialiser?: ExpressionInitialiser<Schema.Columns<SCHEMA>, boolean>) {
+	public primaryKeyed (id: InputTypeFromString<SCHEMA[SingleStringUnion<Schema.PrimaryKey<SCHEMA>[number]>]>, initialiser?: ExpressionInitialiser<SelectWhereVars<SCHEMA, NAME>, boolean>) {
 		const primaryKey = Schema.getSingleColumnPrimaryKey(this.schema);
 		this.where(expr => {
-			const e2 = expr.var(primaryKey).equals(id as never);
+			const e2 = expr.var(primaryKey as never).equals(id as never);
 			if (initialiser)
 				e2.and(initialiser);
 			return e2;
