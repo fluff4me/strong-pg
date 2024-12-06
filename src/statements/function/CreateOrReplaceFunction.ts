@@ -1,16 +1,13 @@
-import { Initialiser, TypeString } from "../../IStrongPG";
+import { Initialiser, OptionalTypeString, TypeString } from "../../IStrongPG";
 import Statement from "../Statement";
 
-export type CreateOrReplaceFunctionInitialiser<IN extends TypeString[], OUT extends [TypeString, string][], RETURN extends TypeString> =
+export type CreateOrReplaceFunctionInitialiser<IN extends (TypeString | OptionalTypeString)[], OUT extends [TypeString, string][], RETURN extends TypeString> =
 	Initialiser<CreateOrReplaceFunction, CreateOrReplaceFunction<true, IN, OUT, RETURN>>;
 
-export type Function<IN extends TypeString[], OUT extends [TypeString, string][], RETURN extends TypeString> =
-	(...args: { [I in keyof IN]: IN[I][0] }) => { return: RETURN, out: OUT };
-
-export default class CreateOrReplaceFunction<HAS_CODE extends boolean = false, IN extends TypeString[] = [], OUT extends [TypeString, string][] = [], RETURN extends TypeString = never> extends Statement {
+export default class CreateOrReplaceFunction<HAS_CODE extends boolean = false, IN extends (TypeString | OptionalTypeString)[] = [], OUT extends [TypeString, string][] = [], RETURN extends TypeString = never> extends Statement {
 
 	protected readonly hasCode!: HAS_CODE;
-	private argsIn: [TypeString, string][] = [];
+	private argsIn: [TypeString | OptionalTypeString, string][] = [];
 	private argsOut: OUT = [] as never;
 	private returnType?: RETURN;
 	private code!: string;
@@ -20,7 +17,7 @@ export default class CreateOrReplaceFunction<HAS_CODE extends boolean = false, I
 		super();
 	}
 
-	public in<TYPE extends TypeString> (type: TYPE, name: string): CreateOrReplaceFunction<HAS_CODE, [...IN, TYPE], OUT, RETURN> {
+	public in<TYPE extends TypeString | OptionalTypeString> (type: TYPE, name: string): CreateOrReplaceFunction<HAS_CODE, [...IN, TYPE], OUT, RETURN> {
 		this.argsIn.push([type, name]);
 		return this as never;
 	}
@@ -57,7 +54,7 @@ export default class CreateOrReplaceFunction<HAS_CODE extends boolean = false, I
 	}
 
 	public compile () {
-		const params = this.argsIn.map(([type, name]) => `${name ?? ""} ${type}`)
+		const params = this.argsIn.map(([type, name]) => `${name ?? ""} ${typeof type === "string" ? type : type.type}`)
 			.concat(this.argsOut.map(([type, name]) => `OUT ${name ?? ""} ${type}`))
 			.join(", ");
 		const out = this.returnType ?? "TRIGGER"

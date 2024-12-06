@@ -1,5 +1,4 @@
 import { DataTypeID, EnumToTuple, InputTypeFromString, OptionalTypeString, OutputTypeFromString, TypeString, TypeStringMap } from "./IStrongPG";
-import { Function } from "./statements/function/CreateOrReplaceFunction";
 
 interface SpecialKeys<SCHEMA> {
 	PRIMARY_KEY?: keyof SCHEMA | (keyof SCHEMA)[];
@@ -16,9 +15,17 @@ export interface DatabaseSchema {
 	indices: Record<string, {}>;
 	enums: Record<string, string[]>;
 	triggers: Record<string, {}>;
-	functions: Record<string, (...args: any[]) => any>;
+	functions: Record<string, FunctionSchema>;
 	collations: Record<string, {}>;
 }
+
+export interface FunctionSchema<IN extends (TypeString | OptionalTypeString)[] = (TypeString | OptionalTypeString)[], OUT extends [TypeString, string][] = [TypeString, string][], RETURN extends TypeString = TypeString> {
+	in: IN;
+	out: OUT;
+	return: RETURN;
+}
+
+export type FunctionParameters<SCHEMA extends FunctionSchema> = SCHEMA extends FunctionSchema<infer IN, any, any> ? { [I in keyof IN]: InputTypeFromString<IN[I]> | (IN[I] extends OptionalTypeString ? null | undefined : never) } : never;
 
 export namespace DatabaseSchema {
 	export interface Empty {
@@ -39,6 +46,9 @@ export namespace DatabaseSchema {
 
 	export type Table<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> =
 		SCHEMA["tables"][NAME] extends infer TABLE ? TABLE extends TableSchema ? TABLE : never : never;
+
+	export type Function<SCHEMA extends DatabaseSchema, NAME extends FunctionName<SCHEMA>> =
+		SCHEMA["functions"][NAME] extends infer FUNCTION extends FunctionSchema<infer IN, infer OUT, infer RETURN> ? FUNCTION : never;
 
 	export type Enum<SCHEMA extends DatabaseSchema, NAME extends EnumName<SCHEMA>> =
 		SCHEMA["enums"][NAME] extends infer ENUM ? ENUM extends string[] ? ENUM : never : never;
@@ -90,10 +100,10 @@ export interface SchemaEnum<ENUM> {
 	VALUES: ENUM;
 }
 
-export interface SchemaFunctionFactory<IN extends TypeString[], OUT extends [TypeString, string][] = [], RETURNS extends TypeString = "VOID"> {
+export interface SchemaFunctionFactory<IN extends (TypeString | OptionalTypeString)[], OUT extends [TypeString, string][] = [], RETURNS extends TypeString = "VOID"> {
 	out<TYPE extends TypeString, NAME extends string> (type: TYPE, name: NAME): SchemaFunctionFactory<IN, [...OUT, [TYPE, NAME]]>
 	returns<TYPE extends TypeString> (returns: TYPE): SchemaFunctionFactory<IN, OUT, TYPE>
-	get (): Function<IN, OUT, RETURNS>
+	get (): FunctionSchema<IN, OUT, RETURNS>
 }
 
 class Schema {
@@ -134,14 +144,14 @@ class Schema {
 
 	public static readonly INDEX = {};
 	public static readonly TRIGGER = {};
-	public static readonly TRIGGER_FUNCTION: Function<[], [], "TRIGGER"> = () => ({ return: "TRIGGER", out: [] });
+	public static readonly TRIGGER_FUNCTION: FunctionSchema<[], [], "TRIGGER"> = { in: [], out: [], return: "TRIGGER" };
 	public static readonly COLLATION = {};
 
-	public static function<IN extends TypeString[]> (...args: IN): SchemaFunctionFactory<IN> {
+	public static function<IN extends (TypeString | OptionalTypeString)[]> (...args: IN): SchemaFunctionFactory<IN> {
 		const factory: SchemaFunctionFactory<any[], any[], any> = {
 			out: (type, name) => factory as never,
 			returns: returns => factory as never,
-			get: () => () => 0 as never,
+			get: () => 0 as never,
 		};
 
 		return factory as never;

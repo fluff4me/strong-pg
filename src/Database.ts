@@ -1,6 +1,7 @@
 import { Pool, PoolClient } from "pg";
+import FunctionCall from "./FunctionCall";
 import { History } from "./History";
-import { DatabaseSchema } from "./Schema";
+import { DatabaseSchema, FunctionParameters } from "./Schema";
 import Table from "./Table";
 
 export default class Database<SCHEMA extends DatabaseSchema> {
@@ -33,5 +34,10 @@ export default class Database<SCHEMA extends DatabaseSchema> {
 	public table<TABLE_NAME extends DatabaseSchema.TableName<SCHEMA>> (tableName: TABLE_NAME) {
 		type TABLE = DatabaseSchema.Table<SCHEMA, TABLE_NAME>;
 		return new Table<TABLE, SCHEMA, TABLE_NAME>(tableName, this.schema.tables[tableName as string] as TABLE);
+	}
+
+	public function<FUNCTION_NAME extends DatabaseSchema.FunctionName<SCHEMA>> (functionName: FUNCTION_NAME, ...params: FunctionParameters<DatabaseSchema.Function<SCHEMA, FUNCTION_NAME>>) {
+		type FUNCTION = DatabaseSchema.Function<SCHEMA, FUNCTION_NAME>;
+		return FunctionCall<FUNCTION, SCHEMA, FUNCTION_NAME>(functionName, params);
 	}
 }
