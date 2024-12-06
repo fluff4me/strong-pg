@@ -76,7 +76,7 @@ export declare namespace DataType {
     function VARCHAR(length?: number): TypeStringMap[DataTypeID.VARCHAR];
     const BYTECHAR: TypeStringMap[DataTypeID.BYTECHAR];
     function BIT(length: number): TypeStringMap[DataTypeID.BIT];
-    function VARBIT(length?: number): "BIT VARYING" | `BIT VARYING(${bigint})`;
+    function VARBIT(length?: number): `BIT VARYING(${bigint})` | "BIT VARYING";
     const TEXT: TypeStringMap[DataTypeID.TEXT];
     function ENUM<NAME extends string>(name: NAME): Enum<NAME>;
     type Enum<NAME extends string> = `ENUM(${NAME})`;

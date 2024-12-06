@@ -29,7 +29,7 @@ class Database {
         return new Table_1.default(tableName, this.schema.tables[tableName]);
     }
     function(functionName, ...params) {
-        return (0, FunctionCall_1.default)(functionName, params);
+        return new FunctionCall_1.default(functionName, params);
     }
 }
 exports.default = Database;
