@@ -1,4 +1,10 @@
-import { QueryConfig } from "pg"
+import { DatabaseError, Pool, PoolClient, QueryConfig } from "pg"
+import log, { color } from "./Log"
+
+function isDatabaseError (value: unknown): value is DatabaseError {
+	return value instanceof DatabaseError
+		|| (typeof value === "object" && !!value && "internalQuery" in value)
+}
 
 type SqlTemplateData = [segments: TemplateStringsArray, interpolations: unknown[]]
 
@@ -19,6 +25,34 @@ namespace _ {
 		public get values (): unknown[] | undefined {
 			this.#compile()
 			return this.values
+		}
+
+		public async query (pool: Pool | PoolClient) {
+			try {
+				return await pool.query(this)
+			} catch (err) {
+				if (!isDatabaseError(err))
+					throw err
+
+				log(color("red", "Error: ") + err.message + (err.detail ? `: ${err.detail}` : "")
+					+ (err.hint ? color("darkGray", `\nHint: ${err.hint}`) : ""))
+
+				if (err.position === undefined)
+					return
+
+				let line: string
+				const start = this.text.lastIndexOf("\n", +err.position) + 1
+				const end = this.text.indexOf("\n", +err.position)
+				line = this.text.substring(start, end)
+				const length = line.length
+				line = line.trim()
+				const trimmedWhitespace = length - line.length
+				const position = +err.position - start - trimmedWhitespace
+
+				log("  > ", line)
+				if (position !== undefined)
+					log("    ", " ".repeat(Math.max(0, position - 1)) + color("red", "^"))
+			}
 		}
 
 		#compile () {
