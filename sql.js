@@ -11,62 +11,46 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Sql = void 0;
+exports.SQL = void 0;
 exports.sql = sql;
 var _;
 (function (_) {
-    var _Sql_instances, _a, _Sql_data, _Sql_compileRaw, _Sql_compile;
-    class Sql {
+    var _SQL_instances, _a, _SQL_data, _SQL_compile, _SQL_compileRaw;
+    class SQL {
         constructor(...data) {
-            _Sql_instances.add(this);
-            _Sql_data.set(this, void 0);
-            __classPrivateFieldSet(this, _Sql_data, data, "f");
+            _SQL_instances.add(this);
+            _SQL_data.set(this, void 0);
+            __classPrivateFieldSet(this, _SQL_data, data, "f");
         }
         get text() {
-            __classPrivateFieldGet(this, _Sql_instances, "m", _Sql_compile).call(this);
+            __classPrivateFieldGet(this, _SQL_instances, "m", _SQL_compile).call(this);
             return this.text;
         }
         get values() {
-            __classPrivateFieldGet(this, _Sql_instances, "m", _Sql_compile).call(this);
+            __classPrivateFieldGet(this, _SQL_instances, "m", _SQL_compile).call(this);
             return this.values;
         }
         get asRawSql() {
-            __classPrivateFieldGet(this, _Sql_instances, "m", _Sql_compileRaw).call(this);
+            __classPrivateFieldGet(this, _SQL_instances, "m", _SQL_compileRaw).call(this);
             return this.asRawSql;
         }
     }
-    _a = Sql, _Sql_data = new WeakMap(), _Sql_instances = new WeakSet(), _Sql_compileRaw = function _Sql_compileRaw() {
-        const [topLayerSegments, topLayerInterpolations] = __classPrivateFieldGet(this, _Sql_data, "f");
-        if (!topLayerInterpolations.length)
-            return topLayerSegments[0];
-        const recurse = (recursiveData) => {
-            const [segments, interpolations] = recursiveData ?? __classPrivateFieldGet(this, _Sql_data, "f");
-            let text = segments[0];
-            for (let i = 0; i < interpolations.length; i++) {
-                const interpolation = interpolations[i];
-                if (interpolation instanceof _a) {
-                    text += recurse(__classPrivateFieldGet(interpolation, _Sql_data, "f"));
-                    continue;
-                }
-                text += `${String(interpolation)}${segments[i + 1]}`;
-            }
-            return text;
-        };
-        const text = recurse();
-        Object.defineProperty(this, "asRawSql", { value: text });
-    }, _Sql_compile = function _Sql_compile() {
-        const [topLayerSegments, topLayerInterpolations] = __classPrivateFieldGet(this, _Sql_data, "f");
-        if (!topLayerInterpolations.length)
-            return { text: topLayerSegments[0] };
+    _a = SQL, _SQL_data = new WeakMap(), _SQL_instances = new WeakSet(), _SQL_compile = function _SQL_compile() {
+        const [topLayerSegments, topLayerInterpolations] = __classPrivateFieldGet(this, _SQL_data, "f");
+        if (!topLayerInterpolations.length) {
+            Object.defineProperty(this, "text", { value: topLayerSegments[0] });
+            Object.defineProperty(this, "values", { value: undefined });
+            return;
+        }
         let resultInterpolations;
         let vi = 1;
         const recurse = (recursiveData) => {
-            const [segments, interpolations] = recursiveData ?? __classPrivateFieldGet(this, _Sql_data, "f");
+            const [segments, interpolations] = recursiveData ?? __classPrivateFieldGet(this, _SQL_data, "f");
             let text = segments[0];
             for (let i = 0; i < interpolations.length; i++) {
                 const interpolation = interpolations[i];
                 if (interpolation instanceof _a) {
-                    const subData = __classPrivateFieldGet(interpolation, _Sql_data, "f");
+                    const subData = __classPrivateFieldGet(interpolation, _SQL_data, "f");
                     if (subData)
                         resultInterpolations ?? (resultInterpolations = topLayerInterpolations.slice(0, i));
                     text += recurse(subData);
@@ -80,18 +64,37 @@ var _;
         const text = recurse();
         Object.defineProperty(this, "text", { value: text });
         Object.defineProperty(this, "values", { value: resultInterpolations ?? topLayerInterpolations });
+    }, _SQL_compileRaw = function _SQL_compileRaw() {
+        const [topLayerSegments, topLayerInterpolations] = __classPrivateFieldGet(this, _SQL_data, "f");
+        if (!topLayerInterpolations.length) {
+            Object.defineProperty(this, "asRawSql", { value: topLayerSegments[0] });
+            return;
+        }
+        const recurse = (recursiveData) => {
+            const [segments, interpolations] = recursiveData ?? __classPrivateFieldGet(this, _SQL_data, "f");
+            let text = segments[0];
+            for (let i = 0; i < interpolations.length; i++) {
+                const interpolation = interpolations[i];
+                if (interpolation instanceof _a) {
+                    text += recurse(__classPrivateFieldGet(interpolation, _SQL_data, "f"));
+                    continue;
+                }
+                text += `${String(interpolation)}${segments[i + 1]}`;
+            }
+            return text;
+        };
+        const text = recurse();
+        Object.defineProperty(this, "asRawSql", { value: text });
     };
-    _.Sql = Sql;
+    _.SQL = SQL;
 })(_ || (_ = {}));
-var Sql;
-(function (Sql) {
+var SQL;
+(function (SQL) {
     function is(value) {
-        return value instanceof _.Sql;
+        return value instanceof _.SQL;
     }
-    Sql.is = is;
-})(Sql || (exports.Sql = Sql = {}));
+    SQL.is = is;
+})(SQL || (exports.SQL = SQL = {}));
 function sql(segments, ...interpolations) {
-    if (!interpolations.length)
-        return { text: segments[0] };
-    return new _.Sql(segments, interpolations);
+    return new _.SQL(segments, interpolations);
 }

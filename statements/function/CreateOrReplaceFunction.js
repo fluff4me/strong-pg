@@ -31,7 +31,7 @@ class CreateOrReplaceFunction extends Statement_1.default {
         return this;
     }
     plpgsql(declarations, plpgsql) {
-        if (sql_1.Sql.is(declarations))
+        if (sql_1.SQL.is(declarations))
             plpgsql = declarations, declarations = {};
         if (!plpgsql)
             throw new Error("No PL/pgSQL code provided");

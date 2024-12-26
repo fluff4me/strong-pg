@@ -1,19 +1,19 @@
 import { QueryConfig } from "pg";
 type SqlTemplateData = [segments: TemplateStringsArray, interpolations: unknown[]];
 declare namespace _ {
-    interface Sql extends Omit<QueryConfig, "text" | "values"> {
+    interface SQL extends Omit<QueryConfig, "text" | "values"> {
     }
-    class Sql implements QueryConfig {
+    class SQL implements QueryConfig {
         #private;
         constructor(...data: SqlTemplateData);
         get text(): string;
-        get values(): unknown[];
+        get values(): unknown[] | undefined;
         protected get asRawSql(): string;
     }
 }
-export type Sql = _.Sql;
-export declare namespace Sql {
-    function is(value: unknown): value is _.Sql;
+export type SQL = _.SQL;
+export declare namespace SQL {
+    function is(value: unknown): value is _.SQL;
 }
-export declare function sql(segments: TemplateStringsArray, ...interpolations: unknown[]): QueryConfig;
+export declare function sql(segments: TemplateStringsArray, ...interpolations: unknown[]): SQL;
 export {};
