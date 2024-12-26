@@ -44,9 +44,6 @@ export function sql (segments: TemplateStringsArray, ...interpolations: unknown[
 		Object.defineProperty(result, "values", { value: resultInterpolations ?? interpolations })
 
 		function recurse (recursiveData?: SqlTemplateData) {
-			if (recursiveData?.[1].length)
-				resultInterpolations = data[1].slice()
-
 			const [segments, interpolations] = recursiveData ?? data
 
 			let text = segments[0]
@@ -54,7 +51,10 @@ export function sql (segments: TemplateStringsArray, ...interpolations: unknown[
 				const interpolation = interpolations[i]
 
 				if (isSql(interpolation)) {
-					text += recurse(interpolation[SYMBOL_SQL])
+					const subData = interpolation[SYMBOL_SQL]
+					if (subData)
+						resultInterpolations ??= data[1].slice(0, i)
+					text += recurse(subData)
 					continue
 				}
 
