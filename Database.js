@@ -3,9 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.sql = void 0;
 const FunctionCall_1 = __importDefault(require("./FunctionCall"));
 const History_1 = require("./History");
 const Table_1 = __importDefault(require("./Table"));
+var sql_1 = require("./sql");
+Object.defineProperty(exports, "sql", { enumerable: true, get: function () { return sql_1.sql; } });
 class Database {
     constructor(schema) {
         this.schema = schema;
