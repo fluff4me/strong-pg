@@ -1,4 +1,5 @@
 import { Initialiser, OptionalTypeString, TypeString } from "../../IStrongPG";
+import { isSql, Sql } from "../../sql";
 import Statement from "../Statement";
 
 export type CreateOrReplaceFunctionInitialiser<IN extends (TypeString | OptionalTypeString)[], OUT extends [TypeString, string][], RETURN extends TypeString> =
@@ -39,15 +40,21 @@ export default class CreateOrReplaceFunction<HAS_CODE extends boolean = false, I
 		return this as any;
 	}
 
-	public plpgsql (plpgsql: string): CreateOrReplaceFunction<true, IN, OUT, RETURN>;
-	public plpgsql (declarations: Record<string, TypeString>, plpgsql: string): CreateOrReplaceFunction<true, IN, OUT, RETURN>;
-	public plpgsql (declarations: Record<string, TypeString> | string, plpgsql?: string): CreateOrReplaceFunction<true, IN, OUT, RETURN> {
-		if (typeof declarations === "string")
+	public plpgsql (plpgsql: Sql): CreateOrReplaceFunction<true, IN, OUT, RETURN>;
+	public plpgsql (declarations: Record<string, TypeString>, plpgsql: Sql): CreateOrReplaceFunction<true, IN, OUT, RETURN>;
+	public plpgsql (declarations: Record<string, TypeString> | Sql, plpgsql?: Sql): CreateOrReplaceFunction<true, IN, OUT, RETURN> {
+		if (isSql(declarations))
 			plpgsql = declarations, declarations = {};
+
+		if (!plpgsql)
+			throw new Error("No PL/pgSQL code provided");
+
+		if (plpgsql.values?.length)
+			throw new Error("Values are not allowed in PL/pgSQL function code");
 
 		const declare = Object.entries(declarations).map(([name, type]) => `${name} ${type}`).join(";")
 
-		this.code = `${declare ? `DECLARE ${declare}; ` : ""}BEGIN ${plpgsql!} END`;
+		this.code = `${declare ? `DECLARE ${declare}; ` : ""}BEGIN ${plpgsql.text} END`;
 		this.lang = "plpgsql";
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;

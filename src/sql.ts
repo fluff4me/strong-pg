@@ -3,11 +3,11 @@ import { QueryConfig } from "pg"
 const SYMBOL_SQL = Symbol("Sql")
 
 type SqlTemplateData = [segments: TemplateStringsArray, interpolations: unknown[]]
-interface Sql extends QueryConfig {
+export interface Sql extends QueryConfig {
 	[SYMBOL_SQL]: SqlTemplateData
 }
 
-function isSql (value: unknown): value is Sql {
+export function isSql (value: unknown): value is Sql {
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	return typeof value === "object" && !!value && !!(value as Sql)[SYMBOL_SQL]
 }
