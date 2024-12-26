@@ -31,14 +31,12 @@ class CreateOrReplaceFunction extends Statement_1.default {
         return this;
     }
     plpgsql(declarations, plpgsql) {
-        if ((0, sql_1.isSql)(declarations))
+        if (sql_1.Sql.is(declarations))
             plpgsql = declarations, declarations = {};
         if (!plpgsql)
             throw new Error("No PL/pgSQL code provided");
-        if (plpgsql.values?.length)
-            throw new Error("Values are not allowed in PL/pgSQL function code");
         const declare = Object.entries(declarations).map(([name, type]) => `${name} ${type}`).join(";");
-        this.code = `${declare ? `DECLARE ${declare}; ` : ""}BEGIN ${plpgsql.text} END`;
+        this.code = `${declare ? `DECLARE ${declare}; ` : ""}BEGIN ${plpgsql["asRawSql"]} END`;
         this.lang = "plpgsql";
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
