@@ -31,14 +31,15 @@ function sql(segments, ...interpolations) {
         Object.defineProperty(result, "text", { value: text });
         Object.defineProperty(result, "values", { value: resultInterpolations ?? interpolations });
         function recurse(recursiveData) {
-            if (recursiveData?.[1].length)
-                resultInterpolations = data[1].slice();
             const [segments, interpolations] = recursiveData ?? data;
             let text = segments[0];
             for (let i = 0; i < interpolations.length; i++) {
                 const interpolation = interpolations[i];
                 if (isSql(interpolation)) {
-                    text += recurse(interpolation[SYMBOL_SQL]);
+                    const subData = interpolation[SYMBOL_SQL];
+                    if (subData)
+                        resultInterpolations ?? (resultInterpolations = data[1].slice(0, i));
+                    text += recurse(subData);
                     continue;
                 }
                 resultInterpolations?.push(interpolation);
