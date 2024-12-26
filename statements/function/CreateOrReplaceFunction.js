@@ -25,7 +25,7 @@ class CreateOrReplaceFunction extends Statement_1.default {
         return this;
     }
     sql(sql) {
-        this.code = sql;
+        this.code = sql["asRawSql"];
         this.lang = "SQL";
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;

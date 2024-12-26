@@ -14,7 +14,7 @@ export default class CreateOrReplaceFunction<HAS_CODE extends boolean = false, I
     in<TYPE extends TypeString | OptionalTypeString>(type: TYPE, name: string): CreateOrReplaceFunction<HAS_CODE, [...IN, TYPE], OUT, RETURN>;
     out<TYPE extends TypeString, NAME extends string>(type: TYPE, name: NAME): CreateOrReplaceFunction<HAS_CODE, IN, [...OUT, [TYPE, NAME]], RETURN>;
     returns<TYPE extends TypeString>(type: TYPE): CreateOrReplaceFunction<HAS_CODE, IN, OUT, TYPE>;
-    sql(sql: string): CreateOrReplaceFunction<true, IN, OUT, RETURN>;
+    sql(sql: Sql): CreateOrReplaceFunction<true, IN, OUT, RETURN>;
     plpgsql(plpgsql: Sql): CreateOrReplaceFunction<true, IN, OUT, RETURN>;
     plpgsql(declarations: Record<string, TypeString>, plpgsql: Sql): CreateOrReplaceFunction<true, IN, OUT, RETURN>;
     compile(): Statement.Queryable[];
