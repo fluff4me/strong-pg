@@ -1,2 +1,2 @@
 import { QueryConfig } from "pg";
-export declare function sql(segments: TemplateStringsArray, ...interpolations: any[]): QueryConfig;
+export declare function sql(segments: TemplateStringsArray, ...interpolations: unknown[]): QueryConfig;
