@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.isSql = isSql;
 exports.sql = sql;
 const SYMBOL_SQL = Symbol("Sql");
 function isSql(value) {

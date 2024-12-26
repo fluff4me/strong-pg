@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const sql_1 = require("../../sql");
 const Statement_1 = __importDefault(require("../Statement"));
 class CreateOrReplaceFunction extends Statement_1.default {
     constructor(name) {
@@ -30,10 +31,14 @@ class CreateOrReplaceFunction extends Statement_1.default {
         return this;
     }
     plpgsql(declarations, plpgsql) {
-        if (typeof declarations === "string")
+        if ((0, sql_1.isSql)(declarations))
             plpgsql = declarations, declarations = {};
+        if (!plpgsql)
+            throw new Error("No PL/pgSQL code provided");
+        if (plpgsql.values?.length)
+            throw new Error("Values are not allowed in PL/pgSQL function code");
         const declare = Object.entries(declarations).map(([name, type]) => `${name} ${type}`).join(";");
-        this.code = `${declare ? `DECLARE ${declare}; ` : ""}BEGIN ${plpgsql} END`;
+        this.code = `${declare ? `DECLARE ${declare}; ` : ""}BEGIN ${plpgsql.text} END`;
         this.lang = "plpgsql";
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;

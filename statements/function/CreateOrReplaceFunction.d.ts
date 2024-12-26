@@ -1,4 +1,5 @@
 import { Initialiser, OptionalTypeString, TypeString } from "../../IStrongPG";
+import { Sql } from "../../sql";
 import Statement from "../Statement";
 export type CreateOrReplaceFunctionInitialiser<IN extends (TypeString | OptionalTypeString)[], OUT extends [TypeString, string][], RETURN extends TypeString> = Initialiser<CreateOrReplaceFunction, CreateOrReplaceFunction<true, IN, OUT, RETURN>>;
 export default class CreateOrReplaceFunction<HAS_CODE extends boolean = false, IN extends (TypeString | OptionalTypeString)[] = [], OUT extends [TypeString, string][] = [], RETURN extends TypeString = never> extends Statement {
@@ -14,7 +15,7 @@ export default class CreateOrReplaceFunction<HAS_CODE extends boolean = false, I
     out<TYPE extends TypeString, NAME extends string>(type: TYPE, name: NAME): CreateOrReplaceFunction<HAS_CODE, IN, [...OUT, [TYPE, NAME]], RETURN>;
     returns<TYPE extends TypeString>(type: TYPE): CreateOrReplaceFunction<HAS_CODE, IN, OUT, TYPE>;
     sql(sql: string): CreateOrReplaceFunction<true, IN, OUT, RETURN>;
-    plpgsql(plpgsql: string): CreateOrReplaceFunction<true, IN, OUT, RETURN>;
-    plpgsql(declarations: Record<string, TypeString>, plpgsql: string): CreateOrReplaceFunction<true, IN, OUT, RETURN>;
+    plpgsql(plpgsql: Sql): CreateOrReplaceFunction<true, IN, OUT, RETURN>;
+    plpgsql(declarations: Record<string, TypeString>, plpgsql: Sql): CreateOrReplaceFunction<true, IN, OUT, RETURN>;
     compile(): Statement.Queryable[];
 }
