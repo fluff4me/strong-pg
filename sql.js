@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
@@ -13,6 +46,12 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SQL = void 0;
 exports.sql = sql;
+const pg_1 = require("pg");
+const Log_1 = __importStar(require("./Log"));
+function isDatabaseError(value) {
+    return value instanceof pg_1.DatabaseError
+        || (typeof value === "object" && !!value && "internalQuery" in value);
+}
 var _;
 (function (_) {
     var _SQL_instances, _a, _SQL_data, _SQL_compile, _SQL_compileRaw;
@@ -29,6 +68,30 @@ var _;
         get values() {
             __classPrivateFieldGet(this, _SQL_instances, "m", _SQL_compile).call(this);
             return this.values;
+        }
+        async query(pool) {
+            try {
+                return await pool.query(this);
+            }
+            catch (err) {
+                if (!isDatabaseError(err))
+                    throw err;
+                (0, Log_1.default)((0, Log_1.color)("red", "Error: ") + err.message + (err.detail ? `: ${err.detail}` : "")
+                    + (err.hint ? (0, Log_1.color)("darkGray", `\nHint: ${err.hint}`) : ""));
+                if (err.position === undefined)
+                    return;
+                let line;
+                const start = this.text.lastIndexOf("\n", +err.position) + 1;
+                const end = this.text.indexOf("\n", +err.position);
+                line = this.text.substring(start, end);
+                const length = line.length;
+                line = line.trim();
+                const trimmedWhitespace = length - line.length;
+                const position = +err.position - start - trimmedWhitespace;
+                (0, Log_1.default)("  > ", line);
+                if (position !== undefined)
+                    (0, Log_1.default)("    ", " ".repeat(Math.max(0, position - 1)) + (0, Log_1.color)("red", "^"));
+            }
         }
         get asRawSql() {
             __classPrivateFieldGet(this, _SQL_instances, "m", _SQL_compileRaw).call(this);
