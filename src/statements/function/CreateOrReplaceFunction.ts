@@ -33,8 +33,8 @@ export default class CreateOrReplaceFunction<HAS_CODE extends boolean = false, I
 		return this as never;
 	}
 
-	public sql (sql: string): CreateOrReplaceFunction<true, IN, OUT, RETURN> {
-		this.code = sql;
+	public sql (sql: Sql): CreateOrReplaceFunction<true, IN, OUT, RETURN> {
+		this.code = sql["asRawSql"];
 		this.lang = "SQL";
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
