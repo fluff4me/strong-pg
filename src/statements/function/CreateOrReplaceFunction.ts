@@ -1,5 +1,5 @@
 import { Initialiser, OptionalTypeString, TypeString } from "../../IStrongPG";
-import { Sql } from "../../sql";
+import { SQL } from "../../sql";
 import Statement from "../Statement";
 
 export type CreateOrReplaceFunctionInitialiser<IN extends (TypeString | OptionalTypeString)[], OUT extends [TypeString, string][], RETURN extends TypeString> =
@@ -33,17 +33,17 @@ export default class CreateOrReplaceFunction<HAS_CODE extends boolean = false, I
 		return this as never;
 	}
 
-	public sql (sql: Sql): CreateOrReplaceFunction<true, IN, OUT, RETURN> {
+	public sql (sql: SQL): CreateOrReplaceFunction<true, IN, OUT, RETURN> {
 		this.code = sql["asRawSql"];
 		this.lang = "SQL";
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
 
-	public plpgsql (plpgsql: Sql): CreateOrReplaceFunction<true, IN, OUT, RETURN>;
-	public plpgsql (declarations: Record<string, TypeString>, plpgsql: Sql): CreateOrReplaceFunction<true, IN, OUT, RETURN>;
-	public plpgsql (declarations: Record<string, TypeString> | Sql, plpgsql?: Sql): CreateOrReplaceFunction<true, IN, OUT, RETURN> {
-		if (Sql.is(declarations))
+	public plpgsql (plpgsql: SQL): CreateOrReplaceFunction<true, IN, OUT, RETURN>;
+	public plpgsql (declarations: Record<string, TypeString>, plpgsql: SQL): CreateOrReplaceFunction<true, IN, OUT, RETURN>;
+	public plpgsql (declarations: Record<string, TypeString> | SQL, plpgsql?: SQL): CreateOrReplaceFunction<true, IN, OUT, RETURN> {
+		if (SQL.is(declarations))
 			plpgsql = declarations, declarations = {};
 
 		if (!plpgsql)

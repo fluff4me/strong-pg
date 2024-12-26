@@ -3,8 +3,8 @@ import { QueryConfig } from "pg"
 type SqlTemplateData = [segments: TemplateStringsArray, interpolations: unknown[]]
 
 namespace _ {
-	export interface Sql extends Omit<QueryConfig, "text" | "values"> { }
-	export class Sql implements QueryConfig {
+	export interface SQL extends Omit<QueryConfig, "text" | "values"> { }
+	export class SQL implements QueryConfig {
 
 		#data: SqlTemplateData
 		public constructor (...data: SqlTemplateData) {
@@ -16,47 +16,18 @@ namespace _ {
 			return this.text
 		}
 
-		public get values (): unknown[] {
+		public get values (): unknown[] | undefined {
 			this.#compile()
 			return this.values
 		}
 
-		protected get asRawSql (): string {
-			this.#compileRaw()
-			return this.asRawSql
-		}
-
-		#compileRaw () {
-			const [topLayerSegments, topLayerInterpolations] = this.#data
-			if (!topLayerInterpolations.length)
-				return topLayerSegments[0]
-
-			const recurse = (recursiveData?: SqlTemplateData) => {
-				const [segments, interpolations] = recursiveData ?? this.#data
-
-				let text = segments[0]
-				for (let i = 0; i < interpolations.length; i++) {
-					const interpolation = interpolations[i]
-
-					if (interpolation instanceof Sql) {
-						text += recurse(interpolation.#data)
-						continue
-					}
-
-					text += `${String(interpolation)}${segments[i + 1]}`
-				}
-
-				return text
-			}
-
-			const text = recurse()
-			Object.defineProperty(this, "asRawSql", { value: text })
-		}
-
 		#compile () {
 			const [topLayerSegments, topLayerInterpolations] = this.#data
-			if (!topLayerInterpolations.length)
-				return { text: topLayerSegments[0] }
+			if (!topLayerInterpolations.length) {
+				Object.defineProperty(this, "text", { value: topLayerSegments[0] })
+				Object.defineProperty(this, "values", { value: undefined })
+				return
+			}
 
 			let resultInterpolations: unknown[] | undefined
 
@@ -68,7 +39,7 @@ namespace _ {
 				for (let i = 0; i < interpolations.length; i++) {
 					const interpolation = interpolations[i]
 
-					if (interpolation instanceof Sql) {
+					if (interpolation instanceof SQL) {
 						const subData = interpolation.#data
 						if (subData)
 							resultInterpolations ??= topLayerInterpolations.slice(0, i)
@@ -87,22 +58,51 @@ namespace _ {
 
 			Object.defineProperty(this, "text", { value: text })
 			Object.defineProperty(this, "values", { value: resultInterpolations ?? topLayerInterpolations })
+		}
 
+		protected get asRawSql (): string {
+			this.#compileRaw()
+			return this.asRawSql
+		}
+
+		#compileRaw () {
+			const [topLayerSegments, topLayerInterpolations] = this.#data
+			if (!topLayerInterpolations.length) {
+				Object.defineProperty(this, "asRawSql", { value: topLayerSegments[0] })
+				return
+			}
+
+			const recurse = (recursiveData?: SqlTemplateData) => {
+				const [segments, interpolations] = recursiveData ?? this.#data
+
+				let text = segments[0]
+				for (let i = 0; i < interpolations.length; i++) {
+					const interpolation = interpolations[i]
+
+					if (interpolation instanceof SQL) {
+						text += recurse(interpolation.#data)
+						continue
+					}
+
+					text += `${String(interpolation)}${segments[i + 1]}`
+				}
+
+				return text
+			}
+
+			const text = recurse()
+			Object.defineProperty(this, "asRawSql", { value: text })
 		}
 	}
 }
 
-export type Sql = _.Sql
-export namespace Sql {
+export type SQL = _.SQL
+export namespace SQL {
 	export function is (value: unknown) {
-		return value instanceof _.Sql
+		return value instanceof _.SQL
 	}
 }
 
-export function sql (segments: TemplateStringsArray, ...interpolations: unknown[]): QueryConfig {
-	if (!interpolations.length)
-		return { text: segments[0] }
-
-	return new _.Sql(segments, interpolations)
-
+export function sql (segments: TemplateStringsArray, ...interpolations: unknown[]): SQL {
+	return new _.SQL(segments, interpolations)
 }
