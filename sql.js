@@ -82,12 +82,15 @@ var _;
                     return;
                 let line;
                 const start = this.text.lastIndexOf("\n", +err.position) + 1;
+                const previousLine = this.text.substring(this.text.lastIndexOf("\n", start - 2) + 1, start - 1).trim();
                 const end = this.text.indexOf("\n", +err.position);
                 line = this.text.substring(start, end);
                 const length = line.length;
                 line = line.trim();
                 const trimmedWhitespace = length - line.length;
                 const position = +err.position - start - trimmedWhitespace;
+                if (previousLine)
+                    (0, Log_1.default)("  > ", (0, Log_1.color)("darkGray", previousLine));
                 (0, Log_1.default)("  > ", line);
                 if (position !== undefined)
                     (0, Log_1.default)("    ", " ".repeat(Math.max(0, position - 1)) + (0, Log_1.color)("red", "^"));
