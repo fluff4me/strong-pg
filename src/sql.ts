@@ -42,6 +42,7 @@ namespace _ {
 
 				let line: string
 				const start = this.text.lastIndexOf("\n", +err.position) + 1
+				const previousLine = this.text.substring(this.text.lastIndexOf("\n", start - 2) + 1, start - 1).trim()
 				const end = this.text.indexOf("\n", +err.position)
 				line = this.text.substring(start, end)
 				const length = line.length
@@ -49,7 +50,11 @@ namespace _ {
 				const trimmedWhitespace = length - line.length
 				const position = +err.position - start - trimmedWhitespace
 
+				if (previousLine)
+					log("  > ", color("darkGray", previousLine))
+
 				log("  > ", line)
+
 				if (position !== undefined)
 					log("    ", " ".repeat(Math.max(0, position - 1)) + color("red", "^"))
 			}
