@@ -120,6 +120,7 @@ var _;
                     if (subData)
                         resultInterpolations ?? (resultInterpolations = topLayerInterpolations.slice(0, i));
                     text += recurse(subData);
+                    text += segments[i + 1];
                     continue;
                 }
                 resultInterpolations?.push(interpolation);
@@ -143,6 +144,7 @@ var _;
                 const interpolation = interpolations[i];
                 if (interpolation instanceof _a) {
                     text += recurse(__classPrivateFieldGet(interpolation, _SQL_data, "f"));
+                    text += segments[i + 1];
                     continue;
                 }
                 text += `${String(interpolation)}${segments[i + 1]}`;
