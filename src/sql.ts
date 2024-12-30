@@ -83,6 +83,7 @@ namespace _ {
 						if (subData)
 							resultInterpolations ??= topLayerInterpolations.slice(0, i)
 						text += recurse(subData)
+						text += segments[i + 1]
 						continue
 					}
 
@@ -120,6 +121,7 @@ namespace _ {
 
 					if (interpolation instanceof SQL) {
 						text += recurse(interpolation.#data)
+						text += segments[i + 1]
 						continue
 					}
 
