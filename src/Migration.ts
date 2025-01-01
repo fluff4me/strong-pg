@@ -18,6 +18,9 @@ import RenameTable from "./statements/table/RenameTable";
 import CreateTrigger, { CreateTriggerInitialiser } from "./statements/trigger/CreateTrigger";
 import DropTrigger from "./statements/trigger/DropTrigger";
 import RenameTrigger from "./statements/trigger/RenameTrigger";
+import AlterType, { AlterTypeInitialiser } from "./statements/type/AlterType";
+import CreateType from "./statements/type/CreateType";
+import DropType from "./statements/type/DropType";
 import Transaction from "./Transaction";
 
 export default class Migration<SCHEMA_START extends DatabaseSchema | null = null, SCHEMA_END extends DatabaseSchema = SCHEMA_START extends null ? DatabaseSchema.Empty : SCHEMA_START> extends Transaction {
@@ -41,6 +44,9 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		this.add(() => statementSupplier(this.db));
 		return this;
 	}
+
+	////////////////////////////////////
+	//#region Table
 
 	public createTable<NAME extends string, TABLE_SCHEMA_NEW extends TableSchema> (
 		table: NAME,
@@ -94,6 +100,57 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		return this as any;
 	}
 
+	//#endregion
+	////////////////////////////////////
+
+	////////////////////////////////////
+	//#region Type
+
+	public createType<NAME extends string, TYPE_SCHEMA_NEW extends TableSchema> (
+		type: NAME,
+		alter: NAME extends DatabaseSchema.TableName<SCHEMA_END> ? never : AlterTypeInitialiser<SCHEMA_END, null, TYPE_SCHEMA_NEW>,
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "types"
+		? ({ [TYPE_NAME in NAME | keyof SCHEMA_END["types"]]: TYPE_NAME extends NAME ? TYPE_SCHEMA_NEW : SCHEMA_END["types"][TYPE_NAME] })
+		: SCHEMA_END[KEY]
+	}> {
+		this.add(new CreateType(type).setCaller());
+		this.add(alter(new AlterType(type)).setCaller());
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+		return this as any;
+	}
+
+	public alterType<NAME extends DatabaseSchema.TypeName<SCHEMA_END>, TYPE_SCHEMA_NEW extends TableSchema> (
+		type: NAME,
+		alter: AlterTypeInitialiser<SCHEMA_END, DatabaseSchema.Table<SCHEMA_END, NAME>, TYPE_SCHEMA_NEW>,
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "types"
+		? ({ [TYPE_NAME in NAME | keyof SCHEMA_END["types"]]: TYPE_NAME extends NAME ? TYPE_SCHEMA_NEW : SCHEMA_END["types"][TYPE_NAME] })
+		: SCHEMA_END[KEY]
+	}> {
+		this.add(alter(new AlterType(type)).setCaller());
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+		return this as any;
+	}
+
+	public dropType<NAME extends DatabaseSchema.TypeName<SCHEMA_END>> (
+		type: NAME,
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "types"
+		? ({ [TYPE_NAME in Exclude<keyof SCHEMA_END["types"], NAME>]: SCHEMA_END["types"][TYPE_NAME] })
+		: SCHEMA_END[KEY]
+	}> {
+		this.add(new DropType(type).setCaller());
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+		return this as any;
+	}
+	//#endregion 
+	////////////////////////////////////
+
+
+	////////////////////////////////////
+	//#region Index
+
 	public createIndex<NAME extends string, TABLE extends DatabaseSchema.TableName<SCHEMA_END>> (
 		name: NAME,
 		on: TABLE,
@@ -122,6 +179,12 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
+
+	//#endregion
+	////////////////////////////////////
+
+	////////////////////////////////////
+	//#region Enum
 
 	public createEnum<NAME extends string, ENUM_SCHEMA extends string[]> (
 		name: NAME,
@@ -161,6 +224,12 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
+
+	//#endregion
+	////////////////////////////////////
+
+	////////////////////////////////////
+	//#region Trigger
 
 	public createOrReplaceTrigger<TABLE extends DatabaseSchema.TableName<SCHEMA_END>, NAME extends string> (
 		on: TABLE,
@@ -223,6 +292,12 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		return this as any;
 	}
 
+	//#endregion
+	////////////////////////////////////
+
+	////////////////////////////////////
+	//#region Function
+
 	public createOrReplaceFunction<NAME extends string, IN extends (TypeString | OptionalTypeString)[], OUT extends [TypeString, string][], RETURN extends TypeString> (
 		name: NAME,
 		initialiser: CreateOrReplaceFunctionInitialiser<IN, OUT, RETURN>,
@@ -247,6 +322,12 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
+
+	//#endregion
+	////////////////////////////////////
+
+	////////////////////////////////////
+	//#region Collation
 
 	public createCollation<NAME extends string> (
 		name: NAME,
@@ -274,6 +355,8 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this as any;
 	}
+	//#endregion 
+	////////////////////////////////////
 
 	public commit () {
 		if (!this.statements.length)

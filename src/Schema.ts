@@ -17,6 +17,7 @@ export interface DatabaseSchema {
 	triggers: Record<string, {}>;
 	functions: Record<string, FunctionSchema>;
 	collations: Record<string, {}>;
+	types: Record<string, TableSchema>;
 }
 
 export interface FunctionSchema<IN extends (TypeString | OptionalTypeString)[] = (TypeString | OptionalTypeString)[], OUT extends [TypeString, string][] = [TypeString, string][], RETURN extends TypeString = TypeString> {
@@ -35,6 +36,7 @@ export namespace DatabaseSchema {
 		triggers: {};
 		functions: {};
 		collations: {};
+		types: {};
 	}
 
 	export type TableName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["tables"] & string;
@@ -43,9 +45,13 @@ export namespace DatabaseSchema {
 	export type TriggerName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["triggers"] & string;
 	export type FunctionName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["functions"] & string;
 	export type CollationName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["collations"] & string;
+	export type TypeName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["types"] & string;
 
 	export type Table<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> =
 		SCHEMA["tables"][NAME] extends infer TABLE ? TABLE extends TableSchema ? TABLE : never : never;
+
+	export type Type<SCHEMA extends DatabaseSchema, NAME extends TypeName<SCHEMA>> =
+		SCHEMA["types"][NAME] extends infer TYPE ? TYPE extends TableSchema ? TYPE : never : never;
 
 	export type Function<SCHEMA extends DatabaseSchema, NAME extends FunctionName<SCHEMA>> =
 		SCHEMA["functions"][NAME] extends infer FUNCTION extends FunctionSchema<infer IN, infer OUT, infer RETURN> ? FUNCTION : never;
@@ -115,6 +121,7 @@ class Schema {
 		triggers: S["triggers"] extends undefined ? {} : S["triggers"] & {};
 		functions: S["functions"] extends undefined ? {} : S["functions"] & {};
 		collations: S["collations"] extends undefined ? {} : S["collations"] & {};
+		types: S["types"] extends undefined ? {} : S["types"] & {};
 	}> : never {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return schema as any;
