@@ -21,6 +21,9 @@ const RenameTable_1 = __importDefault(require("./statements/table/RenameTable"))
 const CreateTrigger_1 = __importDefault(require("./statements/trigger/CreateTrigger"));
 const DropTrigger_1 = __importDefault(require("./statements/trigger/DropTrigger"));
 const RenameTrigger_1 = __importDefault(require("./statements/trigger/RenameTrigger"));
+const AlterType_1 = __importDefault(require("./statements/type/AlterType"));
+const CreateType_1 = __importDefault(require("./statements/type/CreateType"));
+const DropType_1 = __importDefault(require("./statements/type/DropType"));
 const Transaction_1 = __importDefault(require("./Transaction"));
 class Migration extends Transaction_1.default {
     constructor(schemaStart) {
@@ -35,6 +38,8 @@ class Migration extends Transaction_1.default {
         this.add(() => statementSupplier(this.db));
         return this;
     }
+    ////////////////////////////////////
+    //#region Table
     createTable(table, alter) {
         this.add(new CreateTable_1.default(table).setCaller());
         this.add(alter(new AlterTable_1.default(table)).setCaller());
@@ -56,6 +61,30 @@ class Migration extends Transaction_1.default {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
+    //#endregion
+    ////////////////////////////////////
+    ////////////////////////////////////
+    //#region Type
+    createType(type, alter) {
+        this.add(new CreateType_1.default(type).setCaller());
+        this.add(alter(new AlterType_1.default(type)).setCaller());
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return this;
+    }
+    alterType(type, alter) {
+        this.add(alter(new AlterType_1.default(type)).setCaller());
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return this;
+    }
+    dropType(type) {
+        this.add(new DropType_1.default(type).setCaller());
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return this;
+    }
+    //#endregion 
+    ////////////////////////////////////
+    ////////////////////////////////////
+    //#region Index
     createIndex(name, on, initialiser) {
         const createIndex = new CreateIndex_1.default(name, on).setCaller();
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -69,6 +98,10 @@ class Migration extends Transaction_1.default {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
+    //#endregion
+    ////////////////////////////////////
+    ////////////////////////////////////
+    //#region Enum
     createEnum(name, alter) {
         this.add(new CreateEnum_1.default(name).setCaller());
         this.add(alter(new AlterEnum_1.default(name)).setCaller());
@@ -85,6 +118,10 @@ class Migration extends Transaction_1.default {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
+    //#endregion
+    ////////////////////////////////////
+    ////////////////////////////////////
+    //#region Trigger
     createOrReplaceTrigger(on, name, initialiser) {
         const createTrigger = new CreateTrigger_1.default(name, on).setCaller();
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -111,6 +148,10 @@ class Migration extends Transaction_1.default {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
+    //#endregion
+    ////////////////////////////////////
+    ////////////////////////////////////
+    //#region Function
     createOrReplaceFunction(name, initialiser) {
         this.add(initialiser(new CreateOrReplaceFunction_1.default(name)).setCaller());
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -121,6 +162,10 @@ class Migration extends Transaction_1.default {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
+    //#endregion
+    ////////////////////////////////////
+    ////////////////////////////////////
+    //#region Collation
     createCollation(name, provider, locale, deterministic) {
         this.add(new CreateCollation_1.default(name, provider, locale, deterministic).setCaller());
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -131,6 +176,8 @@ class Migration extends Transaction_1.default {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
+    //#endregion 
+    ////////////////////////////////////
     commit() {
         if (!this.statements.length)
             return this;

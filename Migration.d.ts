@@ -7,6 +7,7 @@ import { CreateIndexInitialiser } from "./statements/index/CreateIndex";
 import Statement from "./statements/Statement";
 import { AlterTableInitialiser } from "./statements/table/AlterTable";
 import { CreateTriggerInitialiser } from "./statements/trigger/CreateTrigger";
+import { AlterTypeInitialiser } from "./statements/type/AlterType";
 import Transaction from "./Transaction";
 export default class Migration<SCHEMA_START extends DatabaseSchema | null = null, SCHEMA_END extends DatabaseSchema = SCHEMA_START extends null ? DatabaseSchema.Empty : SCHEMA_START> extends Transaction {
     readonly schemaStart?: SCHEMA_START;
@@ -34,6 +35,21 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
     dropTable<NAME extends DatabaseSchema.TableName<SCHEMA_END>>(table: NAME): Migration<SCHEMA_START, {
         [KEY in keyof SCHEMA_END]: KEY extends "tables" ? ({
             [TABLE_NAME in Exclude<keyof SCHEMA_END["tables"], NAME>]: SCHEMA_END["tables"][TABLE_NAME];
+        }) : SCHEMA_END[KEY];
+    }>;
+    createType<NAME extends string, TYPE_SCHEMA_NEW extends TableSchema>(type: NAME, alter: NAME extends DatabaseSchema.TableName<SCHEMA_END> ? never : AlterTypeInitialiser<SCHEMA_END, null, TYPE_SCHEMA_NEW>): Migration<SCHEMA_START, {
+        [KEY in keyof SCHEMA_END]: KEY extends "types" ? ({
+            [TYPE_NAME in NAME | keyof SCHEMA_END["types"]]: TYPE_NAME extends NAME ? TYPE_SCHEMA_NEW : SCHEMA_END["types"][TYPE_NAME];
+        }) : SCHEMA_END[KEY];
+    }>;
+    alterType<NAME extends DatabaseSchema.TypeName<SCHEMA_END>, TYPE_SCHEMA_NEW extends TableSchema>(type: NAME, alter: AlterTypeInitialiser<SCHEMA_END, DatabaseSchema.Table<SCHEMA_END, NAME>, TYPE_SCHEMA_NEW>): Migration<SCHEMA_START, {
+        [KEY in keyof SCHEMA_END]: KEY extends "types" ? ({
+            [TYPE_NAME in NAME | keyof SCHEMA_END["types"]]: TYPE_NAME extends NAME ? TYPE_SCHEMA_NEW : SCHEMA_END["types"][TYPE_NAME];
+        }) : SCHEMA_END[KEY];
+    }>;
+    dropType<NAME extends DatabaseSchema.TypeName<SCHEMA_END>>(type: NAME): Migration<SCHEMA_START, {
+        [KEY in keyof SCHEMA_END]: KEY extends "types" ? ({
+            [TYPE_NAME in Exclude<keyof SCHEMA_END["types"], NAME>]: SCHEMA_END["types"][TYPE_NAME];
         }) : SCHEMA_END[KEY];
     }>;
     createIndex<NAME extends string, TABLE extends DatabaseSchema.TableName<SCHEMA_END>>(name: NAME, on: TABLE, initialiser: NAME extends DatabaseSchema.IndexName<SCHEMA_END> ? never : DatabaseSchema.Table<SCHEMA_END, TABLE> extends infer TABLE_SCHEMA extends Record<string, any> ? CreateIndexInitialiser<TABLE_SCHEMA> : never): Migration<SCHEMA_START, {

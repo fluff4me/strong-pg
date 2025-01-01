@@ -11,6 +11,7 @@ export interface DatabaseSchema {
     triggers: Record<string, {}>;
     functions: Record<string, FunctionSchema>;
     collations: Record<string, {}>;
+    types: Record<string, TableSchema>;
 }
 export interface FunctionSchema<IN extends (TypeString | OptionalTypeString)[] = (TypeString | OptionalTypeString)[], OUT extends [TypeString, string][] = [TypeString, string][], RETURN extends TypeString = TypeString> {
     in: IN;
@@ -28,6 +29,7 @@ export declare namespace DatabaseSchema {
         triggers: {};
         functions: {};
         collations: {};
+        types: {};
     }
     type TableName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["tables"] & string;
     type IndexName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["indices"] & string;
@@ -35,7 +37,9 @@ export declare namespace DatabaseSchema {
     type TriggerName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["triggers"] & string;
     type FunctionName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["functions"] & string;
     type CollationName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["collations"] & string;
+    type TypeName<SCHEMA extends DatabaseSchema> = keyof SCHEMA["types"] & string;
     type Table<SCHEMA extends DatabaseSchema, NAME extends TableName<SCHEMA>> = SCHEMA["tables"][NAME] extends infer TABLE ? TABLE extends TableSchema ? TABLE : never : never;
+    type Type<SCHEMA extends DatabaseSchema, NAME extends TypeName<SCHEMA>> = SCHEMA["types"][NAME] extends infer TYPE ? TYPE extends TableSchema ? TYPE : never : never;
     type Function<SCHEMA extends DatabaseSchema, NAME extends FunctionName<SCHEMA>> = SCHEMA["functions"][NAME] extends infer FUNCTION extends FunctionSchema<infer IN, infer OUT, infer RETURN> ? FUNCTION : never;
     type Enum<SCHEMA extends DatabaseSchema, NAME extends EnumName<SCHEMA>> = SCHEMA["enums"][NAME] extends infer ENUM ? ENUM extends string[] ? ENUM : never : never;
 }
@@ -66,6 +70,7 @@ declare class Schema {
         triggers: S["triggers"] extends undefined ? {} : S["triggers"] & {};
         functions: S["functions"] extends undefined ? {} : S["functions"] & {};
         collations: S["collations"] extends undefined ? {} : S["collations"] & {};
+        types: S["types"] extends undefined ? {} : S["types"] & {};
     }> : never;
     static enum<ENUM extends object>(enm: ENUM): SchemaEnum<EnumToTuple<ENUM>> & { [KEY in keyof ENUM as ENUM[KEY] extends number ? KEY : never]: KEY; };
     static table<SCHEMA>(schema: SCHEMA): ValidateTableSchema<SCHEMA>;
