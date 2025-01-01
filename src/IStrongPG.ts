@@ -38,6 +38,7 @@ export enum DataTypeID {
 	// special
 	TSVECTOR,
 	JSON,
+	JSONB,
 	RECORD,
 	SETOF,
 	TRIGGER,
@@ -78,6 +79,7 @@ export interface TypeStringMap {
 	// special
 	[DataTypeID.TSVECTOR]: "TSVECTOR",
 	[DataTypeID.JSON]: "JSON",
+	[DataTypeID.JSONB]: "JSONB",
 	[DataTypeID.UUID]: "UUID",
 	[DataTypeID.RECORD]: "RECORD",
 	[DataTypeID.SETOF]: `SETOF ${string}`,
@@ -146,6 +148,7 @@ export namespace DataType {
 	// special
 	export const TSVECTOR: TypeStringMap[DataTypeID.TSVECTOR] = "TSVECTOR";
 	export const JSON: TypeStringMap[DataTypeID.JSON] = "JSON";
+	export const JSONB: TypeStringMap[DataTypeID.JSONB] = "JSONB";
 	export const RECORD: TypeStringMap[DataTypeID.RECORD] = "RECORD";
 	export const TRIGGER: TypeStringMap[DataTypeID.TRIGGER] = "TRIGGER";
 	export const VOID: TypeStringMap[DataTypeID.VOID] = "VOID";
@@ -209,11 +212,13 @@ export interface MigrationTypeMap {
 	// special
 	[DataTypeID.TSVECTOR]: null;
 	[DataTypeID.JSON]: null;
+	[DataTypeID.JSONB]: null;
 	[DataTypeID.RECORD]: null;
 }
 
 export interface InputTypeMap extends Omit<MigrationTypeMap, DataTypeID.JSON> {
 	[DataTypeID.JSON]: any;
+	[DataTypeID.JSONB]: any;
 	[DataTypeID.RECORD]: never;
 	[DataTypeID.SETOF]: never;
 	[DataTypeID.VOID]: void;
