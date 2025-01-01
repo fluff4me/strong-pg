@@ -25,10 +25,11 @@ export declare enum DataTypeID {
     BOOLEAN = 20,
     TSVECTOR = 21,
     JSON = 22,
-    RECORD = 23,
-    SETOF = 24,
-    TRIGGER = 25,
-    VOID = 26
+    JSONB = 23,
+    RECORD = 24,
+    SETOF = 25,
+    TRIGGER = 26,
+    VOID = 27
 }
 export interface TypeStringMap {
     [DataTypeID.SMALLINT]: "SMALLINT";
@@ -53,6 +54,7 @@ export interface TypeStringMap {
     [DataTypeID.BOOLEAN]: "BOOLEAN";
     [DataTypeID.TSVECTOR]: "TSVECTOR";
     [DataTypeID.JSON]: "JSON";
+    [DataTypeID.JSONB]: "JSONB";
     [DataTypeID.UUID]: "UUID";
     [DataTypeID.RECORD]: "RECORD";
     [DataTypeID.SETOF]: `SETOF ${string}`;
@@ -85,6 +87,7 @@ export declare namespace DataType {
     const BOOLEAN: TypeStringMap[DataTypeID.BOOLEAN];
     const TSVECTOR: TypeStringMap[DataTypeID.TSVECTOR];
     const JSON: TypeStringMap[DataTypeID.JSON];
+    const JSONB: TypeStringMap[DataTypeID.JSONB];
     const RECORD: TypeStringMap[DataTypeID.RECORD];
     const TRIGGER: TypeStringMap[DataTypeID.TRIGGER];
     const VOID: TypeStringMap[DataTypeID.VOID];
@@ -125,10 +128,12 @@ export interface MigrationTypeMap {
     [DataTypeID.BOOLEAN]: boolean;
     [DataTypeID.TSVECTOR]: null;
     [DataTypeID.JSON]: null;
+    [DataTypeID.JSONB]: null;
     [DataTypeID.RECORD]: null;
 }
 export interface InputTypeMap extends Omit<MigrationTypeMap, DataTypeID.JSON> {
     [DataTypeID.JSON]: any;
+    [DataTypeID.JSONB]: any;
     [DataTypeID.RECORD]: never;
     [DataTypeID.SETOF]: never;
     [DataTypeID.VOID]: void;

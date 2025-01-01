@@ -33,10 +33,11 @@ var DataTypeID;
     // special
     DataTypeID[DataTypeID["TSVECTOR"] = 21] = "TSVECTOR";
     DataTypeID[DataTypeID["JSON"] = 22] = "JSON";
-    DataTypeID[DataTypeID["RECORD"] = 23] = "RECORD";
-    DataTypeID[DataTypeID["SETOF"] = 24] = "SETOF";
-    DataTypeID[DataTypeID["TRIGGER"] = 25] = "TRIGGER";
-    DataTypeID[DataTypeID["VOID"] = 26] = "VOID";
+    DataTypeID[DataTypeID["JSONB"] = 23] = "JSONB";
+    DataTypeID[DataTypeID["RECORD"] = 24] = "RECORD";
+    DataTypeID[DataTypeID["SETOF"] = 25] = "SETOF";
+    DataTypeID[DataTypeID["TRIGGER"] = 26] = "TRIGGER";
+    DataTypeID[DataTypeID["VOID"] = 27] = "VOID";
 })(DataTypeID || (exports.DataTypeID = DataTypeID = {}));
 var DataType;
 (function (DataType) {
@@ -101,6 +102,7 @@ var DataType;
     // special
     DataType.TSVECTOR = "TSVECTOR";
     DataType.JSON = "JSON";
+    DataType.JSONB = "JSONB";
     DataType.RECORD = "RECORD";
     DataType.TRIGGER = "TRIGGER";
     DataType.VOID = "VOID";
