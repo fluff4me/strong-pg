@@ -37,12 +37,12 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
             [TABLE_NAME in Exclude<keyof SCHEMA_END["tables"], NAME>]: SCHEMA_END["tables"][TABLE_NAME];
         }) : SCHEMA_END[KEY];
     }>;
-    createType<NAME extends string, TYPE_SCHEMA_NEW extends TableSchema>(type: NAME, alter: NAME extends DatabaseSchema.TableName<SCHEMA_END> ? never : AlterTypeInitialiser<SCHEMA_END, null, TYPE_SCHEMA_NEW>): Migration<SCHEMA_START, {
+    createType<NAME extends string, TYPE_SCHEMA_NEW extends TableSchema>(type: NAME, alter: NAME extends DatabaseSchema.TypeName<SCHEMA_END> ? never : AlterTypeInitialiser<SCHEMA_END, null, TYPE_SCHEMA_NEW>): Migration<SCHEMA_START, {
         [KEY in keyof SCHEMA_END]: KEY extends "types" ? ({
             [TYPE_NAME in NAME | keyof SCHEMA_END["types"]]: TYPE_NAME extends NAME ? TYPE_SCHEMA_NEW : SCHEMA_END["types"][TYPE_NAME];
         }) : SCHEMA_END[KEY];
     }>;
-    alterType<NAME extends DatabaseSchema.TypeName<SCHEMA_END>, TYPE_SCHEMA_NEW extends TableSchema>(type: NAME, alter: AlterTypeInitialiser<SCHEMA_END, DatabaseSchema.Table<SCHEMA_END, NAME>, TYPE_SCHEMA_NEW>): Migration<SCHEMA_START, {
+    alterType<NAME extends DatabaseSchema.TypeName<SCHEMA_END>, TYPE_SCHEMA_NEW extends TableSchema>(type: NAME, alter: AlterTypeInitialiser<SCHEMA_END, DatabaseSchema.Type<SCHEMA_END, NAME>, TYPE_SCHEMA_NEW>): Migration<SCHEMA_START, {
         [KEY in keyof SCHEMA_END]: KEY extends "types" ? ({
             [TYPE_NAME in NAME | keyof SCHEMA_END["types"]]: TYPE_NAME extends NAME ? TYPE_SCHEMA_NEW : SCHEMA_END["types"][TYPE_NAME];
         }) : SCHEMA_END[KEY];
