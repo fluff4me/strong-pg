@@ -4,7 +4,7 @@ import { History } from "./History";
 import { DatabaseSchema, FunctionParameters } from "./Schema";
 import Table from "./Table";
 
-export { sql } from "./sql";
+export { default as sql } from "./sql";
 
 export default class Database<SCHEMA extends DatabaseSchema> {
 

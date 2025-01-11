@@ -8,142 +8,147 @@ function isDatabaseError (value: unknown): value is DatabaseError {
 
 type SqlTemplateData = [segments: TemplateStringsArray, interpolations: unknown[]]
 
-namespace _ {
-	export interface SQL extends Omit<QueryConfig, "text" | "values"> { }
-	export class SQL implements QueryConfig {
+interface SQL extends Omit<QueryConfig, "text" | "values"> { }
+class SQL implements QueryConfig {
 
-		#data: SqlTemplateData
-		public constructor (...data: SqlTemplateData) {
-			this.#data = data
-		}
+	#data: SqlTemplateData
+	public constructor (...data: SqlTemplateData) {
+		this.#data = data
+	}
 
-		public get text (): string {
-			this.#compile()
-			return this.text
-		}
+	public get text (): string {
+		this.#compile()
+		return this.text
+	}
 
-		public get values (): unknown[] | undefined {
-			this.#compile()
-			return this.values
-		}
+	public get values (): unknown[] | undefined {
+		this.#compile()
+		return this.values
+	}
 
-		public async query (pool: Pool | PoolClient) {
-			try {
-				return await pool.query(this)
-			} catch (err) {
-				if (!isDatabaseError(err))
-					throw err
+	public async query (pool: Pool | PoolClient) {
+		try {
+			return await pool.query(this)
+		} catch (err) {
+			if (!isDatabaseError(err))
+				throw err
 
-				log(color("red", "Error: ") + err.message + (err.detail ? `: ${err.detail}` : "")
-					+ (err.hint ? color("darkGray", `\nHint: ${err.hint}`) : ""))
+			log(color("red", "Error: ") + err.message + (err.detail ? `: ${err.detail}` : "")
+				+ (err.hint ? color("darkGray", `\nHint: ${err.hint}`) : ""))
 
-				if (err.position === undefined)
-					return
-
-				let line: string
-				const start = this.text.lastIndexOf("\n", +err.position) + 1
-				const previousLine = this.text.substring(this.text.lastIndexOf("\n", start - 2) + 1, start - 1).trim()
-				const end = this.text.indexOf("\n", +err.position)
-				line = this.text.substring(start, end)
-				const length = line.length
-				line = line.trim()
-				const trimmedWhitespace = length - line.length
-				const position = +err.position - start - trimmedWhitespace
-
-				if (previousLine)
-					log("  > ", color("darkGray", previousLine))
-
-				log("  > ", line)
-
-				if (position !== undefined)
-					log("    ", " ".repeat(Math.max(0, position - 1)) + color("red", "^"))
-			}
-		}
-
-		#compile () {
-			const [topLayerSegments, topLayerInterpolations] = this.#data
-			if (!topLayerInterpolations.length) {
-				Object.defineProperty(this, "text", { value: topLayerSegments[0] })
-				Object.defineProperty(this, "values", { value: undefined })
+			if (err.position === undefined)
 				return
-			}
 
-			let resultInterpolations: unknown[] | undefined
+			let line: string
+			const start = this.text.lastIndexOf("\n", +err.position) + 1
+			const previousLine = this.text.substring(this.text.lastIndexOf("\n", start - 2) + 1, start - 1).trim()
+			const end = this.text.indexOf("\n", +err.position)
+			line = this.text.substring(start, end)
+			const length = line.length
+			line = line.trim()
+			const trimmedWhitespace = length - line.length
+			const position = +err.position - start - trimmedWhitespace
 
-			let vi = 1
-			const recurse = (recursiveData?: SqlTemplateData) => {
-				const [segments, interpolations] = recursiveData ?? this.#data
+			if (previousLine)
+				log("  > ", color("darkGray", previousLine))
 
-				let text = segments[0]
-				for (let i = 0; i < interpolations.length; i++) {
-					const interpolation = interpolations[i]
+			log("  > ", line)
 
-					if (interpolation instanceof SQL) {
-						const subData = interpolation.#data
-						if (subData)
-							resultInterpolations ??= topLayerInterpolations.slice(0, i)
-						text += recurse(subData)
-						text += segments[i + 1]
-						continue
-					}
+			if (position !== undefined)
+				log("    ", " ".repeat(Math.max(0, position - 1)) + color("red", "^"))
+		}
+	}
 
-					resultInterpolations?.push(interpolation)
-					text += `$${vi++}${segments[i + 1]}`
+	#compile () {
+		const [topLayerSegments, topLayerInterpolations] = this.#data
+		if (!topLayerInterpolations.length) {
+			Object.defineProperty(this, "text", { value: topLayerSegments[0] })
+			Object.defineProperty(this, "values", { value: undefined })
+			return
+		}
+
+		let resultInterpolations: unknown[] | undefined
+
+		let vi = 1
+		const recurse = (recursiveData?: SqlTemplateData) => {
+			const [segments, interpolations] = recursiveData ?? this.#data
+
+			let text = segments[0]
+			for (let i = 0; i < interpolations.length; i++) {
+				const interpolation = interpolations[i]
+
+				if (interpolation instanceof SQL) {
+					const subData = interpolation.#data
+					if (subData)
+						resultInterpolations ??= topLayerInterpolations.slice(0, i)
+					text += recurse(subData)
+					text += segments[i + 1]
+					continue
 				}
 
-				return text
+				resultInterpolations?.push(interpolation)
+				text += `$${vi++}${segments[i + 1]}`
 			}
 
-			const text = recurse()
-
-			Object.defineProperty(this, "text", { value: text })
-			Object.defineProperty(this, "values", { value: resultInterpolations ?? topLayerInterpolations })
+			return text
 		}
 
-		protected get asRawSql (): string {
-			this.#compileRaw()
-			return this.asRawSql
+		const text = recurse()
+
+		Object.defineProperty(this, "text", { value: text })
+		Object.defineProperty(this, "values", { value: resultInterpolations ?? topLayerInterpolations })
+	}
+
+	protected get asRawSql (): string {
+		this.#compileRaw()
+		return this.asRawSql
+	}
+
+	#compileRaw () {
+		const [topLayerSegments, topLayerInterpolations] = this.#data
+		if (!topLayerInterpolations.length) {
+			Object.defineProperty(this, "asRawSql", { value: topLayerSegments[0] })
+			return
 		}
 
-		#compileRaw () {
-			const [topLayerSegments, topLayerInterpolations] = this.#data
-			if (!topLayerInterpolations.length) {
-				Object.defineProperty(this, "asRawSql", { value: topLayerSegments[0] })
-				return
-			}
+		const recurse = (recursiveData?: SqlTemplateData) => {
+			const [segments, interpolations] = recursiveData ?? this.#data
 
-			const recurse = (recursiveData?: SqlTemplateData) => {
-				const [segments, interpolations] = recursiveData ?? this.#data
+			let text = segments[0]
+			for (let i = 0; i < interpolations.length; i++) {
+				const interpolation = interpolations[i]
 
-				let text = segments[0]
-				for (let i = 0; i < interpolations.length; i++) {
-					const interpolation = interpolations[i]
-
-					if (interpolation instanceof SQL) {
-						text += recurse(interpolation.#data)
-						text += segments[i + 1]
-						continue
-					}
-
-					text += `${String(interpolation)}${segments[i + 1]}`
+				if (interpolation instanceof SQL) {
+					text += recurse(interpolation.#data)
+					text += segments[i + 1]
+					continue
 				}
 
-				return text
+				text += `${String(interpolation)}${segments[i + 1]}`
 			}
 
-			const text = recurse()
-			Object.defineProperty(this, "asRawSql", { value: text })
+			return text
 		}
+
+		const text = recurse()
+		Object.defineProperty(this, "asRawSql", { value: text })
 	}
 }
 
-export type SQL = _.SQL
-export namespace SQL {
+type sql = SQL
+
+function sql (segments: TemplateStringsArray, ...interpolations: unknown[]): sql {
+	return new SQL(segments, interpolations)
+}
+
+namespace sql {
 	export function is (value: unknown) {
-		return value instanceof _.SQL
+		return value instanceof SQL
+	}
+
+	export function join (segments: unknown[], separator: sql): sql {
+		return segments.reduce((acc, cur) => sql`${acc}${separator}${cur}`) as sql
 	}
 }
 
-export function sql (segments: TemplateStringsArray, ...interpolations: unknown[]): SQL {
-	return new _.SQL(segments, interpolations)
-}
+export default sql
