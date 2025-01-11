@@ -8,7 +8,7 @@ const FunctionCall_1 = __importDefault(require("./FunctionCall"));
 const History_1 = require("./History");
 const Table_1 = __importDefault(require("./Table"));
 var sql_1 = require("./sql");
-Object.defineProperty(exports, "sql", { enumerable: true, get: function () { return sql_1.sql; } });
+Object.defineProperty(exports, "sql", { enumerable: true, get: function () { return __importDefault(sql_1).default; } });
 class Database {
     constructor(schema) {
         this.schema = schema;
