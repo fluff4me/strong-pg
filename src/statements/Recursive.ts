@@ -2,7 +2,7 @@ import Expression, { ExpressionInitialiser } from "../expressions/Expression";
 import { SearchType, SortDirection } from "../IStrongPG";
 import Schema, { TableSchema } from "../Schema";
 import { VirtualTable } from "../VirtualTable";
-import { SelectFromVirtualTable } from "./Select";
+import { Order, SelectFromVirtualTable } from "./Select";
 
 export default class Recursive<TABLE extends TableSchema, VIRTUAL_TABLE extends TableSchema, NAME extends string> extends VirtualTable<VIRTUAL_TABLE, never> {
 
@@ -25,16 +25,30 @@ export default class Recursive<TABLE extends TableSchema, VIRTUAL_TABLE extends 
 		return this;
 	}
 
-	private search?: { column: Schema.Column<VIRTUAL_TABLE>, type: SearchType, direction?: SortDirection }
-	public searchBy (column: Schema.Column<VIRTUAL_TABLE>, type: SearchType, direction?: SortDirection) {
-		this.search = { column, type, direction }
+	private search?: { columns: Schema.Column<VIRTUAL_TABLE>[], type: SearchType }
+	public searchBy (type: SearchType, ...columns: Schema.Column<VIRTUAL_TABLE>[]) {
+		this.search = { type, columns };
 		return this
+	}
+
+	private _orderBy?: Order<VIRTUAL_TABLE>[]
+	public orderBy (column: Schema.Column<VIRTUAL_TABLE>, order?: SortDirection): this;
+	public orderBy (orders: Order<VIRTUAL_TABLE>[]): this;
+	public orderBy (...args: Order<VIRTUAL_TABLE> | [Order<VIRTUAL_TABLE>[]]) {
+		if (Array.isArray(args[0]))
+			this._orderBy = args[0]
+		else
+			this._orderBy = [args as Order<VIRTUAL_TABLE>];
+		return this;
 	}
 
 	protected override selectInitialiser (query: SelectFromVirtualTable<VIRTUAL_TABLE, "*">) {
 		if (this.search)
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-			query.orderBy("with_recursive_search_order" as any, this.search.direction)
+			query.orderBy([
+				["with_recursive_search_order" as Schema.Column<VIRTUAL_TABLE>],
+				...this._orderBy ?? [],
+			])
 	}
 
 	public override compileWith (): string {
@@ -43,7 +57,8 @@ export default class Recursive<TABLE extends TableSchema, VIRTUAL_TABLE extends 
 
 		const anchorQuery = `SELECT ${this.columnNames.join(",")} FROM ${this.tableName} ${this.anchorCondition ?? ""}`
 		const recursiveQuery = `SELECT ${this.columnNames.map(name => `recursive_table.${String(name)}`).join(",")} FROM ${this.tableName} recursive_table, ${this.name} current ${this.recursiveCondition}`
-		const searchQuery = !this.search ? "" : `SEARCH ${this.search.type.description!} FIRST BY ${String(this.search.column)} SET with_recursive_search_order`
+		const searchBy = !this.search?.columns ? "" : `BY ${this.search.columns.map(String).join(",")}`
+		const searchQuery = !this.search ? "" : `SEARCH ${this.search.type.description!} FIRST ${searchBy} SET with_recursive_search_order`
 		return `RECURSIVE ${this.name}(${this.columnNames.join(",")}) AS (${anchorQuery} UNION ALL ${recursiveQuery}) ${searchQuery}`;
 	}
 }

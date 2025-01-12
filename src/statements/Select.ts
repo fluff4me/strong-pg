@@ -52,9 +52,18 @@ type SelectResult<SCHEMA extends TableSchema, COLUMNS extends SelectColumns<SCHE
 
 	: never
 
-type Order<SCHEMA extends TableSchema> =
+export type Order<SCHEMA extends TableSchema> =
 	| [column: Schema.Column<SCHEMA>, order?: SortDirection]
 	| [null: null, column: Schema.Column<SCHEMA>, order?: SortDirection]
+
+export namespace Order {
+	export function resolve<SCHEMA extends TableSchema> (order?: Order<SCHEMA>[]) {
+		return !order?.length ? ""
+			: `${order
+				.map(order => order[0] === null ? `${String(order[1])} IS NULL ${order[2]?.description ?? ""}` : `${String(order[0])} ${(order[1] as symbol)?.description ?? ""}`)
+				.join(",")}`;
+	}
+}
 
 type SelectWhereVars<SCHEMA extends TableSchema, NAME extends string> = Schema.Columns<SCHEMA> extends infer BASE ?
 	BASE & { [KEY in keyof BASE as KEY extends string ? `${NAME}.${KEY}` : never]: BASE[KEY] }
@@ -103,9 +112,8 @@ export class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME extends str
 	}
 
 	public compile () {
-		const orderBy = this._orderBy?.length ? `ORDER BY ${this._orderBy
-			.map(order => order[0] === null ? `${String(order[1])} IS NULL ${order[2]?.description ?? ""}` : `${String(order[0])} ${(order[1] as symbol)?.description ?? ""}`)
-			.join(",")}` : "";
+		let orderBy = Order.resolve(this._orderBy);
+		orderBy = orderBy ? `ORDER BY ${orderBy}` : "";
 		const offset = this._offset ? `OFFSET ${this._offset}` : "";
 		const limit = this._limit ? `LIMIT ${this._limit}` : "";
 		const from = typeof this.from === "string" ? this.from : this.from.compileFrom?.() ?? this.from["name"]
