@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const Database_1 = require("../Database");
 const Statement_1 = __importDefault(require("../statements/Statement"));
 class Expression {
     static stringifyValue(value, vars, enableStringConcatenation = false) {
@@ -16,6 +17,8 @@ class Expression {
         if (value instanceof Expression) {
             return `(${value.compile()})`;
         }
+        if (Database_1.sql.is(value))
+            return value.text;
         const shouldPassAsVariable = false
             || (typeof value === "string" && !enableStringConcatenation)
             || (value && typeof value === "object" && !(value instanceof Date) && !(value instanceof RegExp));
@@ -46,6 +49,8 @@ class Expression {
                     return "NULL";
                 else if (value instanceof RegExp)
                     return `'${value.source.replace(/'/g, "''")}'`;
+                else if (Database_1.sql.is(value))
+                    return value.text;
                 else
                     return `'${value.toISOString()}'`;
             case "number":

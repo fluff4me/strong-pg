@@ -10,7 +10,10 @@ type SelectResult<SCHEMA extends TableSchema, COLUMNS extends SelectColumns<SCHE
 } : (COLUMNS extends any[] ? COLUMNS[number] : Schema.Column<SCHEMA>) extends infer COLUMNS ? {
     [K in COLUMNS & PropertyKey]: OutputTypeFromString<SCHEMA[K & keyof SCHEMA]>;
 } : never;
-type Order<SCHEMA extends TableSchema> = [column: Schema.Column<SCHEMA>, order?: SortDirection] | [null: null, column: Schema.Column<SCHEMA>, order?: SortDirection];
+export type Order<SCHEMA extends TableSchema> = [column: Schema.Column<SCHEMA>, order?: SortDirection] | [null: null, column: Schema.Column<SCHEMA>, order?: SortDirection];
+export declare namespace Order {
+    function resolve<SCHEMA extends TableSchema>(order?: Order<SCHEMA>[]): string;
+}
 type SelectWhereVars<SCHEMA extends TableSchema, NAME extends string> = Schema.Columns<SCHEMA> extends infer BASE ? BASE & {
     [KEY in keyof BASE as KEY extends string ? `${NAME}.${KEY}` : never]: BASE[KEY];
 } : never;

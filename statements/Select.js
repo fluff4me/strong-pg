@@ -3,10 +3,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SelectFromVirtualTable = void 0;
+exports.SelectFromVirtualTable = exports.Order = void 0;
 const Schema_1 = __importDefault(require("../Schema"));
 const Expression_1 = __importDefault(require("../expressions/Expression"));
 const Statement_1 = __importDefault(require("./Statement"));
+var Order;
+(function (Order) {
+    function resolve(order) {
+        return !order?.length ? ""
+            : `${order
+                .map(order => order[0] === null ? `${String(order[1])} IS NULL ${order[2]?.description ?? ""}` : `${String(order[0])} ${order[1]?.description ?? ""}`)
+                .join(",")}`;
+    }
+    Order.resolve = resolve;
+})(Order || (exports.Order = Order = {}));
 class SelectFromVirtualTable extends Statement_1.default {
     constructor(from, columns) {
         super();
@@ -37,9 +47,8 @@ class SelectFromVirtualTable extends Statement_1.default {
         return this;
     }
     compile() {
-        const orderBy = this._orderBy?.length ? `ORDER BY ${this._orderBy
-            .map(order => order[0] === null ? `${String(order[1])} IS NULL ${order[2]?.description ?? ""}` : `${String(order[0])} ${order[1]?.description ?? ""}`)
-            .join(",")}` : "";
+        let orderBy = Order.resolve(this._orderBy);
+        orderBy = orderBy ? `ORDER BY ${orderBy}` : "";
         const offset = this._offset ? `OFFSET ${this._offset}` : "";
         const limit = this._limit ? `LIMIT ${this._limit}` : "";
         const from = typeof this.from === "string" ? this.from : this.from.compileFrom?.() ?? this.from["name"];

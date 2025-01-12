@@ -1,4 +1,4 @@
-import Database from "../Database";
+import Database, { sql } from "../Database";
 import { Initialiser, MigrationTypeFromString, OptionalTypeString, TypeString, ValidType } from "../IStrongPG";
 import { DatabaseSchema, TableSchema } from "../Schema";
 import { JoinTables } from "../statements/Join";
@@ -44,7 +44,7 @@ export interface ExpressionValues<VARS = never, VALUE = null, RESULT = null> {
     notExists<DATABASE_SCHEMA extends DatabaseSchema, TABLE extends DatabaseSchema.TableName<DATABASE_SCHEMA>>(database: Database<DATABASE_SCHEMA>, table: TABLE, initialiser: NoInfer<Initialiser<SelectFromVirtualTable<JoinTables<"INNER", Extract<VARS, TableSchema>, DatabaseSchema.Table<DATABASE_SCHEMA, TABLE>, never, TABLE>, never, 1>>>): ExpressionOperations<VARS, boolean>;
 }
 export type ExpressionInitialiser<VARS, RESULT = any> = Initialiser<ExpressionValues<VARS, null, null>, ExpressionOperations<VARS, RESULT>>;
-export type ExpressionOr<VARS, T> = T | ExpressionInitialiser<VARS, T> | ExpressionOperations<any, T>;
+export type ExpressionOr<VARS, T> = sql | T | ExpressionInitialiser<VARS, T> | ExpressionOperations<any, T>;
 export type ImplementableExpression = {
     [KEY in keyof ExpressionValues | keyof ExpressionOperations]: any;
 };

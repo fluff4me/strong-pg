@@ -21,21 +21,32 @@ class Recursive extends VirtualTable_1.VirtualTable {
         this.recursiveCondition = `WHERE (${queryable.text})`;
         return this;
     }
-    searchBy(column, type, direction) {
-        this.search = { column, type, direction };
+    searchBy(type, ...columns) {
+        this.search = { type, columns };
+        return this;
+    }
+    orderBy(...args) {
+        if (Array.isArray(args[0]))
+            this._orderBy = args[0];
+        else
+            this._orderBy = [args];
         return this;
     }
     selectInitialiser(query) {
         if (this.search)
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            query.orderBy("with_recursive_search_order", this.search.direction);
+            query.orderBy([
+                ["with_recursive_search_order"],
+                ...this._orderBy ?? [],
+            ]);
     }
     compileWith() {
         if (!this.recursiveCondition)
             throw new Error("A recursive condition is required");
         const anchorQuery = `SELECT ${this.columnNames.join(",")} FROM ${this.tableName} ${this.anchorCondition ?? ""}`;
         const recursiveQuery = `SELECT ${this.columnNames.map(name => `recursive_table.${String(name)}`).join(",")} FROM ${this.tableName} recursive_table, ${this.name} current ${this.recursiveCondition}`;
-        const searchQuery = !this.search ? "" : `SEARCH ${this.search.type.description} FIRST BY ${String(this.search.column)} SET with_recursive_search_order`;
+        const searchBy = !this.search?.columns ? "" : `BY ${this.search.columns.map(String).join(",")}`;
+        const searchQuery = !this.search ? "" : `SEARCH ${this.search.type.description} FIRST ${searchBy} SET with_recursive_search_order`;
         return `RECURSIVE ${this.name}(${this.columnNames.join(",")}) AS (${anchorQuery} UNION ALL ${recursiveQuery}) ${searchQuery}`;
     }
 }

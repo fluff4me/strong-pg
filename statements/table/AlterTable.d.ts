@@ -1,4 +1,4 @@
-import { ExpressionInitialiser } from "../../expressions/Expression";
+import { ExpressionInitialiser, ExpressionOr } from "../../expressions/Expression";
 import { ExtractTypeString, Initialiser, MigrationTypeFromString, OptionalTypeString, TypeString } from "../../IStrongPG";
 import Schema, { DatabaseSchema } from "../../Schema";
 import Statement from "../Statement";
@@ -23,7 +23,7 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
     protected compileOperation(operation: string): string;
 }
 export declare class CreateColumn<DB extends DatabaseSchema, TYPE extends TypeString | OptionalTypeString> extends Statement.Super<CreateColumnSubStatement> {
-    default(value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>): this;
+    default(value: ExpressionOr<{}, MigrationTypeFromString<TYPE>>): this;
     notNull(): CreateColumn<DB, ExtractTypeString<TYPE>>;
     collate(collation: DatabaseSchema.CollationName<DB>): this;
     protected compileOperation(operation: string): string;
@@ -34,7 +34,7 @@ declare class CreateColumnSubStatement extends Statement {
     /**
      * Warning: Do not use this outside of migrations
      */
-    static setDefault<TYPE extends TypeString | OptionalTypeString>(value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>): CreateColumnSubStatement;
+    static setDefault<TYPE extends TypeString | OptionalTypeString>(value: ExpressionOr<{}, MigrationTypeFromString<TYPE>>): CreateColumnSubStatement;
     static setNotNull(): CreateColumnSubStatement;
     static setCollation(collation: string): CreateColumnSubStatement;
     private constructor();
