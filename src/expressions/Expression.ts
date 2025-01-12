@@ -1,4 +1,4 @@
-import Database from "../Database";
+import Database, { sql } from "../Database";
 import { Initialiser, MigrationTypeFromString, OptionalTypeString, TypeString, ValidType } from "../IStrongPG";
 import { DatabaseSchema, TableSchema } from "../Schema";
 import { JoinTables } from "../statements/Join";
@@ -52,7 +52,7 @@ export interface ExpressionValues<VARS = never, VALUE = null, RESULT = null> {
 
 export type ExpressionInitialiser<VARS, RESULT = any> = Initialiser<ExpressionValues<VARS, null, null>, ExpressionOperations<VARS, RESULT>>;
 
-export type ExpressionOr<VARS, T> = T | ExpressionInitialiser<VARS, T> | ExpressionOperations<any, T>;
+export type ExpressionOr<VARS, T> = sql | T | ExpressionInitialiser<VARS, T> | ExpressionOperations<any, T>;
 
 export type ImplementableExpression = { [KEY in keyof ExpressionValues | keyof ExpressionOperations]: any };
 
@@ -72,6 +72,9 @@ export default class Expression<VARS = never> implements ImplementableExpression
 		if (value instanceof Expression) {
 			return `(${value.compile()})`;
 		}
+
+		if (sql.is(value))
+			return value.text;
 
 		const shouldPassAsVariable = false
 			|| (typeof value === "string" && !enableStringConcatenation)
@@ -110,6 +113,8 @@ export default class Expression<VARS = never> implements ImplementableExpression
 					return "NULL";
 				else if (value instanceof RegExp)
 					return `'${value.source.replace(/'/g, "''")}'`;
+				else if (sql.is(value))
+					return value.text;
 				else
 					return `'${value.toISOString()}'`;
 

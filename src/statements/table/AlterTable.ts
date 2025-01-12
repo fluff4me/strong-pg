@@ -1,4 +1,4 @@
-import Expression, { ExpressionInitialiser } from "../../expressions/Expression";
+import Expression, { ExpressionInitialiser, ExpressionOr } from "../../expressions/Expression";
 import { ExtractTypeString, Initialiser, MigrationTypeFromString, OptionalTypeString, TypeString } from "../../IStrongPG";
 import Schema, { DatabaseSchema } from "../../Schema";
 import Statement from "../Statement";
@@ -134,7 +134,7 @@ class AlterTableSubStatement extends Statement {
 // }
 
 export class CreateColumn<DB extends DatabaseSchema, TYPE extends TypeString | OptionalTypeString> extends Statement.Super<CreateColumnSubStatement> {
-	public default (value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>) {
+	public default (value: ExpressionOr<{}, MigrationTypeFromString<TYPE>>) {
 		if (value === null)
 			return this;
 		else
@@ -160,7 +160,7 @@ class CreateColumnSubStatement extends Statement {
 	/**
 	 * Warning: Do not use this outside of migrations
 	 */
-	public static setDefault<TYPE extends TypeString | OptionalTypeString> (value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>) {
+	public static setDefault<TYPE extends TypeString | OptionalTypeString> (value: ExpressionOr<{}, MigrationTypeFromString<TYPE>>) {
 		const expr = typeof value === "function" ? Expression.compile(value as never) : undefined;
 		const stringifiedValue = expr?.text ?? Expression.stringifyValueRaw(value as MigrationTypeFromString<ExtractTypeString<TYPE>>);
 		return new CreateColumnSubStatement(`DEFAULT (${stringifiedValue})`, expr?.values);
