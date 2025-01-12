@@ -1,4 +1,4 @@
-import Database from "./Database";
+import Database, { sql } from "./Database";
 import { OptionalTypeString, TypeString } from "./IStrongPG";
 import { DatabaseSchema, FunctionSchema, TableSchema } from "./Schema";
 import { AlterEnumInitialiser } from "./statements/enum/AlterEnum";
@@ -16,7 +16,7 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
     readonly file: string | undefined;
     private db;
     constructor(schemaStart?: SCHEMA_START);
-    then(statementSupplier: (db: Database<SCHEMA_END>) => Statement<any>): this;
+    then(statementSupplier: ((db: Database<SCHEMA_END>) => Statement<any>) | sql): this;
     createTable<NAME extends string, TABLE_SCHEMA_NEW extends TableSchema>(table: NAME, alter: NAME extends DatabaseSchema.TableName<SCHEMA_END> ? never : AlterTableInitialiser<SCHEMA_END, null, TABLE_SCHEMA_NEW>): Migration<SCHEMA_START, {
         [KEY in keyof SCHEMA_END]: KEY extends "tables" ? ({
             [TABLE_NAME in NAME | keyof SCHEMA_END["tables"]]: TABLE_NAME extends NAME ? TABLE_SCHEMA_NEW : SCHEMA_END["tables"][TABLE_NAME];

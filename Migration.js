@@ -7,6 +7,7 @@ exports.MigrationCommit = void 0;
 const IStrongPG_1 = require("./IStrongPG");
 const CreateCollation_1 = __importDefault(require("./statements/collation/CreateCollation"));
 const DropCollation_1 = __importDefault(require("./statements/collation/DropCollation"));
+const Do_1 = __importDefault(require("./statements/Do"));
 const AlterEnum_1 = __importDefault(require("./statements/enum/AlterEnum"));
 const CreateEnum_1 = __importDefault(require("./statements/enum/CreateEnum"));
 const DropEnum_1 = __importDefault(require("./statements/enum/DropEnum"));
@@ -35,7 +36,11 @@ class Migration extends Transaction_1.default {
     }
     then(statementSupplier) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        this.add(() => statementSupplier(this.db));
+        this.add(() => {
+            if (typeof statementSupplier === "function")
+                return statementSupplier(this.db);
+            return new Do_1.default(statementSupplier);
+        });
         return this;
     }
     ////////////////////////////////////

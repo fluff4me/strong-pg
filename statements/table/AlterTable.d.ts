@@ -9,8 +9,10 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
     protected readonly schemaEnd: SCHEMA_END;
     constructor(table: string);
     private do;
+    private declare;
     private doStandalone;
     addColumn<NAME extends string, TYPE extends TypeString, NEW_TYPE extends TypeString | OptionalTypeString = OptionalTypeString<TYPE>>(name: NAME, type: TYPE, initialiser?: Initialiser<CreateColumn<DB, OptionalTypeString<TYPE>>, CreateColumn<DB, NEW_TYPE>>): AlterTable<DB, SCHEMA_START, { [KEY in NAME | keyof SCHEMA_END]: KEY extends NAME ? NEW_TYPE : SCHEMA_END[KEY & keyof SCHEMA_END]; }>;
+    declareColumn<NAME extends string, TYPE extends TypeString>(name: NAME, type: TYPE): AlterTable<DB, SCHEMA_START, { [KEY in keyof SCHEMA_END | NAME]: KEY extends NAME ? TYPE : SCHEMA_END[KEY & keyof SCHEMA_END]; }>;
     alterColumn<NAME extends keyof SCHEMA_END & string, NEW_TYPE extends TypeString | OptionalTypeString>(name: NAME, initialiser: Initialiser<AlterColumn<NAME, SCHEMA_END[NAME] & (TypeString | OptionalTypeString)>, AlterColumn<NAME, NEW_TYPE>>): AlterTable<DB, SCHEMA_START, { [KEY in keyof SCHEMA_END | NAME]: KEY extends NAME ? NEW_TYPE : SCHEMA_END[KEY & keyof SCHEMA_END]; }>;
     dropColumn<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string>(name: NAME): AlterTable<DB, SCHEMA_START, Omit<SCHEMA_END, NAME>>;
     renameColumn<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string, NAME_NEW extends string>(name: NAME, newName: NAME_NEW): AlterTable<DB, SCHEMA_START, { [KEY in NAME_NEW | Exclude<keyof SCHEMA_END, NAME>]: KEY extends NAME_NEW ? SCHEMA_END[NAME] : SCHEMA_END[KEY & keyof SCHEMA_END]; }>;

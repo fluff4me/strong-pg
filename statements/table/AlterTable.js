@@ -15,11 +15,17 @@ class AlterTable extends Statement_1.default.Super {
     do(...operations) {
         return this.addParallelOperation(...operations);
     }
+    declare() {
+        return this;
+    }
     doStandalone(...operations) {
         return this.addStandaloneOperation(...operations);
     }
     addColumn(name, type, initialiser) {
         return this.do(AlterTableSubStatement.addColumn(name, type, initialiser));
+    }
+    declareColumn(name, type) {
+        return this.declare();
     }
     alterColumn(name, initialiser) {
         return this.do(AlterTableSubStatement.alterColumn(name, initialiser));
