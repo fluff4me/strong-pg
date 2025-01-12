@@ -19,12 +19,20 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
 		return this.addParallelOperation<AlterTable<DB, SCHEMA_START, SCHEMA_NEW>>(...operations);
 	}
 
+	private declare<SCHEMA_NEW = SCHEMA_END> () {
+		return this as any as AlterTable<DB, SCHEMA_START, SCHEMA_NEW>;
+	}
+
 	private doStandalone<SCHEMA_NEW = SCHEMA_END> (...operations: Statement[]) {
 		return this.addStandaloneOperation<AlterTable<DB, SCHEMA_START, SCHEMA_NEW>>(...operations);
 	}
 
 	public addColumn<NAME extends string, TYPE extends TypeString, NEW_TYPE extends TypeString | OptionalTypeString = OptionalTypeString<TYPE>> (name: NAME, type: TYPE, initialiser?: Initialiser<CreateColumn<DB, OptionalTypeString<TYPE>>, CreateColumn<DB, NEW_TYPE>>) {
 		return this.do<{ [KEY in NAME | keyof SCHEMA_END]: KEY extends NAME ? NEW_TYPE : SCHEMA_END[KEY & keyof SCHEMA_END] }>(AlterTableSubStatement.addColumn(name, type, initialiser));
+	}
+
+	public declareColumn<NAME extends string, TYPE extends TypeString> (name: NAME, type: TYPE) {
+		return this.declare<{ [KEY in NAME | keyof SCHEMA_END]: KEY extends NAME ? TYPE : SCHEMA_END[KEY & keyof SCHEMA_END] }>();
 	}
 
 	public alterColumn<NAME extends keyof SCHEMA_END & string, NEW_TYPE extends TypeString | OptionalTypeString> (name: NAME, initialiser: Initialiser<AlterColumn<NAME, SCHEMA_END[NAME] & (TypeString | OptionalTypeString)>, AlterColumn<NAME, NEW_TYPE>>) {
