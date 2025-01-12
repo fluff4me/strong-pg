@@ -1,8 +1,9 @@
-import Database from "./Database";
+import Database, { sql } from "./Database";
 import { OptionalTypeString, StackUtil, TypeString } from "./IStrongPG";
 import { DatabaseSchema, FunctionSchema, TableSchema } from "./Schema";
 import CreateCollation from "./statements/collation/CreateCollation";
 import DropCollation from "./statements/collation/DropCollation";
+import Do from "./statements/Do";
 import AlterEnum, { AlterEnumInitialiser } from "./statements/enum/AlterEnum";
 import CreateEnum from "./statements/enum/CreateEnum";
 import DropEnum from "./statements/enum/DropEnum";
@@ -39,9 +40,14 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		this.schemaStart = schemaStart as any;
 	}
 
-	public then (statementSupplier: (db: Database<SCHEMA_END>) => Statement<any>) {
+	public then (statementSupplier: ((db: Database<SCHEMA_END>) => Statement<any>) | sql) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-		this.add(() => statementSupplier(this.db));
+		this.add(() => {
+			if (typeof statementSupplier === "function")
+				return statementSupplier(this.db);
+
+			return new Do(statementSupplier);
+		});
 		return this;
 	}
 
