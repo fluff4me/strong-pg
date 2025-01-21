@@ -13,6 +13,9 @@ class AlterType extends Statement_1.default.Super {
     add(name, type) {
         return this.do(AlterTypeSubStatement.addAttributes(name, type));
     }
+    dropAttribute(name) {
+        return this.do(AlterTypeSubStatement.dropAttribute(name));
+    }
     do(...operations) {
         return this.addParallelOperation(...operations);
     }
