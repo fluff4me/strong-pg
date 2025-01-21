@@ -14,6 +14,11 @@ export default class AlterType<DB extends DatabaseSchema, SCHEMA_START = null, S
 		return this.do<{ [KEY in NAME | keyof SCHEMA_END]: KEY extends NAME ? NEW_TYPE : SCHEMA_END[KEY & keyof SCHEMA_END] }>(AlterTypeSubStatement.addAttributes(name, type));
 	}
 
+	public dropAttribute<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string> (name: NAME) {
+		return this.do<Omit<SCHEMA_END, NAME>>(
+			AlterTypeSubStatement.dropAttribute(name));
+	}
+
 	private do<SCHEMA_NEW = SCHEMA_END> (...operations: AlterTypeSubStatement[]) {
 		return this.addParallelOperation<AlterType<DB, SCHEMA_START, SCHEMA_NEW>>(...operations);
 	}
