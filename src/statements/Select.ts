@@ -86,8 +86,8 @@ export class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME extends str
 
 	private _limit?: number;
 	public limit (count: 1): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, COLUMNS> | undefined>;
-	public limit (count: number): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, COLUMNS>[]>;
-	public limit (count: number): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, any> {
+	public limit (count?: number): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, COLUMNS>[]>;
+	public limit (count?: number): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, any> {
 		this._limit = count;
 		return this;
 	}
@@ -104,8 +104,8 @@ export class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME extends str
 	}
 
 	private _offset?: number;
-	public offset (amount: number) {
-		if (typeof amount !== "number")
+	public offset (amount?: number) {
+		if (typeof amount !== "number" && amount !== undefined)
 			throw new Error("Unsafe value for offset");
 		this._offset = amount;
 		return this;
