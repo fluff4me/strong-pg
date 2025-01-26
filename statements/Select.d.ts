@@ -26,12 +26,12 @@ export declare class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME ext
     where(initialiser: ExpressionInitialiser<SelectWhereVars<SCHEMA, NAME>, boolean>): this;
     private _limit?;
     limit(count: 1): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, COLUMNS> | undefined>;
-    limit(count: number): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, COLUMNS>[]>;
+    limit(count?: number): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, COLUMNS>[]>;
     private _orderBy?;
     orderBy(column: Schema.Column<SCHEMA>, order?: SortDirection): this;
     orderBy(orders: Order<SCHEMA>[]): this;
     private _offset?;
-    offset(amount: number): this;
+    offset(amount?: number): this;
     compile(): Statement.Queryable[];
     private compileWith;
     queryOne(pool: Pool | PoolClient): Promise<SelectResult<SCHEMA, COLUMNS> | undefined>;

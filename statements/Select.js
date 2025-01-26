@@ -41,7 +41,7 @@ class SelectFromVirtualTable extends Statement_1.default {
         return this;
     }
     offset(amount) {
-        if (typeof amount !== "number")
+        if (typeof amount !== "number" && amount !== undefined)
             throw new Error("Unsafe value for offset");
         this._offset = amount;
         return this;
