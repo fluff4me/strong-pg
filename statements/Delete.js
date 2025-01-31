@@ -29,7 +29,7 @@ class DeleteFromTable extends Statement_1.default {
         return this;
     }
     compile() {
-        const returning = !this.returningColumns ? ""
+        const returning = !this.returningColumns?.length ? ""
             : `RETURNING ${this.returningColumns.join(",")}`;
         return this.queryable(`DELETE FROM ${this.tableName ?? ""} ${this.condition ?? ""} ${returning}`, undefined, this.vars);
     }

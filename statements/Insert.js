@@ -86,7 +86,7 @@ class InsertIntoTable extends Statement_1.default {
             const compiled = this.conflictAction.compile()[0];
             conflictAction = `ON CONFLICT ${conflictTarget} DO ${compiled.text}`;
         }
-        const returning = !this.returningColumns ? ""
+        const returning = !this.returningColumns?.length ? ""
             : `RETURNING ${this.returningColumns.join(",")}`;
         return this.queryable(`INSERT INTO ${this.tableName} (${this.columns.join(",")}) VALUES ${rows} ${conflictAction} ${returning}`, undefined, this.vars);
     }
