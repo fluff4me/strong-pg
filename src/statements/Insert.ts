@@ -105,7 +105,7 @@ export default class InsertIntoTable<SCHEMA extends TableSchema, COLUMNS extends
 			conflictAction = `ON CONFLICT ${conflictTarget} DO ${compiled.text}`;
 		}
 
-		const returning = !this.returningColumns ? ""
+		const returning = !this.returningColumns?.length ? ""
 			: `RETURNING ${this.returningColumns.join(",")}`;
 
 		return this.queryable(`INSERT INTO ${this.tableName} (${this.columns.join(",")}) VALUES ${rows} ${conflictAction!} ${returning}`, undefined, this.vars);
