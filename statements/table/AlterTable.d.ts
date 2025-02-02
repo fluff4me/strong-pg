@@ -48,7 +48,7 @@ export declare class AlterColumn<NAME extends string, TYPE extends TypeString | 
     setType<TYPE extends TypeString>(type: TYPE, initialiser?: Initialiser<AlterColumnSetType<TYPE>>): AlterColumn<NAME, TYPE>;
     setDefault(value: MigrationTypeFromString<TYPE> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE>>): this;
     dropDefault(): this;
-    setNotNull(): this;
+    setNotNull(): AlterColumn<NAME, ExtractTypeString<TYPE>>;
     dropNotNull(): AlterColumn<NAME, TYPE extends TypeString ? OptionalTypeString<TYPE> : TYPE>;
     protected compileOperation(operation: string): string;
 }
