@@ -213,7 +213,7 @@ export class AlterColumn<NAME extends string, TYPE extends TypeString | Optional
 	}
 
 	public setNotNull () {
-		return this.addStandaloneOperation(AlterColumnSubStatement.setNotNull());
+		return this.addStandaloneOperation<AlterColumn<NAME, ExtractTypeString<TYPE>>>(AlterColumnSubStatement.setNotNull());
 	}
 
 	public dropNotNull () {
