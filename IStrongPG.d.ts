@@ -29,7 +29,8 @@ export declare enum DataTypeID {
     RECORD = 24,
     SETOF = 25,
     TRIGGER = 26,
-    VOID = 27
+    VOID = 27,
+    ARRAY = 28
 }
 export interface TypeStringMap {
     [DataTypeID.SMALLINT]: "SMALLINT";
@@ -60,6 +61,7 @@ export interface TypeStringMap {
     [DataTypeID.SETOF]: `SETOF ${string}`;
     [DataTypeID.TRIGGER]: "TRIGGER";
     [DataTypeID.VOID]: "VOID";
+    [DataTypeID.ARRAY]: `${string}[]`;
 }
 export declare namespace DataType {
     const SMALLINT: TypeStringMap[DataTypeID.SMALLINT];
@@ -92,6 +94,7 @@ export declare namespace DataType {
     const TRIGGER: TypeStringMap[DataTypeID.TRIGGER];
     const VOID: TypeStringMap[DataTypeID.VOID];
     function SETOF<TABLENAME extends string>(tablename: TABLENAME): `SETOF ${TABLENAME}`;
+    function ARRAY<TYPE extends TypeString>(type: TYPE): `${TYPE}[]`;
 }
 export type TypeString = TypeStringMap[DataTypeID] | "*";
 export interface OptionalTypeString<TYPE extends TypeString = TypeString> {
@@ -147,11 +150,11 @@ export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | Data
     [DataTypeID.TIMESTAMP]: Date;
     [DataTypeID.TIME]: Date;
 }
-export type ValidType = string | boolean | number | symbol | Date | RegExp | undefined | null;
+export type ValidType = string | boolean | number | symbol | Date | RegExp | undefined | null | (string | boolean | number | symbol | Date | RegExp | undefined | null)[];
 export declare const SYMBOL_COLUMNS: unique symbol;
-export type MigrationTypeFromString<STR extends TypeString | OptionalTypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : MigrationTypeMap[DataTypeFromString<STR>];
-export type InputTypeFromString<STR extends TypeString | OptionalTypeString, VARS = {}> = STR extends "*" ? typeof SYMBOL_COLUMNS : ExpressionOr<VARS, InputTypeMap[DataTypeFromString<STR>]>;
-export type OutputTypeFromString<STR extends TypeString | OptionalTypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : (OutputTypeMap[DataTypeFromString<STR>] extends infer OUTPUT_TYPE ? STR extends OptionalTypeString ? OUTPUT_TYPE | null : OUTPUT_TYPE : never);
+export type MigrationTypeFromString<STR extends TypeString | OptionalTypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : ((STR extends OptionalTypeString<infer TYPE> ? TYPE : STR) extends infer TYPE extends TypeString ? TYPE extends `${infer SUB_TYPE extends TypeString}[]` ? MigrationTypeMap[DataTypeFromString<SUB_TYPE>][] : MigrationTypeMap[DataTypeFromString<TYPE>] : never);
+export type InputTypeFromString<STR extends TypeString | OptionalTypeString, VARS = {}> = STR extends "*" ? typeof SYMBOL_COLUMNS : ExpressionOr<VARS, ((STR extends OptionalTypeString<infer TYPE> ? TYPE : STR) extends infer TYPE extends TypeString ? TYPE extends `${infer SUB_TYPE extends TypeString}[]` ? InputTypeMap[DataTypeFromString<SUB_TYPE>][] : InputTypeMap[DataTypeFromString<TYPE>] : never)>;
+export type OutputTypeFromString<STR extends TypeString | OptionalTypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : (((STR extends OptionalTypeString<infer TYPE> ? TYPE : STR) extends infer TYPE extends TypeString ? TYPE extends `${infer SUB_TYPE extends TypeString}[]` ? OutputTypeMap[DataTypeFromString<SUB_TYPE>][] : OutputTypeMap[DataTypeFromString<TYPE>] : never) extends infer OUTPUT_TYPE ? STR extends OptionalTypeString ? OUTPUT_TYPE | null : OUTPUT_TYPE : never);
 export declare namespace TypeString {
     function resolve(typeString: TypeString | OptionalTypeString): string;
 }

@@ -38,6 +38,7 @@ var DataTypeID;
     DataTypeID[DataTypeID["SETOF"] = 25] = "SETOF";
     DataTypeID[DataTypeID["TRIGGER"] = 26] = "TRIGGER";
     DataTypeID[DataTypeID["VOID"] = 27] = "VOID";
+    DataTypeID[DataTypeID["ARRAY"] = 28] = "ARRAY";
 })(DataTypeID || (exports.DataTypeID = DataTypeID = {}));
 var DataType;
 (function (DataType) {
@@ -110,6 +111,10 @@ var DataType;
         return `SETOF ${tablename}`;
     }
     DataType.SETOF = SETOF;
+    function ARRAY(type) {
+        return `${type}[]`;
+    }
+    DataType.ARRAY = ARRAY;
 })(DataType || (exports.DataType = DataType = {}));
 exports.SYMBOL_COLUMNS = Symbol("COLUMNS");
 var TypeString;
