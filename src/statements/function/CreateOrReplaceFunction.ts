@@ -49,7 +49,7 @@ export default class CreateOrReplaceFunction<HAS_CODE extends boolean = false, I
 		if (!plpgsql)
 			throw new Error("No PL/pgSQL code provided");
 
-		const declare = Object.entries(declarations).map(([name, type]) => `${name} ${type}`).join(";")
+		const declare = Object.entries(declarations).map(([name, type]) => `${name} ${TypeString.resolve(type)}`).join(";")
 
 		this.code = `${declare ? `DECLARE ${declare}; ` : ""}BEGIN ${plpgsql["asRawSql"]} END`;
 		this.lang = "plpgsql";
@@ -58,8 +58,8 @@ export default class CreateOrReplaceFunction<HAS_CODE extends boolean = false, I
 	}
 
 	public compile () {
-		const params = this.argsIn.map(([type, name]) => `${name ?? ""} ${typeof type === "string" ? type : type.type}`)
-			.concat(this.argsOut.map(([type, name]) => `OUT ${name ?? ""} ${type}`))
+		const params = this.argsIn.map(([type, name]) => `${name ?? ""} ${TypeString.resolve(type)}`)
+			.concat(this.argsOut.map(([type, name]) => `OUT ${name ?? ""} ${TypeString.resolve(type)}`))
 			.join(", ");
 		const out = this.returnType ?? "TRIGGER"
 		return this.queryable(`CREATE OR REPLACE FUNCTION ${this.name}(${params}) RETURNS ${out} AS $$ ${this.code} $$ LANGUAGE ${this.lang}`);
