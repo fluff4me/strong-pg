@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Database_1 = require("../Database");
+const IStrongPG_1 = require("../IStrongPG");
 const Statement_1 = __importDefault(require("../statements/Statement"));
 class Expression {
     static stringifyValue(value, vars, enableStringConcatenation = false) {
@@ -116,7 +117,7 @@ class Expression {
         return this.innerValue(value);
     }
     as(type) {
-        this.parts.push(() => ` :: ${type}`);
+        this.parts.push(() => ` :: ${IStrongPG_1.TypeString.resolve(type)}`);
         return this;
     }
     asEnum(enumName) {
