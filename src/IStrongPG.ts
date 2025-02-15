@@ -298,7 +298,9 @@ export namespace TypeString {
 			typeString = typeString.type;
 
 		if (typeString.startsWith("ENUM("))
-			return typeString.slice(5, -1);
+			return typeString.endsWith("[]")
+				? `${typeString.slice(5, -3)}[]`
+				: typeString.slice(5, -1);
 
 		return typeString;
 	}

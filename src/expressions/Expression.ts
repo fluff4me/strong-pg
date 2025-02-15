@@ -198,7 +198,7 @@ export default class Expression<VARS = never> implements ImplementableExpression
 	}
 
 	public as (type: TypeString) {
-		this.parts.push(() => ` :: ${type}`);
+		this.parts.push(() => ` :: ${TypeString.resolve(type)}`);
 		return this;
 	}
 
