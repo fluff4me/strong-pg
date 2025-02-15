@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const IStrongPG_1 = require("../../IStrongPG");
 const sql_1 = __importDefault(require("../../sql"));
 const Statement_1 = __importDefault(require("../Statement"));
 class CreateOrReplaceFunction extends Statement_1.default {
@@ -35,15 +36,15 @@ class CreateOrReplaceFunction extends Statement_1.default {
             plpgsql = declarations, declarations = {};
         if (!plpgsql)
             throw new Error("No PL/pgSQL code provided");
-        const declare = Object.entries(declarations).map(([name, type]) => `${name} ${type}`).join(";");
+        const declare = Object.entries(declarations).map(([name, type]) => `${name} ${IStrongPG_1.TypeString.resolve(type)}`).join(";");
         this.code = `${declare ? `DECLARE ${declare}; ` : ""}BEGIN ${plpgsql["asRawSql"]} END`;
         this.lang = "plpgsql";
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
     compile() {
-        const params = this.argsIn.map(([type, name]) => `${name ?? ""} ${typeof type === "string" ? type : type.type}`)
-            .concat(this.argsOut.map(([type, name]) => `OUT ${name ?? ""} ${type}`))
+        const params = this.argsIn.map(([type, name]) => `${name ?? ""} ${IStrongPG_1.TypeString.resolve(type)}`)
+            .concat(this.argsOut.map(([type, name]) => `OUT ${name ?? ""} ${IStrongPG_1.TypeString.resolve(type)}`))
             .join(", ");
         const out = this.returnType ?? "TRIGGER";
         return this.queryable(`CREATE OR REPLACE FUNCTION ${this.name}(${params}) RETURNS ${out} AS $$ ${this.code} $$ LANGUAGE ${this.lang}`);
