@@ -49,6 +49,10 @@ class AlterTable extends Statement_1.default.Super {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         return this.do(AlterTableSubStatement.addForeignKey(column, foreignTable, foreignKey, cascade));
     }
+    dropForeignKey(column) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        return this.do(AlterTableSubStatement.dropForeignKey(column));
+    }
     unique(name, index) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         return this.do(AlterTableSubStatement.addUnique(name, index));
@@ -93,6 +97,9 @@ class AlterTableSubStatement extends Statement_1.default {
     static addForeignKey(column, foreignTable, foreignColumn, cascade) {
         const cascadeString = !cascade ? "" : "ON DELETE CASCADE";
         return new AlterTableSubStatement(`ADD CONSTRAINT ${column}_fk FOREIGN KEY (${column}) REFERENCES ${foreignTable} (${foreignColumn}) ${cascadeString}`);
+    }
+    static dropForeignKey(column) {
+        return new AlterTableSubStatement(`DROP CONSTRAINT ${column}_fk`);
     }
     static addUnique(name, index) {
         return new AlterTableSubStatement(`ADD CONSTRAINT ${name} UNIQUE USING INDEX ${index}`);
