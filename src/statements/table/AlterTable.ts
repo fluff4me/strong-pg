@@ -68,6 +68,11 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
 		return this.do(AlterTableSubStatement.addForeignKey(column as string, foreignTable, foreignKey as any, cascade));
 	}
 
+	public dropForeignKey<COLUMN extends Schema.Column<SCHEMA_END>> (column: COLUMN) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+		return this.do(AlterTableSubStatement.dropForeignKey(column as string));
+	}
+
 	public unique (name: string, index: DatabaseSchema.IndexName<DB>) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		return this.do(AlterTableSubStatement.addUnique(name, index));
@@ -121,6 +126,10 @@ class AlterTableSubStatement extends Statement {
 	public static addForeignKey (column: string, foreignTable: string, foreignColumn: string, cascade?: "CASCADE") {
 		const cascadeString = !cascade ? "" : "ON DELETE CASCADE";
 		return new AlterTableSubStatement(`ADD CONSTRAINT ${column}_fk FOREIGN KEY (${column}) REFERENCES ${foreignTable} (${foreignColumn}) ${cascadeString}`);
+	}
+
+	public static dropForeignKey (column: string) {
+		return new AlterTableSubStatement(`DROP CONSTRAINT ${column}_fk`);
 	}
 
 	public static addUnique (name: string, index: string) {
