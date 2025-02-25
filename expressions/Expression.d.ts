@@ -41,6 +41,7 @@ export interface ExpressionValues<VARS = never, VALUE = null, RESULT = null> {
     currentValue(sequenceId: string): ExpressionOperations<VARS, number>;
     true: ExpressionOperations<VARS, boolean>;
     false: ExpressionOperations<VARS, boolean>;
+    exists<DATABASE_SCHEMA extends DatabaseSchema, TABLE extends DatabaseSchema.TableName<DATABASE_SCHEMA>>(database: Database<DATABASE_SCHEMA>, table: TABLE, initialiser: NoInfer<Initialiser<SelectFromVirtualTable<JoinTables<"INNER", Extract<VARS, TableSchema>, DatabaseSchema.Table<DATABASE_SCHEMA, TABLE>, never, TABLE>, never, 1>>>): ExpressionOperations<VARS, boolean>;
     notExists<DATABASE_SCHEMA extends DatabaseSchema, TABLE extends DatabaseSchema.TableName<DATABASE_SCHEMA>>(database: Database<DATABASE_SCHEMA>, table: TABLE, initialiser: NoInfer<Initialiser<SelectFromVirtualTable<JoinTables<"INNER", Extract<VARS, TableSchema>, DatabaseSchema.Table<DATABASE_SCHEMA, TABLE>, never, TABLE>, never, 1>>>): ExpressionOperations<VARS, boolean>;
 }
 export type ExpressionInitialiser<VARS, RESULT = any> = Initialiser<ExpressionValues<VARS, null, null>, ExpressionOperations<VARS, RESULT>>;
@@ -83,5 +84,6 @@ export default class Expression<VARS = never> implements ImplementableExpression
     uppercase(value: ExpressionOr<VARS, string>): Expression<never>;
     nextValue(sequenceId: string): this;
     currentValue(sequenceId: string): this;
-    notExists(database: Database<any>, table: string, initialiser: Initialiser<SelectFromVirtualTable<any, string, 1>>): this;
+    exists(database: Database<any>, table: string, initialiser: Initialiser<SelectFromVirtualTable<any, string, 1>>): Expression<never>;
+    notExists(database: Database<any>, table: string, initialiser: Initialiser<SelectFromVirtualTable<any, string, 1>>): Expression<never>;
 }

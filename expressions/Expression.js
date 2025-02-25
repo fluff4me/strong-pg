@@ -179,6 +179,8 @@ class Expression {
         return this;
     }
     innerValue(value, mapper) {
+        if (value === this)
+            return this;
         this.parts.push(() => {
             const stringified = Expression.stringifyValue(value, this.vars, this.enableStringConcatenation);
             return mapper ? mapper(stringified) : stringified;
@@ -208,12 +210,21 @@ class Expression {
         this.parts.push(() => `currval('${sequenceId}')`);
         return this;
     }
-    notExists(database, table, initialiser) {
-        const select = database.table(table).select();
+    exists(database, table, initialiser) {
+        const select = database.table(table).select(1);
         select["vars"] = this.vars;
         initialiser(select);
-        this.parts.push(() => `NOT EXISTS (${select.compile()[0].text})`);
-        return this;
+        const e = new Expression(this.vars, this.enableStringConcatenation);
+        e.parts.push(() => `EXISTS (${select.compile()[0].text})`);
+        return e;
+    }
+    notExists(database, table, initialiser) {
+        const select = database.table(table).select(1);
+        select["vars"] = this.vars;
+        initialiser(select);
+        const e = new Expression(this.vars, this.enableStringConcatenation);
+        e.parts.push(() => `NOT EXISTS (${select.compile()[0].text})`);
+        return e;
     }
 }
 exports.default = Expression;
