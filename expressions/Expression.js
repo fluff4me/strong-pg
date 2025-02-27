@@ -165,18 +165,20 @@ class Expression {
         return this;
     }
     some(values, predicate) {
-        this.parts.push(() => values
+        const e = new Expression(this.vars, this.enableStringConcatenation);
+        e.parts.push(() => values
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             .map((value, i) => Expression.stringifyValue(expression => predicate(expression, value, i, values), this.vars, this.enableStringConcatenation))
             .join(" OR "));
-        return this;
+        return e;
     }
     every(values, predicate) {
-        this.parts.push(() => values
+        const e = new Expression(this.vars, this.enableStringConcatenation);
+        e.parts.push(() => values
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-            .map((value, i) => Expression.stringifyValue(expression => predicate(expression, value, i, values), this.vars, this.enableStringConcatenation))
+            .map((value, i) => Expression.stringifyValue(expression => predicate(expression, value, i, values), this.vars, this.enabeleStringConcatenation))
             .join(" AND "));
-        return this;
+        return e;
     }
     innerValue(value, mapper) {
         if (value === this)

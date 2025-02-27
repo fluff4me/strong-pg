@@ -75,8 +75,8 @@ export default class Expression<VARS = never> implements ImplementableExpression
     get true(): this;
     get false(): this;
     case<R extends ValidType>(initialiser: Initialiser<ExpressionCase<VARS, R>, ExpressionCase<VARS, R>[]>): this;
-    some(values: any[], predicate: (e: ExpressionValues, value: any, index: number, values: any[]) => any): this;
-    every(values: any[], predicate: (e: ExpressionValues, value: any, index: number, values: any[]) => any): this;
+    some(values: any[], predicate: (e: ExpressionValues, value: any, index: number, values: any[]) => any): Expression<never>;
+    every(values: any[], predicate: (e: ExpressionValues, value: any, index: number, values: any[]) => any): Expression<never>;
     private innerValue;
     value(value: ExpressionOr<VARS, ValidType>, mapper?: (value: string) => string): Expression<never>;
     var(name: keyof VARS): Expression<never>;
