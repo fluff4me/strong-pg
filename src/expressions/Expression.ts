@@ -255,19 +255,21 @@ export default class Expression<VARS = never> implements ImplementableExpression
 	}
 
 	public some (values: any[], predicate: (e: ExpressionValues, value: any, index: number, values: any[]) => any) {
-		this.parts.push(() => values
+		const e = new Expression(this.vars, this.enableStringConcatenation);
+		e.parts.push(() => values
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 			.map((value, i) => Expression.stringifyValue(expression => predicate(expression, value, i, values), this.vars, this.enableStringConcatenation))
 			.join(" OR "));
-		return this;
+		return e;
 	}
 
 	public every (values: any[], predicate: (e: ExpressionValues, value: any, index: number, values: any[]) => any) {
-		this.parts.push(() => values
+		const e = new Expression(this.vars, this.enableStringConcatenation);
+		e.parts.push(() => values
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			.map((value, i) => Expression.stringifyValue(expression => predicate(expression, value, i, values), this.vars, this.enableStringConcatenation))
+			.map((value, i) => Expression.stringifyValue(expression => predicate(expression, value, i, values), this.vars, this.enabeleStringConcatenation))
 			.join(" AND "));
-		return this;
+		return e;
 	}
 
 	private innerValue (value: ExpressionOr<VARS, ValidType>, mapper?: (value: string) => string) {
