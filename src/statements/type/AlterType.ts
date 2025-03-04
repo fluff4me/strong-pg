@@ -10,8 +10,16 @@ export default class AlterType<DB extends DatabaseSchema, SCHEMA_START = null, S
 		super()
 	}
 
-	public add<NAME extends string, TYPE extends TypeString, NEW_TYPE extends TypeString | OptionalTypeString = OptionalTypeString<TYPE>> (name: NAME, type: TYPE) {
+	public addAttribute<NAME extends string, TYPE extends TypeString, NEW_TYPE extends TypeString | OptionalTypeString = OptionalTypeString<TYPE>> (name: NAME, type: TYPE) {
 		return this.do<{ [KEY in NAME | keyof SCHEMA_END]: KEY extends NAME ? NEW_TYPE : SCHEMA_END[KEY & keyof SCHEMA_END] }>(AlterTypeSubStatement.addAttributes(name, type));
+	}
+
+	public renameAttribute<NAME extends string, TYPE extends TypeString, NEW_TYPE extends TypeString | OptionalTypeString = OptionalTypeString<TYPE>> (name: NAME, type: TYPE) {
+		return this.do<{ [KEY in NAME | keyof SCHEMA_END]: KEY extends NAME ? NEW_TYPE : SCHEMA_END[KEY & keyof SCHEMA_END] }>(AlterTypeSubStatement.renameAttribute(name, type));
+	}
+
+	public alterAttribute<NAME extends string, TYPE extends TypeString, NEW_TYPE extends TypeString | OptionalTypeString = OptionalTypeString<TYPE>> (name: NAME, type: TYPE) {
+		return this.do<{ [KEY in NAME | keyof SCHEMA_END]: KEY extends NAME ? NEW_TYPE : SCHEMA_END[KEY & keyof SCHEMA_END] }>(AlterTypeSubStatement.alterAttribute(name, type));
 	}
 
 	public dropAttribute<NAME extends SCHEMA_END extends null ? never : keyof SCHEMA_END & string> (name: NAME) {
