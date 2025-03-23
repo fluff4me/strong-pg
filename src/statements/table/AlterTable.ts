@@ -63,9 +63,9 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
 		return this.do(AlterTableSubStatement.addCheck(id, value));
 	}
 
-	public foreignKey<COLUMN extends Schema.Column<SCHEMA_END>, FOREIGN_TABLE extends DatabaseSchema.TableName<DB>, FOREIGN_KEY extends Schema.ColumnTyped<DatabaseSchema.Table<DB, FOREIGN_TABLE>, SCHEMA_END[COLUMN]>> (column: COLUMN, foreignTable: FOREIGN_TABLE, foreignKey: FOREIGN_KEY, cascade?: "CASCADE") {
+	public foreignKey<COLUMN extends Schema.Column<SCHEMA_END>, FOREIGN_TABLE extends DatabaseSchema.TableName<DB>, FOREIGN_KEY extends Schema.ColumnTyped<DatabaseSchema.Table<DB, FOREIGN_TABLE>, SCHEMA_END[COLUMN]>> (column: COLUMN, foreignTable: FOREIGN_TABLE, foreignKey: FOREIGN_KEY, onDelete?: ForeignKeyOnDeleteAction) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-		return this.do(AlterTableSubStatement.addForeignKey(column as string, foreignTable, foreignKey as any, cascade));
+		return this.do(AlterTableSubStatement.addForeignKey(column as string, foreignTable, foreignKey as any, onDelete));
 	}
 
 	public dropForeignKey<COLUMN extends Schema.Column<SCHEMA_END>> (column: COLUMN) {
