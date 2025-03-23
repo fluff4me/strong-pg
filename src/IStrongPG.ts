@@ -1,6 +1,9 @@
 import { ExpressionOr } from "./expressions/Expression";
 
-export const CASCADE = "CASCADE";
+export const CASCADE = Symbol("CASCADE");
+export const SET_NULL = Symbol("SET NULL");
+export const SET_DEFAULT = Symbol("SET DEFAULT");
+export type ForeignKeyOnDeleteAction = typeof CASCADE | typeof SET_NULL | typeof SET_DEFAULT;
 
 export type Type = DataTypeID;
 

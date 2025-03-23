@@ -1,5 +1,5 @@
 import Expression, { ExpressionInitialiser, ExpressionOr } from "../../expressions/Expression";
-import { ExtractTypeString, Initialiser, MigrationTypeFromString, OptionalTypeString, TypeString } from "../../IStrongPG";
+import { ExtractTypeString, ForeignKeyOnDeleteAction, Initialiser, MigrationTypeFromString, OptionalTypeString, TypeString } from "../../IStrongPG";
 import Schema, { DatabaseSchema } from "../../Schema";
 import Statement from "../Statement";
 
@@ -123,9 +123,9 @@ class AlterTableSubStatement extends Statement {
 		return new AlterTableSubStatement(`ADD CONSTRAINT ${id}_check CHECK (${expr.text})`, expr.values);
 	}
 
-	public static addForeignKey (column: string, foreignTable: string, foreignColumn: string, cascade?: "CASCADE") {
-		const cascadeString = !cascade ? "" : "ON DELETE CASCADE";
-		return new AlterTableSubStatement(`ADD CONSTRAINT ${column}_fk FOREIGN KEY (${column}) REFERENCES ${foreignTable} (${foreignColumn}) ${cascadeString}`);
+	public static addForeignKey (column: string, foreignTable: string, foreignColumn: string, onDelete?: ForeignKeyOnDeleteAction) {
+		const onDeleteString = !onDelete ? "" : `ON DELETE ${onDelete.description!}`;
+		return new AlterTableSubStatement(`ADD CONSTRAINT ${column}_fk FOREIGN KEY (${column}) REFERENCES ${foreignTable} (${foreignColumn}) ${onDeleteString}`);
 	}
 
 	public static dropForeignKey (column: string) {
