@@ -45,9 +45,9 @@ class AlterTable extends Statement_1.default.Super {
     check(id, value) {
         return this.do(AlterTableSubStatement.addCheck(id, value));
     }
-    foreignKey(column, foreignTable, foreignKey, cascade) {
+    foreignKey(column, foreignTable, foreignKey, onDelete) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        return this.do(AlterTableSubStatement.addForeignKey(column, foreignTable, foreignKey, cascade));
+        return this.do(AlterTableSubStatement.addForeignKey(column, foreignTable, foreignKey, onDelete));
     }
     dropForeignKey(column) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
