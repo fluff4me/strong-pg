@@ -1,7 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.StackUtil = exports.GENERATE_UUID = exports.DESC = exports.ASC = exports.BREADTH = exports.DEPTH = exports.CURRENT_TIMESTAMP = exports.TypeString = exports.SYMBOL_COLUMNS = exports.DataType = exports.DataTypeID = exports.CASCADE = void 0;
-exports.CASCADE = "CASCADE";
+exports.StackUtil = exports.GENERATE_UUID = exports.DESC = exports.ASC = exports.BREADTH = exports.DEPTH = exports.CURRENT_TIMESTAMP = exports.TypeString = exports.SYMBOL_COLUMNS = exports.DataType = exports.DataTypeID = exports.SET_DEFAULT = exports.SET_NULL = exports.CASCADE = void 0;
+exports.CASCADE = Symbol("CASCADE");
+exports.SET_NULL = Symbol("SET NULL");
+exports.SET_DEFAULT = Symbol("SET DEFAULT");
 var DataTypeID;
 (function (DataTypeID) {
     // numeric

@@ -94,9 +94,9 @@ class AlterTableSubStatement extends Statement_1.default {
         const expr = Expression_1.default.compile(value);
         return new AlterTableSubStatement(`ADD CONSTRAINT ${id}_check CHECK (${expr.text})`, expr.values);
     }
-    static addForeignKey(column, foreignTable, foreignColumn, cascade) {
-        const cascadeString = !cascade ? "" : "ON DELETE CASCADE";
-        return new AlterTableSubStatement(`ADD CONSTRAINT ${column}_fk FOREIGN KEY (${column}) REFERENCES ${foreignTable} (${foreignColumn}) ${cascadeString}`);
+    static addForeignKey(column, foreignTable, foreignColumn, onDelete) {
+        const onDeleteString = !onDelete ? "" : `ON DELETE ${onDelete.description}`;
+        return new AlterTableSubStatement(`ADD CONSTRAINT ${column}_fk FOREIGN KEY (${column}) REFERENCES ${foreignTable} (${foreignColumn}) ${onDeleteString}`);
     }
     static dropForeignKey(column) {
         return new AlterTableSubStatement(`DROP CONSTRAINT ${column}_fk`);

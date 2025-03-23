@@ -1,5 +1,8 @@
 import { ExpressionOr } from "./expressions/Expression";
-export declare const CASCADE = "CASCADE";
+export declare const CASCADE: unique symbol;
+export declare const SET_NULL: unique symbol;
+export declare const SET_DEFAULT: unique symbol;
+export type ForeignKeyOnDeleteAction = typeof CASCADE | typeof SET_NULL | typeof SET_DEFAULT;
 export type Type = DataTypeID;
 export declare enum DataTypeID {
     SMALLINT = 0,
