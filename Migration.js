@@ -103,6 +103,10 @@ class Migration extends Transaction_1.default {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
+    setIndexDropped(name) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return this;
+    }
     //#endregion
     ////////////////////////////////////
     ////////////////////////////////////

@@ -53,6 +53,10 @@ class AlterTable extends Statement_1.default.Super {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         return this.do(AlterTableSubStatement.dropForeignKey(column));
     }
+    dropConstraint(constraint_name) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        return this.do(AlterTableSubStatement.dropConstraint(constraint_name));
+    }
     unique(name, index) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         return this.do(AlterTableSubStatement.addUnique(name, index));
@@ -100,6 +104,9 @@ class AlterTableSubStatement extends Statement_1.default {
     }
     static dropForeignKey(column) {
         return new AlterTableSubStatement(`DROP CONSTRAINT ${column}_fk`);
+    }
+    static dropConstraint(constraint_name) {
+        return new AlterTableSubStatement(`DROP CONSTRAINT ${constraint_name}`);
     }
     static addUnique(name, index) {
         return new AlterTableSubStatement(`ADD CONSTRAINT ${name} UNIQUE USING INDEX ${index}`);

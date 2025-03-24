@@ -62,6 +62,11 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
             [INDEX_NAME in Exclude<keyof SCHEMA_END["indices"], NAME>]: {};
         }) : SCHEMA_END[KEY];
     }>;
+    setIndexDropped<NAME extends DatabaseSchema.IndexName<SCHEMA_END>>(name: NAME): Migration<SCHEMA_START, {
+        [KEY in keyof SCHEMA_END]: KEY extends "indices" ? ({
+            [INDEX_NAME in Exclude<keyof SCHEMA_END["indices"], NAME>]: {};
+        }) : SCHEMA_END[KEY];
+    }>;
     createEnum<NAME extends string, ENUM_SCHEMA extends string[]>(name: NAME, alter: NAME extends DatabaseSchema.EnumName<SCHEMA_END> ? never : AlterEnumInitialiser<[], ENUM_SCHEMA>): Migration<SCHEMA_START, {
         [KEY in keyof SCHEMA_END]: KEY extends "enums" ? ({
             [ENUM_NAME in NAME | keyof SCHEMA_END["enums"]]: ENUM_NAME extends NAME ? ENUM_SCHEMA : SCHEMA_END["enums"][ENUM_NAME];

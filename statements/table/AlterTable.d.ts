@@ -21,6 +21,7 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
     check(id: string, value: ExpressionInitialiser<Schema.Columns<SCHEMA_END>, boolean>): AlterTable<DB, SCHEMA_START, SCHEMA_END>;
     foreignKey<COLUMN extends Schema.Column<SCHEMA_END>, FOREIGN_TABLE extends DatabaseSchema.TableName<DB>, FOREIGN_KEY extends Schema.ColumnTyped<DatabaseSchema.Table<DB, FOREIGN_TABLE>, SCHEMA_END[COLUMN]>>(column: COLUMN, foreignTable: FOREIGN_TABLE, foreignKey: FOREIGN_KEY, onDelete?: ForeignKeyOnDeleteAction): AlterTable<DB, SCHEMA_START, SCHEMA_END>;
     dropForeignKey<COLUMN extends Schema.Column<SCHEMA_END>>(column: COLUMN): AlterTable<DB, SCHEMA_START, SCHEMA_END>;
+    dropConstraint(constraint_name: DatabaseSchema.IndexName<DB>): AlterTable<DB, SCHEMA_START, SCHEMA_END>;
     unique(name: string, index: DatabaseSchema.IndexName<DB>): AlterTable<DB, SCHEMA_START, SCHEMA_END>;
     schema<SCHEMA_TEST extends SCHEMA_END>(): SCHEMA_END extends SCHEMA_TEST ? AlterTable<DB, SCHEMA_START, SCHEMA_TEST> : null;
     protected compileOperation(operation: string): string;
