@@ -186,6 +186,17 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 		return this as any;
 	}
 
+	public setIndexDropped<NAME extends DatabaseSchema.IndexName<SCHEMA_END>> (
+		name: NAME,
+	): Migration<SCHEMA_START, {
+		[KEY in keyof SCHEMA_END]: KEY extends "indices"
+		? ({ [INDEX_NAME in Exclude<keyof SCHEMA_END["indices"], NAME>]: {} })
+		: SCHEMA_END[KEY]
+	}> {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+		return this as any;
+	}
+
 	//#endregion
 	////////////////////////////////////
 

@@ -73,6 +73,11 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
 		return this.do(AlterTableSubStatement.dropForeignKey(column as string));
 	}
 
+	public dropConstraint (constraint_name: DatabaseSchema.IndexName<DB>) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+		return this.do(AlterTableSubStatement.dropConstraint(constraint_name));
+	}
+
 	public unique (name: string, index: DatabaseSchema.IndexName<DB>) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		return this.do(AlterTableSubStatement.addUnique(name, index));
@@ -130,6 +135,10 @@ class AlterTableSubStatement extends Statement {
 
 	public static dropForeignKey (column: string) {
 		return new AlterTableSubStatement(`DROP CONSTRAINT ${column}_fk`);
+	}
+
+	public static dropConstraint (constraint_name: string) {
+		return new AlterTableSubStatement(`DROP CONSTRAINT ${constraint_name}`);
 	}
 
 	public static addUnique (name: string, index: string) {
