@@ -17,6 +17,10 @@ export interface ExpressionOperations<VARS = never, CURRENT_VALUE = null> {
 	matches: CURRENT_VALUE extends string ? ExpressionValue<VARS, RegExp, boolean> : never;
 	as<TYPE extends TypeString> (type: TYPE): ExpressionOperations<VARS, MigrationTypeFromString<TYPE>>;
 	asEnum<SCHEMA extends DatabaseSchema> (enumName: DatabaseSchema.EnumName<SCHEMA>): ExpressionOperations<VARS, CURRENT_VALUE>;
+	add: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, number> : never;
+	subtract: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, number> : never;
+	multipliedBy: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, number> : never;
+	dividedBy: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, number> : never;
 }
 
 export interface ExpressionValue<VARS = never, EXPECTED_VALUE = null, RESULT = null> {
@@ -206,6 +210,26 @@ export default class Expression<VARS = never> implements ImplementableExpression
 	public asEnum<SCHEMA extends DatabaseSchema> (enumName: DatabaseSchema.EnumName<SCHEMA>) {
 		this.parts.push(() => ` :: ${enumName}`);
 		return this;
+	}
+
+	public add (value: ExpressionOr<VARS, ValidType>) {
+		this.parts.push(() => " + ");
+		return this.innerValue(value);
+	}
+
+	public subtract (value: ExpressionOr<VARS, ValidType>) {
+		this.parts.push(() => " - ");
+		return this.innerValue(value);
+	}
+
+	public multipliedBy (value: ExpressionOr<VARS, ValidType>) {
+		this.parts.push(() => " * ");
+		return this.innerValue(value);
+	}
+
+	public dividedBy (value: ExpressionOr<VARS, ValidType>) {
+		this.parts.push(() => " / ");
+		return this.innerValue(value);
 	}
 
 
