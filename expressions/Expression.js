@@ -124,6 +124,22 @@ class Expression {
         this.parts.push(() => ` :: ${enumName}`);
         return this;
     }
+    add(value) {
+        this.parts.push(() => " + ");
+        return this.innerValue(value);
+    }
+    subtract(value) {
+        this.parts.push(() => " - ");
+        return this.innerValue(value);
+    }
+    multipliedBy(value) {
+        this.parts.push(() => " * ");
+        return this.innerValue(value);
+    }
+    dividedBy(value) {
+        this.parts.push(() => " / ");
+        return this.innerValue(value);
+    }
     ////////////////////////////////////
     // Values
     get true() {
