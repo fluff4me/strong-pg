@@ -165,6 +165,10 @@ export namespace DataType {
 	export function ARRAY<TYPE extends TypeString> (type: TYPE): `${TYPE}[]` {
 		return `${type}[]` as const;
 	}
+
+	export function ARRAYOF<TABLENAME extends string> (type: TABLENAME): `${TABLENAME}[]` {
+		return `${type}[]` as const;
+	}
 }
 
 export type TypeString = TypeStringMap[DataTypeID] | "*";
