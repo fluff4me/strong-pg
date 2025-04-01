@@ -117,6 +117,10 @@ var DataType;
         return `${type}[]`;
     }
     DataType.ARRAY = ARRAY;
+    function ARRAYOF(type) {
+        return `${type}[]`;
+    }
+    DataType.ARRAYOF = ARRAYOF;
 })(DataType || (exports.DataType = DataType = {}));
 exports.SYMBOL_COLUMNS = Symbol("COLUMNS");
 var TypeString;

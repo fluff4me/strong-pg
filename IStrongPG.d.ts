@@ -98,6 +98,7 @@ export declare namespace DataType {
     const VOID: TypeStringMap[DataTypeID.VOID];
     function SETOF<TABLENAME extends string>(tablename: TABLENAME): `SETOF ${TABLENAME}`;
     function ARRAY<TYPE extends TypeString>(type: TYPE): `${TYPE}[]`;
+    function ARRAYOF<TABLENAME extends string>(type: TABLENAME): `${TABLENAME}[]`;
 }
 export type TypeString = TypeStringMap[DataTypeID] | "*";
 export interface OptionalTypeString<TYPE extends TypeString = TypeString> {
