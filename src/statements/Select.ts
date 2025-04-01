@@ -42,15 +42,22 @@ export type SelectColumns<SCHEMA extends TableSchema> =
 	| Partial<Record<Schema.Column<SCHEMA>, string>>
 
 type SelectResult<SCHEMA extends TableSchema, COLUMNS extends SelectColumns<SCHEMA> | 1> =
-	COLUMNS extends 1 ? 1[]
+	COLUMNS extends 1 ? 1 : (
+		(
+			COLUMNS extends Partial<Record<Schema.Column<SCHEMA>, string>> ?
+			| { [K in keyof COLUMNS as COLUMNS[K] & PropertyKey]: OutputTypeFromString<SCHEMA[K & Schema.Column<SCHEMA>]> }
 
-	: COLUMNS extends Partial<Record<Schema.Column<SCHEMA>, string>> ?
-	| { [K in keyof COLUMNS as COLUMNS[K] & PropertyKey]: OutputTypeFromString<SCHEMA[K & Schema.Column<SCHEMA>]> }
+			: (COLUMNS extends any[] ? COLUMNS[number] : Schema.Column<SCHEMA>) extends infer COLUMNS ?
+			| { [K in COLUMNS & PropertyKey]: OutputTypeFromString<SCHEMA[K & keyof SCHEMA]> }
 
-	: (COLUMNS extends any[] ? COLUMNS[number] : Schema.Column<SCHEMA>) extends infer COLUMNS ?
-	| { [K in COLUMNS & PropertyKey]: OutputTypeFromString<SCHEMA[K & keyof SCHEMA]> }
-
-	: never
+			: never
+		) extends infer RESULT
+		? (RESULT extends { [KEY: `${string}.${string}`]: any }
+			? { [KEY in keyof RESULT as KEY extends `${string}.${infer KEY2}` ? KEY2 : KEY]: RESULT[KEY] }
+			: RESULT
+		)
+		: never
+	)
 
 export type Order<SCHEMA extends TableSchema> =
 	| [column: Schema.Column<SCHEMA>, order?: SortDirection]
