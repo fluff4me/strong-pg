@@ -248,13 +248,16 @@ export interface InputTypeMap extends Omit<MigrationTypeMap, DataTypeID.JSON | D
 	[DataTypeID.TRIGGER]: never;
 }
 
-export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | DataTypeID.TIMESTAMP | DataTypeID.TIME | DataTypeID.UUID> {
+export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | DataTypeID.TIMESTAMP | DataTypeID.TIME | DataTypeID.UUID | DataTypeID.JSON | DataTypeID.JSONB> {
 	// numeric
 	[DataTypeID.BIGINT]: `${bigint}`;
 	[DataTypeID.BIGSERIAL]: `${bigint}`;
 
 	// string
 	[DataTypeID.UUID]: string;
+
+	[DataTypeID.JSON]: any;
+	[DataTypeID.JSONB]: any;
 
 	// datetime
 	[DataTypeID.DATE]: Date;
