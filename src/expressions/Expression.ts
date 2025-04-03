@@ -1,5 +1,5 @@
 import Database, { sql } from "../Database";
-import { Initialiser, MigrationTypeFromString, OptionalTypeString, TypeString, ValidType } from "../IStrongPG";
+import { DataType, Initialiser, MigrationTypeFromString, OptionalTypeString, TypeString, ValidLiteral, ValidType } from "../IStrongPG";
 import { DatabaseSchema, TableSchema } from "../Schema";
 import { JoinTables } from "../statements/Join";
 import { SelectFromVirtualTable } from "../statements/Select";
@@ -44,6 +44,7 @@ export interface ExpressionValues<VARS = never, VALUE = null, RESULT = null> {
 	some<T> (values: T[], predicate: (e: ExpressionValues<VARS, null, boolean>, value: T, index: number, values: T[]) => ExpressionOperations<VARS, boolean>): ExpressionOperations<VARS, boolean>;
 	every<T> (values: T[], predicate: (e: ExpressionValues<VARS, null, boolean>, value: T, index: number, values: T[]) => ExpressionOperations<VARS, boolean>): ExpressionOperations<VARS, boolean>;
 	value: ExpressionValue<VARS, VALUE, RESULT>;
+	jsonb (value: ValidLiteral | object): ExpressionOperations<VARS, object>;
 	var<VAR extends keyof VARS> (name: VAR): ExpressionOperations<VARS, MigrationTypeFromString<Extract<VARS[VAR], TypeString | OptionalTypeString>>>;
 	lowercase: ExpressionValue<VARS, string, string>;
 	uppercase: ExpressionValue<VARS, string, string>;
@@ -121,7 +122,7 @@ export default class Expression<VARS = never> implements ImplementableExpression
 				else if (sql.is(value))
 					return value.text;
 				else
-					return `'${value.toISOString()}'`;
+					return `'${(value as Date).toISOString()}'`;
 
 			case "number":
 				return `${value}`;
@@ -291,7 +292,7 @@ export default class Expression<VARS = never> implements ImplementableExpression
 		const e = new Expression(this.vars, this.enableStringConcatenation);
 		e.parts.push(() => values
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			.map((value, i) => Expression.stringifyValue(expression => predicate(expression, value, i, values), this.vars, this.enabeleStringConcatenation))
+			.map((value, i) => Expression.stringifyValue(expression => predicate(expression, value, i, values), this.vars, this.enableStringConcatenation))
 			.join(" AND "));
 		return e;
 	}
@@ -310,6 +311,12 @@ export default class Expression<VARS = never> implements ImplementableExpression
 	public value (value: ExpressionOr<VARS, ValidType>, mapper?: (value: string) => string) {
 		return new Expression(this.vars, this.enableStringConcatenation)
 			.innerValue(value as never, mapper);
+	}
+
+	public jsonb (value: ValidLiteral | object) {
+		return new Expression(this.vars, this.enableStringConcatenation)
+			.innerValue(JSON.stringify(value) as never)
+			.as(DataType.JSONB);
 	}
 
 	public var (name: keyof VARS) {

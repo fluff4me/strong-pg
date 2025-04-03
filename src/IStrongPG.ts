@@ -238,9 +238,9 @@ export interface MigrationTypeMap {
 	[DataTypeID.RECORD]: null;
 }
 
-export interface InputTypeMap extends Omit<MigrationTypeMap, DataTypeID.JSON> {
-	[DataTypeID.JSON]: any;
-	[DataTypeID.JSONB]: any;
+export interface InputTypeMap extends Omit<MigrationTypeMap, DataTypeID.JSON | DataTypeID.JSONB> {
+	[DataTypeID.JSON]: ValidLiteral | object;
+	[DataTypeID.JSONB]: ValidLiteral | object;
 	[DataTypeID.RECORD]: never;
 	[DataTypeID.SETOF]: never;
 	[DataTypeID.ARRAYOF]: any[];
