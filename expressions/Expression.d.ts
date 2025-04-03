@@ -1,5 +1,5 @@
 import Database, { sql } from "../Database";
-import { Initialiser, MigrationTypeFromString, OptionalTypeString, TypeString, ValidType } from "../IStrongPG";
+import { Initialiser, MigrationTypeFromString, OptionalTypeString, TypeString, ValidLiteral, ValidType } from "../IStrongPG";
 import { DatabaseSchema, TableSchema } from "../Schema";
 import { JoinTables } from "../statements/Join";
 import { SelectFromVirtualTable } from "../statements/Select";
@@ -38,6 +38,7 @@ export interface ExpressionValues<VARS = never, VALUE = null, RESULT = null> {
     some<T>(values: T[], predicate: (e: ExpressionValues<VARS, null, boolean>, value: T, index: number, values: T[]) => ExpressionOperations<VARS, boolean>): ExpressionOperations<VARS, boolean>;
     every<T>(values: T[], predicate: (e: ExpressionValues<VARS, null, boolean>, value: T, index: number, values: T[]) => ExpressionOperations<VARS, boolean>): ExpressionOperations<VARS, boolean>;
     value: ExpressionValue<VARS, VALUE, RESULT>;
+    jsonb(value: ValidLiteral | object): ExpressionOperations<VARS, object>;
     var<VAR extends keyof VARS>(name: VAR): ExpressionOperations<VARS, MigrationTypeFromString<Extract<VARS[VAR], TypeString | OptionalTypeString>>>;
     lowercase: ExpressionValue<VARS, string, string>;
     uppercase: ExpressionValue<VARS, string, string>;
@@ -87,6 +88,7 @@ export default class Expression<VARS = never> implements ImplementableExpression
     every(values: any[], predicate: (e: ExpressionValues, value: any, index: number, values: any[]) => any): Expression<never>;
     private innerValue;
     value(value: ExpressionOr<VARS, ValidType>, mapper?: (value: string) => string): Expression<never>;
+    jsonb(value: ValidLiteral | object): Expression<never>;
     var(name: keyof VARS): Expression<never>;
     lowercase(value: ExpressionOr<VARS, string>): Expression<never>;
     uppercase(value: ExpressionOr<VARS, string>): Expression<never>;

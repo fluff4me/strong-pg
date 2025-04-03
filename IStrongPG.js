@@ -41,6 +41,7 @@ var DataTypeID;
     DataTypeID[DataTypeID["TRIGGER"] = 26] = "TRIGGER";
     DataTypeID[DataTypeID["VOID"] = 27] = "VOID";
     DataTypeID[DataTypeID["ARRAY"] = 28] = "ARRAY";
+    DataTypeID[DataTypeID["ARRAYOF"] = 29] = "ARRAYOF";
 })(DataTypeID || (exports.DataTypeID = DataTypeID = {}));
 var DataType;
 (function (DataType) {

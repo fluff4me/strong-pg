@@ -33,7 +33,8 @@ export declare enum DataTypeID {
     SETOF = 25,
     TRIGGER = 26,
     VOID = 27,
-    ARRAY = 28
+    ARRAY = 28,
+    ARRAYOF = 29
 }
 export interface TypeStringMap {
     [DataTypeID.SMALLINT]: "SMALLINT";
@@ -65,6 +66,7 @@ export interface TypeStringMap {
     [DataTypeID.TRIGGER]: "TRIGGER";
     [DataTypeID.VOID]: "VOID";
     [DataTypeID.ARRAY]: `${string}[]`;
+    [DataTypeID.ARRAYOF]: `${string}[]`;
 }
 export declare namespace DataType {
     const SMALLINT: TypeStringMap[DataTypeID.SMALLINT];
@@ -107,9 +109,13 @@ export interface OptionalTypeString<TYPE extends TypeString = TypeString> {
 }
 export type MakeOptional<TYPE> = TYPE extends TypeString ? OptionalTypeString<TYPE> : TYPE;
 export type ExtractTypeString<TYPE extends TypeString | OptionalTypeString> = TYPE extends OptionalTypeString<infer TYPE2> ? TYPE2 : TYPE;
-export type DataTypeFromString<STR extends TypeString | OptionalTypeString> = (STR extends OptionalTypeString<infer TYPE> ? TYPE : STR) extends infer TYPE ? {
+export type DataTypeFromString<STR extends TypeString | OptionalTypeString> = (STR extends OptionalTypeString<infer TYPE> ? TYPE : STR) extends infer TYPE ? (TYPE extends `${TypeString}[]` ? {
     [DATATYPE in DataTypeID as TYPE extends TypeStringMap[DATATYPE] ? DATATYPE : never]: DATATYPE;
-} extends infer DATATYPE_RESULT ? DATATYPE_RESULT[keyof DATATYPE_RESULT] & DataTypeID : never : never;
+} : TYPE extends `${string}[]` ? {
+    [DataTypeID.ARRAYOF]: DataTypeID.ARRAYOF;
+} : {
+    [DATATYPE in DataTypeID as TYPE extends TypeStringMap[DATATYPE] ? DATATYPE : never]: DATATYPE;
+}) extends infer DATATYPE_RESULT ? DATATYPE_RESULT[keyof DATATYPE_RESULT] & DataTypeID : never : never;
 export type ValidDate = Date | number | typeof CURRENT_TIMESTAMP;
 export interface MigrationTypeMap {
     [DataTypeID.SMALLINT]: number;
@@ -138,11 +144,12 @@ export interface MigrationTypeMap {
     [DataTypeID.JSONB]: null;
     [DataTypeID.RECORD]: null;
 }
-export interface InputTypeMap extends Omit<MigrationTypeMap, DataTypeID.JSON> {
-    [DataTypeID.JSON]: any;
-    [DataTypeID.JSONB]: any;
+export interface InputTypeMap extends Omit<MigrationTypeMap, DataTypeID.JSON | DataTypeID.JSONB> {
+    [DataTypeID.JSON]: ValidLiteral | object;
+    [DataTypeID.JSONB]: ValidLiteral | object;
     [DataTypeID.RECORD]: never;
     [DataTypeID.SETOF]: never;
+    [DataTypeID.ARRAYOF]: any[];
     [DataTypeID.VOID]: void;
     [DataTypeID.TRIGGER]: never;
 }
@@ -154,7 +161,8 @@ export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | Data
     [DataTypeID.TIMESTAMP]: Date;
     [DataTypeID.TIME]: Date;
 }
-export type ValidType = string | boolean | number | symbol | Date | RegExp | undefined | null | (string | boolean | number | symbol | Date | RegExp | undefined | null)[];
+export type ValidType = ValidLiteral | symbol | Date | RegExp | undefined | (ValidLiteral | symbol | Date | RegExp | undefined)[];
+export type ValidLiteral = string | boolean | number | null;
 export declare const SYMBOL_COLUMNS: unique symbol;
 export type MigrationTypeFromString<STR extends TypeString | OptionalTypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : ((STR extends OptionalTypeString<infer TYPE> ? TYPE : STR) extends infer TYPE extends TypeString ? TYPE extends `${infer SUB_TYPE extends TypeString}[]` ? MigrationTypeMap[DataTypeFromString<SUB_TYPE>][] : MigrationTypeMap[DataTypeFromString<TYPE>] : never);
 export type InputTypeFromString<STR extends TypeString | OptionalTypeString, VARS = {}> = STR extends "*" ? typeof SYMBOL_COLUMNS : ExpressionOr<VARS, ((STR extends OptionalTypeString<infer TYPE> ? TYPE : STR) extends infer TYPE extends TypeString ? TYPE extends `${infer SUB_TYPE extends TypeString}[]` ? InputTypeMap[DataTypeFromString<SUB_TYPE>][] : InputTypeMap[DataTypeFromString<TYPE>] : never)>;

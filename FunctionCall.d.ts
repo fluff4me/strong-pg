@@ -1,5 +1,6 @@
 import { OptionalTypeString, TypeString } from "./IStrongPG";
 import { DatabaseSchema, FunctionParameters, FunctionSchema, TableSchema } from "./Schema";
+import Statement from "./statements/Statement";
 import { VirtualTable } from "./VirtualTable";
 export type FunctionOutput<SCHEMA extends DatabaseSchema, FUNCTION extends FunctionSchema, FUNCTION_NAME extends DatabaseSchema.FunctionName<SCHEMA>> = FUNCTION extends FunctionSchema<(TypeString | OptionalTypeString)[], infer OUT, infer RETURN> ? {
     [I in keyof OUT as OUT[I] extends [TypeString, infer NAME extends PropertyKey] ? NAME : never]: OUT[I] extends [infer TYPE extends TypeString, string] ? TYPE : never;
@@ -16,5 +17,12 @@ declare class FunctionCall<FUNCTION extends FunctionSchema, SCHEMA extends Datab
     constructor(functionName: FUNCTION_NAME, params: FunctionParameters<FUNCTION>);
     compileWith: undefined;
     compileFrom(): string;
+    perform(): PerformFunction<FunctionSchema<(TypeString | OptionalTypeString<TypeString>)[], [TypeString, string][], TypeString>, DatabaseSchema, string>;
+}
+declare class PerformFunction<FUNCTION extends FunctionSchema, SCHEMA extends DatabaseSchema, FUNCTION_NAME extends DatabaseSchema.FunctionName<SCHEMA>> extends Statement {
+    private readonly functionCall;
+    private readonly vars;
+    constructor(functionCall: string, vars: any[]);
+    compile(): Statement.Queryable | Statement.Queryable[];
 }
 export default FunctionCall;

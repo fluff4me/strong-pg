@@ -192,7 +192,7 @@ class Expression {
         const e = new Expression(this.vars, this.enableStringConcatenation);
         e.parts.push(() => values
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-            .map((value, i) => Expression.stringifyValue(expression => predicate(expression, value, i, values), this.vars, this.enabeleStringConcatenation))
+            .map((value, i) => Expression.stringifyValue(expression => predicate(expression, value, i, values), this.vars, this.enableStringConcatenation))
             .join(" AND "));
         return e;
     }
@@ -208,6 +208,11 @@ class Expression {
     value(value, mapper) {
         return new Expression(this.vars, this.enableStringConcatenation)
             .innerValue(value, mapper);
+    }
+    jsonb(value) {
+        return new Expression(this.vars, this.enableStringConcatenation)
+            .innerValue(JSON.stringify(value))
+            .as(IStrongPG_1.DataType.JSONB);
     }
     var(name) {
         const e = new Expression(this.vars, this.enableStringConcatenation);
