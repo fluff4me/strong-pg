@@ -1,6 +1,7 @@
 import Expression from "./expressions/Expression";
 import { OptionalTypeString, TypeString } from "./IStrongPG";
 import { DatabaseSchema, FunctionParameters, FunctionSchema, TableSchema } from "./Schema";
+import Statement from "./statements/Statement";
 import { VirtualTable } from "./VirtualTable";
 
 export type FunctionOutput<SCHEMA extends DatabaseSchema, FUNCTION extends FunctionSchema, FUNCTION_NAME extends DatabaseSchema.FunctionName<SCHEMA>> =
@@ -39,6 +40,21 @@ class FunctionCall<FUNCTION extends FunctionSchema, SCHEMA extends DatabaseSchem
 	public override compileWith = undefined;
 	public override compileFrom (): string {
 		return `${this.functionName}(${this.params.join(",")})`;
+	}
+
+	public perform () {
+		return new PerformFunction(this.compileFrom(), this.vars)
+	}
+}
+
+class PerformFunction<FUNCTION extends FunctionSchema, SCHEMA extends DatabaseSchema, FUNCTION_NAME extends DatabaseSchema.FunctionName<SCHEMA>> extends Statement {
+
+	public constructor (private readonly functionCall: string, private readonly vars: any[]) {
+		super()
+	}
+
+	public override compile (): Statement.Queryable | Statement.Queryable[] {
+		return new Statement.Queryable(`SELECT ${this.functionCall}`, undefined, this.vars)
 	}
 }
 
