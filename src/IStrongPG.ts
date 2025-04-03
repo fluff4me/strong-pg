@@ -47,6 +47,7 @@ export enum DataTypeID {
 	TRIGGER,
 	VOID,
 	ARRAY,
+	ARRAYOF,
 }
 
 export interface TypeStringMap {
@@ -90,6 +91,7 @@ export interface TypeStringMap {
 	[DataTypeID.TRIGGER]: "TRIGGER",
 	[DataTypeID.VOID]: "VOID",
 	[DataTypeID.ARRAY]: `${string}[]`,
+	[DataTypeID.ARRAYOF]: `${string}[]`,
 }
 
 export namespace DataType {
@@ -183,8 +185,15 @@ export type MakeOptional<TYPE> = TYPE extends TypeString ? OptionalTypeString<TY
 export type ExtractTypeString<TYPE extends TypeString | OptionalTypeString> = TYPE extends OptionalTypeString<infer TYPE2> ? TYPE2 : TYPE;
 
 export type DataTypeFromString<STR extends TypeString | OptionalTypeString> =
-	(STR extends OptionalTypeString<infer TYPE> ? TYPE : STR) extends infer TYPE ?
-	{ [DATATYPE in DataTypeID as TYPE extends TypeStringMap[DATATYPE] ? DATATYPE : never]: DATATYPE } extends infer DATATYPE_RESULT ?
+	(STR extends OptionalTypeString<infer TYPE> ? TYPE : STR) extends infer TYPE ? (
+		TYPE extends `${TypeString}[]` ? {
+			[DATATYPE in DataTypeID as TYPE extends TypeStringMap[DATATYPE] ? DATATYPE : never]: DATATYPE;
+		}
+		: TYPE extends `${string}[]` ? { [DataTypeID.ARRAYOF]: DataTypeID.ARRAYOF }
+		: {
+			[DATATYPE in DataTypeID as TYPE extends TypeStringMap[DATATYPE] ? DATATYPE : never]: DATATYPE;
+		}
+	) extends infer DATATYPE_RESULT ?
 	DATATYPE_RESULT[keyof DATATYPE_RESULT] & DataTypeID
 	: never
 	: never;
@@ -234,6 +243,7 @@ export interface InputTypeMap extends Omit<MigrationTypeMap, DataTypeID.JSON> {
 	[DataTypeID.JSONB]: any;
 	[DataTypeID.RECORD]: never;
 	[DataTypeID.SETOF]: never;
+	[DataTypeID.ARRAYOF]: any[];
 	[DataTypeID.VOID]: void;
 	[DataTypeID.TRIGGER]: never;
 }
@@ -254,8 +264,10 @@ export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | Data
 }
 
 export type ValidType =
-	| string | boolean | number | symbol | Date | RegExp | undefined | null
-	| (string | boolean | number | symbol | Date | RegExp | undefined | null)[];
+	| ValidLiteral | symbol | Date | RegExp | undefined
+	| (ValidLiteral | symbol | Date | RegExp | undefined)[];
+
+export type ValidLiteral = string | boolean | number | null;
 
 export const SYMBOL_COLUMNS = Symbol("COLUMNS");
 
