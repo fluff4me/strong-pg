@@ -4,7 +4,7 @@ import DeleteFromTable from "./statements/Delete";
 import InsertIntoTable, { InsertIntoTableFactory } from "./statements/Insert";
 import Join, { JoinTables } from "./statements/Join";
 import Recursive from "./statements/Recursive";
-import SelectFromTable from "./statements/Select";
+import SelectFromTable, { SelectColumnsRecord } from "./statements/Select";
 import TruncateTable from "./statements/Truncate";
 import UpdateTable from "./statements/Update";
 
@@ -22,7 +22,7 @@ export default class Table<TABLE extends TableSchema, DATABASE extends DatabaseS
 	/**
 	 * SELECT columns AS aliases
 	 */
-	public select<COLUMNS extends Partial<Record<Schema.Column<TABLE>, string>>> (columns: COLUMNS): SelectFromTable<TABLE, NAME, COLUMNS>;
+	public select<const COLUMNS extends SelectColumnsRecord<TABLE, NAME>> (columns: COLUMNS): SelectFromTable<TABLE, NAME, COLUMNS>;
 	/**
 	 * SELECT columns
 	 */
@@ -42,7 +42,7 @@ export default class Table<TABLE extends TableSchema, DATABASE extends DatabaseS
 	 * ...then provide an initialiser for tweaking the query
 	 */
 	public select<COLUMNS extends Schema.Column<TABLE>[], RETURN extends SelectFromTable<TABLE, NAME, COLUMNS>> (...columnsAndInitialiser: [...COLUMNS, Initialiser<SelectFromTable<TABLE, NAME, COLUMNS>, RETURN>]): RETURN;
-	public select (...params: (Partial<Record<Schema.Column<TABLE>, string>> | Schema.Column<TABLE> | "*" | Initialiser<SelectFromTable<TABLE, NAME>> | Initialiser<SelectFromTable<TABLE, "*">> | Initialiser<SelectFromTable<TABLE, NAME, 1>>)[]): SelectFromTable<TABLE, any> | SelectFromTable<TABLE, "*"> | SelectFromTable<TABLE, NAME, 1> {
+	public select (...params: (Partial<Record<string, Schema.Column<TABLE>>> | Schema.Column<TABLE> | "*" | Initialiser<SelectFromTable<TABLE, NAME>> | Initialiser<SelectFromTable<TABLE, "*">> | Initialiser<SelectFromTable<TABLE, NAME, 1>>)[]): SelectFromTable<TABLE, any> | SelectFromTable<TABLE, "*"> | SelectFromTable<TABLE, NAME, 1> {
 		const initialiser = typeof params[params.length - 1] === "function" ? params.pop() as Initialiser<SelectFromTable<TABLE, NAME>> : undefined;
 
 		const input =

@@ -33,6 +33,7 @@ export interface ExpressionValueAddBooleanExpr<VARS = never> {
 
 export interface ExpressionCase<VARS = never, RESULT = null> {
 	when (value: ExpressionOr<VARS, boolean>): ExpressionCaseWhen<VARS, RESULT>;
+	otherwise (value: ExpressionOr<VARS, RESULT>): ExpressionCase<VARS, RESULT>;
 }
 
 export interface ExpressionCaseWhen<VARS = never, RESULT = null> {
@@ -40,7 +41,7 @@ export interface ExpressionCaseWhen<VARS = never, RESULT = null> {
 }
 
 export interface ExpressionValues<VARS = never, VALUE = null, RESULT = null> {
-	case<R extends ValidType> (initialiser: Initialiser<ExpressionCase<VARS, R>, ExpressionCase<VARS, R>[]>): ExpressionOperations<VARS, R>;
+	case<R extends ValidType> (initialiser: Initialiser<ExpressionCase<VARS, R>, ExpressionCase<VARS, R> | ExpressionCase<VARS, R>[]>): ExpressionOperations<VARS, R>;
 	some<T> (values: T[], predicate: (e: ExpressionValues<VARS, null, boolean>, value: T, index: number, values: T[]) => ExpressionOperations<VARS, boolean>): ExpressionOperations<VARS, boolean>;
 	every<T> (values: T[], predicate: (e: ExpressionValues<VARS, null, boolean>, value: T, index: number, values: T[]) => ExpressionOperations<VARS, boolean>): ExpressionOperations<VARS, boolean>;
 	value: ExpressionValue<VARS, VALUE, RESULT>;
@@ -248,12 +249,16 @@ export default class Expression<VARS = never> implements ImplementableExpression
 	}
 
 	public case<R extends ValidType> (initialiser: Initialiser<ExpressionCase<VARS, R>, ExpressionCase<VARS, R>[]>) {
-		type When = [ExpressionOr<VARS, boolean>, ExpressionOr<VARS, R>];
+		type When = [ExpressionOr<VARS, boolean> | undefined, ExpressionOr<VARS, R>];
 		const whens: When[] = [];
 		let when: When | undefined;
 		const builder: ExpressionCase<VARS, R> & ExpressionCaseWhen<VARS, R> = {
 			when: value => {
 				when = [value, undefined!];
+				return builder;
+			},
+			otherwise: value => {
+				whens.push([undefined, value]);
 				return builder;
 			},
 			then: value => {
@@ -268,9 +273,11 @@ export default class Expression<VARS = never> implements ImplementableExpression
 		this.parts.push(() => {
 			const whensString = whens
 				.map(([when, then]) => {
-					const whenString = Expression.stringifyValue(when, this.vars, this.enableStringConcatenation);
+					const whenString = when === undefined ? undefined : Expression.stringifyValue(when, this.vars, this.enableStringConcatenation);
 					const thenString = Expression.stringifyValue(then, this.vars, this.enableStringConcatenation);
-					return `WHEN (${whenString}) THEN (${thenString})`;
+					return whenString === undefined
+						? `ELSE (${thenString})`
+						: `WHEN (${whenString}) THEN (${thenString})`;
 				})
 				.join(" ");
 

@@ -1,5 +1,5 @@
 import { Pool, PoolClient, QueryResult } from "pg";
-import { InputTypeFromString, OutputTypeFromString, SingleStringUnion, SortDirection } from "../IStrongPG";
+import { InputTypeFromString, OutputTypeFromString, SingleStringUnion, SortDirection, ValidType } from "../IStrongPG";
 import Schema, { TableSchema } from "../Schema";
 import { VirtualTable } from "../VirtualTable";
 import Expression, { ExpressionInitialiser } from "../expressions/Expression";
@@ -36,16 +36,23 @@ import Statement from "./Statement";
 
 // 	: never
 
-export type SelectColumns<SCHEMA extends TableSchema> =
+export type SelectColumns<SCHEMA extends TableSchema, NAME extends string, VARS = SelectWhereVars<SCHEMA, NAME>> =
 	| "*"
 	| Schema.Column<SCHEMA>[]
-	| Partial<Record<Schema.Column<SCHEMA>, string>>
+	| SelectColumnsRecord<SCHEMA, NAME, VARS>
 
-type SelectResult<SCHEMA extends TableSchema, COLUMNS extends SelectColumns<SCHEMA> | 1> =
+export type SelectColumnsRecord<SCHEMA extends TableSchema, NAME extends string = never, VARS = SelectWhereVars<SCHEMA, NAME>> =
+	Partial<Record<string, Schema.Column<SCHEMA> | ExpressionInitialiser<VARS, ValidType>>>
+
+type SelectResult<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA, NAME> | 1> =
 	COLUMNS extends 1 ? 1 : (
 		(
-			COLUMNS extends Partial<Record<Schema.Column<SCHEMA>, string>> ?
-			| { [K in keyof COLUMNS as COLUMNS[K] & PropertyKey]: OutputTypeFromString<SCHEMA[K & Schema.Column<SCHEMA>]> }
+			COLUMNS extends Partial<Record<string, Schema.Column<SCHEMA>>> ?
+			| { [K in keyof COLUMNS]: COLUMNS[K] extends infer VALUE ? (
+				VALUE extends Schema.Column<SCHEMA>
+				? OutputTypeFromString<SCHEMA[VALUE & Schema.Column<SCHEMA>]>
+				: VALUE extends ExpressionInitialiser<any, infer TYPE> ? TYPE : never
+			) : never }
 
 			: (COLUMNS extends any[] ? COLUMNS[number] : Schema.Column<SCHEMA>) extends infer COLUMNS ?
 			| { [K in COLUMNS & PropertyKey]: OutputTypeFromString<SCHEMA[K & keyof SCHEMA]> }
@@ -76,7 +83,7 @@ type SelectWhereVars<SCHEMA extends TableSchema, NAME extends string> = Schema.C
 	BASE & { [KEY in keyof BASE as KEY extends string ? `${NAME}.${KEY}` : never]: BASE[KEY] }
 	: never
 
-export class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA> | 1 = Schema.Column<SCHEMA>[], RESULT = SelectResult<SCHEMA, COLUMNS>[]> extends Statement<RESULT> {
+export class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA, NAME> | 1 = Schema.Column<SCHEMA>[], RESULT = SelectResult<SCHEMA, NAME, COLUMNS>[]> extends Statement<RESULT> {
 
 	private vars: any[];
 	public constructor (private readonly from: VirtualTable<SCHEMA, NAME> | string, public readonly columns: COLUMNS) {
@@ -92,8 +99,8 @@ export class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME extends str
 	}
 
 	private _limit?: number;
-	public limit (count: 1): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, COLUMNS> | undefined>;
-	public limit (count?: number): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, COLUMNS>[]>;
+	public limit (count: 1): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, NAME, COLUMNS> | undefined>;
+	public limit (count?: number): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, NAME, COLUMNS>[]>;
 	public limit (count?: number): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, any> {
 		this._limit = count;
 		return this;
@@ -127,7 +134,17 @@ export class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME extends str
 		const columns = this.columns === "*" ? "*"
 			: Array.isArray(this.columns) ? this.columns.join(",")
 				: Object.entries(this.columns)
-					.map(([column, alias]) => column === alias ? column : `${column} ${alias as string}`)
+					.map(([alias, column]) => {
+						if (column === alias)
+							return column as string;
+
+						if (typeof column === "string")
+							return `${column} ${alias}`;
+
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+						const queryable = Expression.compile(column, undefined, this.vars)
+						return `${queryable.text} ${alias}`;
+					})
 					.join(",");
 		return this.queryable(`${this.compileWith()}SELECT ${columns} FROM ${from} ${this.condition ?? ""} ${orderBy} ${offset} ${limit}`, undefined, this.vars);
 	}
@@ -151,7 +168,7 @@ export class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME extends str
 	}
 }
 
-export default class SelectFromTable<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA> | 1 = "*"> extends SelectFromVirtualTable<SCHEMA, NAME, COLUMNS> {
+export default class SelectFromTable<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA, NAME> | 1 = "*"> extends SelectFromVirtualTable<SCHEMA, NAME, COLUMNS> {
 
 	public constructor (public readonly tableName: NAME, public readonly schema: SCHEMA, columns: COLUMNS) {
 		super(tableName, columns);

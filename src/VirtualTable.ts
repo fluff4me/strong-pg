@@ -1,6 +1,6 @@
 import { Initialiser } from "./IStrongPG";
 import Schema, { TableSchema } from "./Schema";
-import { SelectFromVirtualTable } from "./statements/Select";
+import { SelectColumnsRecord, SelectFromVirtualTable } from "./statements/Select";
 
 export abstract class VirtualTable<VIRTUAL_TABLE extends TableSchema, NAME extends string> {
 
@@ -14,7 +14,7 @@ export abstract class VirtualTable<VIRTUAL_TABLE extends TableSchema, NAME exten
 	/**
 	 * SELECT columns AS aliases
 	 */
-	public select<COLUMNS extends Partial<Record<Schema.Column<VIRTUAL_TABLE>, string>>> (columns: COLUMNS): SelectFromVirtualTable<VIRTUAL_TABLE, NAME, COLUMNS>;
+	public select<const COLUMNS extends SelectColumnsRecord<VIRTUAL_TABLE, NAME>> (columns: COLUMNS): SelectFromVirtualTable<VIRTUAL_TABLE, NAME, COLUMNS>;
 	/**
 	 * SELECT columns
 	 */
