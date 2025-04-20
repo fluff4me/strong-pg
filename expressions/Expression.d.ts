@@ -29,12 +29,13 @@ export interface ExpressionValueAddBooleanExpr<VARS = never> {
 }
 export interface ExpressionCase<VARS = never, RESULT = null> {
     when(value: ExpressionOr<VARS, boolean>): ExpressionCaseWhen<VARS, RESULT>;
+    otherwise(value: ExpressionOr<VARS, RESULT>): ExpressionCase<VARS, RESULT>;
 }
 export interface ExpressionCaseWhen<VARS = never, RESULT = null> {
     then(value: ExpressionOr<VARS, RESULT>): ExpressionCase<VARS, RESULT>;
 }
 export interface ExpressionValues<VARS = never, VALUE = null, RESULT = null> {
-    case<R extends ValidType>(initialiser: Initialiser<ExpressionCase<VARS, R>, ExpressionCase<VARS, R>[]>): ExpressionOperations<VARS, R>;
+    case<R extends ValidType>(initialiser: Initialiser<ExpressionCase<VARS, R>, ExpressionCase<VARS, R> | ExpressionCase<VARS, R>[]>): ExpressionOperations<VARS, R>;
     some<T>(values: T[], predicate: (e: ExpressionValues<VARS, null, boolean>, value: T, index: number, values: T[]) => ExpressionOperations<VARS, boolean>): ExpressionOperations<VARS, boolean>;
     every<T>(values: T[], predicate: (e: ExpressionValues<VARS, null, boolean>, value: T, index: number, values: T[]) => ExpressionOperations<VARS, boolean>): ExpressionOperations<VARS, boolean>;
     value: ExpressionValue<VARS, VALUE, RESULT>;

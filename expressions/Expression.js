@@ -158,6 +158,10 @@ class Expression {
                 when = [value, undefined];
                 return builder;
             },
+            otherwise: value => {
+                whens.push([undefined, value]);
+                return builder;
+            },
             then: value => {
                 if (!when)
                     throw new Error("Cannot add 'then' value to no 'when' expression");
@@ -171,9 +175,11 @@ class Expression {
         this.parts.push(() => {
             const whensString = whens
                 .map(([when, then]) => {
-                const whenString = Expression.stringifyValue(when, this.vars, this.enableStringConcatenation);
+                const whenString = when === undefined ? undefined : Expression.stringifyValue(when, this.vars, this.enableStringConcatenation);
                 const thenString = Expression.stringifyValue(then, this.vars, this.enableStringConcatenation);
-                return `WHEN (${whenString}) THEN (${thenString})`;
+                return whenString === undefined
+                    ? `ELSE (${thenString})`
+                    : `WHEN (${whenString}) THEN (${thenString})`;
             })
                 .join(" ");
             return `CASE ${whensString} END`;

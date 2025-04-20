@@ -4,7 +4,7 @@ import DeleteFromTable from "./statements/Delete";
 import InsertIntoTable, { InsertIntoTableFactory } from "./statements/Insert";
 import Join, { JoinTables } from "./statements/Join";
 import Recursive from "./statements/Recursive";
-import SelectFromTable from "./statements/Select";
+import SelectFromTable, { SelectColumnsRecord } from "./statements/Select";
 import TruncateTable from "./statements/Truncate";
 import UpdateTable from "./statements/Update";
 export default class Table<TABLE extends TableSchema, DATABASE extends DatabaseSchema, NAME extends DatabaseSchema.TableName<DATABASE>> {
@@ -22,7 +22,7 @@ export default class Table<TABLE extends TableSchema, DATABASE extends DatabaseS
     /**
      * SELECT columns AS aliases
      */
-    select<COLUMNS extends Partial<Record<Schema.Column<TABLE>, string>>>(columns: COLUMNS): SelectFromTable<TABLE, NAME, COLUMNS>;
+    select<const COLUMNS extends SelectColumnsRecord<TABLE, NAME>>(columns: COLUMNS): SelectFromTable<TABLE, NAME, COLUMNS>;
     /**
      * SELECT columns
      */

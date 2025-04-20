@@ -1,12 +1,13 @@
 import { Pool, PoolClient, QueryResult } from "pg";
-import { InputTypeFromString, OutputTypeFromString, SingleStringUnion, SortDirection } from "../IStrongPG";
+import { InputTypeFromString, OutputTypeFromString, SingleStringUnion, SortDirection, ValidType } from "../IStrongPG";
 import Schema, { TableSchema } from "../Schema";
 import { VirtualTable } from "../VirtualTable";
 import { ExpressionInitialiser } from "../expressions/Expression";
 import Statement from "./Statement";
-export type SelectColumns<SCHEMA extends TableSchema> = "*" | Schema.Column<SCHEMA>[] | Partial<Record<Schema.Column<SCHEMA>, string>>;
-type SelectResult<SCHEMA extends TableSchema, COLUMNS extends SelectColumns<SCHEMA> | 1> = COLUMNS extends 1 ? 1 : ((COLUMNS extends Partial<Record<Schema.Column<SCHEMA>, string>> ? {
-    [K in keyof COLUMNS as COLUMNS[K] & PropertyKey]: OutputTypeFromString<SCHEMA[K & Schema.Column<SCHEMA>]>;
+export type SelectColumns<SCHEMA extends TableSchema, NAME extends string, VARS = SelectWhereVars<SCHEMA, NAME>> = "*" | Schema.Column<SCHEMA>[] | SelectColumnsRecord<SCHEMA, NAME, VARS>;
+export type SelectColumnsRecord<SCHEMA extends TableSchema, NAME extends string = never, VARS = SelectWhereVars<SCHEMA, NAME>> = Partial<Record<string, Schema.Column<SCHEMA> | ExpressionInitialiser<VARS, ValidType>>>;
+type SelectResult<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA, NAME> | 1> = COLUMNS extends 1 ? 1 : ((COLUMNS extends Partial<Record<string, Schema.Column<SCHEMA>>> ? {
+    [K in keyof COLUMNS]: COLUMNS[K] extends infer VALUE ? (VALUE extends Schema.Column<SCHEMA> ? OutputTypeFromString<SCHEMA[VALUE & Schema.Column<SCHEMA>]> : VALUE extends ExpressionInitialiser<any, infer TYPE> ? TYPE : never) : never;
 } : (COLUMNS extends any[] ? COLUMNS[number] : Schema.Column<SCHEMA>) extends infer COLUMNS ? {
     [K in COLUMNS & PropertyKey]: OutputTypeFromString<SCHEMA[K & keyof SCHEMA]>;
 } : never) extends infer RESULT ? (RESULT extends {
@@ -21,7 +22,7 @@ export declare namespace Order {
 type SelectWhereVars<SCHEMA extends TableSchema, NAME extends string> = Schema.Columns<SCHEMA> extends infer BASE ? BASE & {
     [KEY in keyof BASE as KEY extends string ? `${NAME}.${KEY}` : never]: BASE[KEY];
 } : never;
-export declare class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA> | 1 = Schema.Column<SCHEMA>[], RESULT = SelectResult<SCHEMA, COLUMNS>[]> extends Statement<RESULT> {
+export declare class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA, NAME> | 1 = Schema.Column<SCHEMA>[], RESULT = SelectResult<SCHEMA, NAME, COLUMNS>[]> extends Statement<RESULT> {
     private readonly from;
     readonly columns: COLUMNS;
     private vars;
@@ -29,8 +30,8 @@ export declare class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME ext
     private condition?;
     where(initialiser: ExpressionInitialiser<SelectWhereVars<SCHEMA, NAME>, boolean>): this;
     private _limit?;
-    limit(count: 1): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, COLUMNS> | undefined>;
-    limit(count?: number): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, COLUMNS>[]>;
+    limit(count: 1): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, NAME, COLUMNS> | undefined>;
+    limit(count?: number): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, NAME, COLUMNS>[]>;
     private _orderBy?;
     orderBy(column: Schema.Column<SCHEMA>, order?: SortDirection): this;
     orderBy(orders: Order<SCHEMA>[]): this;
@@ -38,13 +39,13 @@ export declare class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME ext
     offset(amount?: number): this;
     compile(): Statement.Queryable[];
     private compileWith;
-    queryOne(pool: Pool | PoolClient): Promise<SelectResult<SCHEMA, COLUMNS> | undefined>;
+    queryOne(pool: Pool | PoolClient): Promise<SelectResult<SCHEMA, NAME, COLUMNS> | undefined>;
     protected resolveQueryOutput(output: QueryResult<any>): any;
 }
-export default class SelectFromTable<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA> | 1 = "*"> extends SelectFromVirtualTable<SCHEMA, NAME, COLUMNS> {
+export default class SelectFromTable<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA, NAME> | 1 = "*"> extends SelectFromVirtualTable<SCHEMA, NAME, COLUMNS> {
     readonly tableName: NAME;
     readonly schema: SCHEMA;
     constructor(tableName: NAME, schema: SCHEMA, columns: COLUMNS);
-    primaryKeyed(id: InputTypeFromString<SCHEMA[SingleStringUnion<Schema.PrimaryKey<SCHEMA>[number]>]>, initialiser?: ExpressionInitialiser<SelectWhereVars<SCHEMA, NAME>, boolean>): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, COLUMNS> | undefined>;
+    primaryKeyed(id: InputTypeFromString<SCHEMA[SingleStringUnion<Schema.PrimaryKey<SCHEMA>[number]>]>, initialiser?: ExpressionInitialiser<SelectWhereVars<SCHEMA, NAME>, boolean>): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, NAME, COLUMNS> | undefined>;
 }
 export {};

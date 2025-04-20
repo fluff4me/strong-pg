@@ -55,7 +55,15 @@ class SelectFromVirtualTable extends Statement_1.default {
         const columns = this.columns === "*" ? "*"
             : Array.isArray(this.columns) ? this.columns.join(",")
                 : Object.entries(this.columns)
-                    .map(([column, alias]) => column === alias ? column : `${column} ${alias}`)
+                    .map(([alias, column]) => {
+                    if (column === alias)
+                        return column;
+                    if (typeof column === "string")
+                        return `${column} ${alias}`;
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                    const queryable = Expression_1.default.compile(column, undefined, this.vars);
+                    return `${queryable.text} ${alias}`;
+                })
                     .join(",");
         return this.queryable(`${this.compileWith()}SELECT ${columns} FROM ${from} ${this.condition ?? ""} ${orderBy} ${offset} ${limit}`, undefined, this.vars);
     }
