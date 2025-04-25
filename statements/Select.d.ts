@@ -6,7 +6,7 @@ import { ExpressionInitialiser } from "../expressions/Expression";
 import Statement from "./Statement";
 export type SelectColumns<SCHEMA extends TableSchema, NAME extends string, VARS = SelectWhereVars<SCHEMA, NAME>> = "*" | Schema.Column<SCHEMA>[] | SelectColumnsRecord<SCHEMA, NAME, VARS>;
 export type SelectColumnsRecord<SCHEMA extends TableSchema, NAME extends string = never, VARS = SelectWhereVars<SCHEMA, NAME>> = Partial<Record<string, Schema.Column<SCHEMA> | ExpressionInitialiser<VARS, ValidType>>>;
-type SelectResult<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA, NAME> | 1> = COLUMNS extends 1 ? 1 : ((COLUMNS extends Partial<Record<string, Schema.Column<SCHEMA>>> ? {
+type SelectResult<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA, NAME> | 1> = COLUMNS extends 1 ? 1 : ((COLUMNS extends SelectColumnsRecord<SCHEMA, NAME, any> ? {
     [K in keyof COLUMNS]: COLUMNS[K] extends infer VALUE ? (VALUE extends Schema.Column<SCHEMA> ? OutputTypeFromString<SCHEMA[VALUE & Schema.Column<SCHEMA>]> : VALUE extends ExpressionInitialiser<any, infer TYPE> ? TYPE : never) : never;
 } : (COLUMNS extends any[] ? COLUMNS[number] : Schema.Column<SCHEMA>) extends infer COLUMNS ? {
     [K in COLUMNS & PropertyKey]: OutputTypeFromString<SCHEMA[K & keyof SCHEMA]>;
