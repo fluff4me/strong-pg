@@ -47,7 +47,7 @@ export type SelectColumnsRecord<SCHEMA extends TableSchema, NAME extends string 
 type SelectResult<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA, NAME> | 1> =
 	COLUMNS extends 1 ? 1 : (
 		(
-			COLUMNS extends Partial<Record<string, Schema.Column<SCHEMA>>> ?
+			COLUMNS extends SelectColumnsRecord<SCHEMA, NAME, any> ?
 			| { [K in keyof COLUMNS]: COLUMNS[K] extends infer VALUE ? (
 				VALUE extends Schema.Column<SCHEMA>
 				? OutputTypeFromString<SCHEMA[VALUE & Schema.Column<SCHEMA>]>
