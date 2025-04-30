@@ -12,7 +12,7 @@ export default class UpdateTable<SCHEMA extends TableSchema, RESULT = number, VA
     set(input: Partial<Schema.RowInput<SCHEMA, VARS & Schema.Columns<SCHEMA>>>): this;
     set<COLUMN_NAME extends Schema.Column<SCHEMA>>(column: COLUMN_NAME, value: InputTypeFromString<SCHEMA[COLUMN_NAME], VARS & Schema.Columns<SCHEMA>>): this;
     private condition?;
-    where(initialiser: ExpressionInitialiser<Schema.Columns<SCHEMA>, boolean>): this;
+    where(initialiser: ExpressionInitialiser<VARS & Schema.Columns<SCHEMA>, boolean>): this;
     primaryKeyed(id: InputTypeFromString<SCHEMA[SingleStringUnion<Schema.PrimaryKey<SCHEMA>[number]>]>): this;
     private returningColumns?;
     returning(): UpdateTable<SCHEMA, number, VARS>;

@@ -42,14 +42,14 @@ export default class Table<TABLE extends TableSchema, DATABASE extends DatabaseS
      * ...then provide an initialiser for tweaking the query
      */
     select<COLUMNS extends Schema.Column<TABLE>[], RETURN extends SelectFromTable<TABLE, NAME, COLUMNS>>(...columnsAndInitialiser: [...COLUMNS, Initialiser<SelectFromTable<TABLE, NAME, COLUMNS>, RETURN>]): RETURN;
-    insert<COLUMNS extends Schema.Column<TABLE>[]>(...columns: COLUMNS): InsertIntoTableFactory<TABLE, COLUMNS>;
-    insert<COLUMNS extends Schema.Column<TABLE>[], RETURN extends InsertIntoTableFactory<TABLE, COLUMNS> | InsertIntoTable<TABLE>>(...columnsAndInitialiser: [...COLUMNS, Initialiser<InsertIntoTableFactory<TABLE, COLUMNS>, RETURN>]): RETURN;
-    insert(data: Partial<Schema.RowInput<TABLE>>): InsertIntoTable<TABLE>;
-    insert(data: Partial<Schema.RowInput<TABLE>>, initialiser: Initialiser<InsertIntoTable<TABLE>>): InsertIntoTable<TABLE>;
-    upsert(data: Schema.RowInput<TABLE>): InsertIntoTable<TABLE>;
-    upsert<RETURN extends InsertIntoTable<TABLE, any>>(data: Schema.RowInput<TABLE>, initialiser: Initialiser<InsertIntoTable<TABLE>, RETURN>): RETURN;
-    upsert<COLUMNS extends Schema.Column<TABLE>[]>(...columns: COLUMNS): InsertIntoTableFactory<TABLE, COLUMNS>;
-    upsert<COLUMNS extends Schema.Column<TABLE>[], RETURN extends InsertIntoTableFactory<TABLE, COLUMNS> | InsertIntoTable<TABLE>>(...columnsAndInitialiser: [...COLUMNS, Initialiser<InsertIntoTableFactory<TABLE, COLUMNS>, RETURN>]): RETURN;
+    insert<COLUMNS extends Schema.Column<TABLE>[]>(...columns: COLUMNS): InsertIntoTableFactory<TABLE, NAME, COLUMNS>;
+    insert<COLUMNS extends Schema.Column<TABLE>[], RETURN extends InsertIntoTableFactory<TABLE, NAME, COLUMNS> | InsertIntoTable<TABLE, NAME>>(...columnsAndInitialiser: [...COLUMNS, Initialiser<InsertIntoTableFactory<TABLE, NAME, COLUMNS>, RETURN>]): RETURN;
+    insert(data: Partial<Schema.RowInput<TABLE>>): InsertIntoTable<TABLE, NAME>;
+    insert(data: Partial<Schema.RowInput<TABLE>>, initialiser: Initialiser<InsertIntoTable<TABLE, NAME>>): InsertIntoTable<TABLE, NAME>;
+    upsert(data: Schema.RowInput<TABLE>): InsertIntoTable<TABLE, NAME>;
+    upsert<RETURN extends InsertIntoTable<TABLE, any>>(data: Schema.RowInput<TABLE>, initialiser: Initialiser<InsertIntoTable<TABLE, NAME>, RETURN>): RETURN;
+    upsert<COLUMNS extends Schema.Column<TABLE>[]>(...columns: COLUMNS): InsertIntoTableFactory<TABLE, NAME, COLUMNS>;
+    upsert<COLUMNS extends Schema.Column<TABLE>[], RETURN extends InsertIntoTableFactory<TABLE, NAME, COLUMNS> | InsertIntoTable<TABLE, NAME>>(...columnsAndInitialiser: [...COLUMNS, Initialiser<InsertIntoTableFactory<TABLE, NAME, COLUMNS>, RETURN>]): RETURN;
     update(): UpdateTable<TABLE>;
     update(data: Partial<Schema.RowInput<TABLE>>): UpdateTable<TABLE>;
     update<RETURN extends UpdateTable<TABLE, any>>(data: Partial<Schema.RowInput<TABLE>>, initialiser: Initialiser<UpdateTable<TABLE>, RETURN>): RETURN;
