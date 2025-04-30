@@ -55,38 +55,38 @@ export default class Table<TABLE extends TableSchema, DATABASE extends DatabaseS
 		return initialiser?.(query as any) ?? query;
 	}
 
-	public insert<COLUMNS extends Schema.Column<TABLE>[]> (...columns: COLUMNS): InsertIntoTableFactory<TABLE, COLUMNS>;
-	public insert<COLUMNS extends Schema.Column<TABLE>[], RETURN extends InsertIntoTableFactory<TABLE, COLUMNS> | InsertIntoTable<TABLE>> (...columnsAndInitialiser: [...COLUMNS, Initialiser<InsertIntoTableFactory<TABLE, COLUMNS>, RETURN>]): RETURN;
-	public insert (data: Partial<Schema.RowInput<TABLE>>): InsertIntoTable<TABLE>;
-	public insert (data: Partial<Schema.RowInput<TABLE>>, initialiser: Initialiser<InsertIntoTable<TABLE>>): InsertIntoTable<TABLE>;
-	public insert (...params: (boolean | Partial<Schema.RowInput<TABLE>> | Schema.Column<TABLE> | Initialiser<InsertIntoTableFactory<TABLE>> | Initialiser<InsertIntoTable<TABLE>>)[]): InsertIntoTableFactory<TABLE> | InsertIntoTable<TABLE> {
+	public insert<COLUMNS extends Schema.Column<TABLE>[]> (...columns: COLUMNS): InsertIntoTableFactory<TABLE, NAME, COLUMNS>;
+	public insert<COLUMNS extends Schema.Column<TABLE>[], RETURN extends InsertIntoTableFactory<TABLE, NAME, COLUMNS> | InsertIntoTable<TABLE, NAME>> (...columnsAndInitialiser: [...COLUMNS, Initialiser<InsertIntoTableFactory<TABLE, NAME, COLUMNS>, RETURN>]): RETURN;
+	public insert (data: Partial<Schema.RowInput<TABLE>>): InsertIntoTable<TABLE, NAME>;
+	public insert (data: Partial<Schema.RowInput<TABLE>>, initialiser: Initialiser<InsertIntoTable<TABLE, NAME>>): InsertIntoTable<TABLE, NAME>;
+	public insert (...params: (boolean | Partial<Schema.RowInput<TABLE>> | Schema.Column<TABLE> | Initialiser<InsertIntoTableFactory<TABLE, NAME>> | Initialiser<InsertIntoTable<TABLE, NAME>>)[]): InsertIntoTableFactory<TABLE, NAME> | InsertIntoTable<TABLE, NAME> {
 		const isUpsert = params[0] === true;
 		if (typeof params[0] === "boolean")
 			params.shift();
 
-		const initialiser = typeof params[params.length - 1] === "function" ? params.pop() as Initialiser<InsertIntoTableFactory<TABLE> | InsertIntoTable<TABLE>> : undefined;
+		const initialiser = typeof params[params.length - 1] === "function" ? params.pop() as Initialiser<InsertIntoTableFactory<TABLE, NAME> | InsertIntoTable<TABLE, NAME>> : undefined;
 
 		if (typeof params[0] === "object") {
 			const row = params[0] as Record<string, ValidType>
 			const columns = Object.keys(row).filter(column => row[column] !== undefined);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-			const query = ((this.insert as any)(isUpsert as any, ...columns as Schema.Column<TABLE>[]) as InsertIntoTableFactory<TABLE>)
+			const query = ((this.insert as any)(isUpsert as any, ...columns as Schema.Column<TABLE>[]) as InsertIntoTableFactory<TABLE, NAME>)
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
 				.values(...columns.map(key => row[key] as any));
 
-			return initialiser?.(query) as InsertIntoTable<TABLE> ?? query;
+			return initialiser?.(query) as InsertIntoTable<TABLE, NAME> ?? query;
 		}
 
-		const query = InsertIntoTable.columns<TABLE>(this.name, this.schema, params as Schema.Column<TABLE>[], isUpsert);
+		const query = InsertIntoTable.columns<TABLE, NAME>(this.name, this.schema, params as Schema.Column<TABLE>[], isUpsert);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return initialiser?.(query) ?? query;
 	}
 
-	public upsert (data: Schema.RowInput<TABLE>): InsertIntoTable<TABLE>;
-	public upsert<RETURN extends InsertIntoTable<TABLE, any>> (data: Schema.RowInput<TABLE>, initialiser: Initialiser<InsertIntoTable<TABLE>, RETURN>): RETURN;
-	public upsert<COLUMNS extends Schema.Column<TABLE>[]> (...columns: COLUMNS): InsertIntoTableFactory<TABLE, COLUMNS>;
-	public upsert<COLUMNS extends Schema.Column<TABLE>[], RETURN extends InsertIntoTableFactory<TABLE, COLUMNS> | InsertIntoTable<TABLE>> (...columnsAndInitialiser: [...COLUMNS, Initialiser<InsertIntoTableFactory<TABLE, COLUMNS>, RETURN>]): RETURN;
-	public upsert (...params: (Schema.RowInput<TABLE> | Schema.Column<TABLE> | Initialiser<InsertIntoTableFactory<TABLE>> | Initialiser<InsertIntoTable<TABLE>>)[]): InsertIntoTableFactory<TABLE> | InsertIntoTable<TABLE> {
+	public upsert (data: Schema.RowInput<TABLE>): InsertIntoTable<TABLE, NAME>;
+	public upsert<RETURN extends InsertIntoTable<TABLE, any>> (data: Schema.RowInput<TABLE>, initialiser: Initialiser<InsertIntoTable<TABLE, NAME>, RETURN>): RETURN;
+	public upsert<COLUMNS extends Schema.Column<TABLE>[]> (...columns: COLUMNS): InsertIntoTableFactory<TABLE, NAME, COLUMNS>;
+	public upsert<COLUMNS extends Schema.Column<TABLE>[], RETURN extends InsertIntoTableFactory<TABLE, NAME, COLUMNS> | InsertIntoTable<TABLE, NAME>> (...columnsAndInitialiser: [...COLUMNS, Initialiser<InsertIntoTableFactory<TABLE, NAME, COLUMNS>, RETURN>]): RETURN;
+	public upsert (...params: (Schema.RowInput<TABLE> | Schema.Column<TABLE> | Initialiser<InsertIntoTableFactory<TABLE, NAME>> | Initialiser<InsertIntoTable<TABLE, NAME>>)[]): InsertIntoTableFactory<TABLE, NAME> | InsertIntoTable<TABLE, NAME> {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
 		return (this.insert as any)(true, ...params as Schema.Column<TABLE>[]);
 	}

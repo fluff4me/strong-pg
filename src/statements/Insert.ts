@@ -5,29 +5,32 @@ import Expression from "../expressions/Expression";
 import Statement from "./Statement";
 import UpdateTable from "./Update";
 
-export interface InsertIntoTableFactory<SCHEMA extends TableSchema, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[]> {
-	prepare (): InsertIntoTable<SCHEMA, COLUMNS>;
-	values (...values: { [I in keyof COLUMNS]: InputTypeFromString<SCHEMA[COLUMNS[I]]> }): InsertIntoTable<SCHEMA, COLUMNS>;
+export interface InsertIntoTableFactory<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[]> {
+	prepare (): InsertIntoTable<SCHEMA, NAME, COLUMNS>;
+	values (...values: { [I in keyof COLUMNS]: InputTypeFromString<SCHEMA[COLUMNS[I]]> }): InsertIntoTable<SCHEMA, NAME, COLUMNS>;
 }
 
-export interface InsertIntoTableConflictActionFactory<SCHEMA extends TableSchema, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[], RESULT = []> {
-	doNothing (): InsertIntoTable<SCHEMA, COLUMNS, RESULT>;
-	doUpdate (initialiser: Initialiser<UpdateTable<SCHEMA, any, { [KEY in COLUMNS[number]as `EXCLUDED.${KEY & string}`]: SCHEMA[KEY] }>>): InsertIntoTable<SCHEMA, COLUMNS, RESULT>;
+export interface InsertIntoTableConflictActionFactory<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[], RESULT = []> {
+	doNothing (): InsertIntoTable<SCHEMA, NAME, COLUMNS, RESULT>;
+	doUpdate (initialiser: Initialiser<UpdateTable<SCHEMA, any,
+		& { [KEY in COLUMNS[number]as `EXCLUDED.${KEY & string}`]: SCHEMA[KEY] }
+		& { [KEY in COLUMNS[number]as `${NAME}.${KEY & string}`]: SCHEMA[KEY] }
+	>>): InsertIntoTable<SCHEMA, NAME, COLUMNS, RESULT>;
 }
 
-export default class InsertIntoTable<SCHEMA extends TableSchema, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[], RESULT = []> extends Statement<RESULT> {
+export default class InsertIntoTable<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[], RESULT = []> extends Statement<RESULT> {
 
-	public static columns<SCHEMA extends TableSchema, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[]> (tableName: string, schema: SCHEMA, columns: COLUMNS, isUpsert = false): InsertIntoTableFactory<SCHEMA, COLUMNS> {
+	public static columns<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[]> (tableName: NAME, schema: SCHEMA, columns: COLUMNS, isUpsert = false): InsertIntoTableFactory<SCHEMA, NAME, COLUMNS> {
 		const primaryKey = !isUpsert ? undefined : Schema.getPrimaryKey(schema);
 
 		return {
 			prepare: () => {
-				const query = new InsertIntoTable<SCHEMA, COLUMNS>(tableName, schema, columns, [])
+				const query = new InsertIntoTable<SCHEMA, NAME, COLUMNS>(tableName, schema, columns, [])
 				if (isUpsert) registerUpsert(query);
 				return query;
 			},
 			values: (...values: any[]) => {
-				const query = new InsertIntoTable<SCHEMA, COLUMNS>(tableName, schema, columns, columns.length && !values.length ? [] : [values] as never);
+				const query = new InsertIntoTable<SCHEMA, NAME, COLUMNS>(tableName, schema, columns, columns.length && !values.length ? [] : [values] as never);
 				if (isUpsert) registerUpsert(query);
 				return query;
 			},
@@ -51,13 +54,13 @@ export default class InsertIntoTable<SCHEMA extends TableSchema, COLUMNS extends
 	}
 
 	public values (...values: { [I in keyof COLUMNS]: InputTypeFromString<SCHEMA[COLUMNS[I]]> }): this {
-		this.rows.push(values);
+		this.rows.push(values as never);
 		return this;
 	}
 
 	private conflictTarget?: Schema.Column<SCHEMA>[];
 	private conflictAction?: null | UpdateTable<SCHEMA, any>;
-	public onConflict (...columns: Schema.Column<SCHEMA>[]): InsertIntoTableConflictActionFactory<SCHEMA, COLUMNS, RESULT> {
+	public onConflict (...columns: Schema.Column<SCHEMA>[]): InsertIntoTableConflictActionFactory<SCHEMA, NAME, COLUMNS, RESULT> {
 		this.conflictTarget = columns;
 		return {
 			doNothing: () => {
@@ -73,12 +76,12 @@ export default class InsertIntoTable<SCHEMA extends TableSchema, COLUMNS extends
 	}
 
 	private returningColumns?: (Schema.Column<SCHEMA> | "*")[];
-	public returning<RETURNING_COLUMNS extends Schema.Column<SCHEMA>[]> (...columns: RETURNING_COLUMNS): InsertIntoTable<SCHEMA, COLUMNS, { [KEY in RETURNING_COLUMNS[number]]: OutputTypeFromString<SCHEMA[KEY]> }[]>;
-	public returning<RETURNING_COLUMN extends Schema.Column<SCHEMA> | "*"> (columns: RETURNING_COLUMN): InsertIntoTable<SCHEMA, COLUMNS, { [KEY in RETURNING_COLUMN extends "*" ? Schema.Column<SCHEMA> : RETURNING_COLUMN]: OutputTypeFromString<SCHEMA[KEY]> }[]>;
+	public returning<RETURNING_COLUMNS extends Schema.Column<SCHEMA>[]> (...columns: RETURNING_COLUMNS): InsertIntoTable<SCHEMA, NAME, COLUMNS, { [KEY in RETURNING_COLUMNS[number]]: OutputTypeFromString<SCHEMA[KEY]> }[]>;
+	public returning<RETURNING_COLUMN extends Schema.Column<SCHEMA> | "*"> (columns: RETURNING_COLUMN): InsertIntoTable<SCHEMA, NAME, COLUMNS, { [KEY in RETURNING_COLUMN extends "*" ? Schema.Column<SCHEMA> : RETURNING_COLUMN]: OutputTypeFromString<SCHEMA[KEY]> }[]>;
 	public returning (...columns: (Schema.Column<SCHEMA> | "*")[]) {
 		this.returningColumns = columns;
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return this as InsertIntoTable<SCHEMA, COLUMNS, any>;
+		return this as InsertIntoTable<SCHEMA, NAME, COLUMNS, any>;
 	}
 
 	public compile () {

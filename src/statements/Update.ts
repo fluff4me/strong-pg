@@ -1,7 +1,7 @@
 import { QueryResult } from "pg";
 import { InputTypeFromString, OutputTypeFromString, SingleStringUnion, ValidType } from "../IStrongPG";
 import Schema, { TableSchema } from "../Schema";
-import Expression, { ExpressionInitialiser } from "../expressions/Expression";
+import Expression, { ExpressionInitialiser, ExpressionOr } from "../expressions/Expression";
 import Statement from "./Statement";
 
 export default class UpdateTable<SCHEMA extends TableSchema, RESULT = number, VARS = {}> extends Statement<RESULT> {
@@ -15,7 +15,7 @@ export default class UpdateTable<SCHEMA extends TableSchema, RESULT = number, VA
 	private assignments: string[] = [];
 	public set (input: Partial<Schema.RowInput<SCHEMA, VARS & Schema.Columns<SCHEMA>>>): this;
 	public set<COLUMN_NAME extends Schema.Column<SCHEMA>> (column: COLUMN_NAME, value: InputTypeFromString<SCHEMA[COLUMN_NAME], VARS & Schema.Columns<SCHEMA>>): this;
-	public set (input: Schema.Column<SCHEMA> | Partial<Schema.RowInput<SCHEMA, VARS & Schema.Columns<SCHEMA>>>, value?: ValidType) {
+	public set (input: Schema.Column<SCHEMA> | Partial<Schema.RowInput<SCHEMA, VARS & Schema.Columns<SCHEMA>>>, value?: ExpressionOr<VARS & Schema.Columns<SCHEMA>, ValidType>) {
 		if (typeof input === "object") {
 			for (const column of Object.keys(input))
 				this.set(column as Schema.Column<SCHEMA>, input[column as keyof Schema.RowInput<SCHEMA, VARS & Schema.Columns<SCHEMA>>] as never);
@@ -30,7 +30,7 @@ export default class UpdateTable<SCHEMA extends TableSchema, RESULT = number, VA
 	}
 
 	private condition?: string;
-	public where (initialiser: ExpressionInitialiser<Schema.Columns<SCHEMA>, boolean>) {
+	public where (initialiser: ExpressionInitialiser<VARS & Schema.Columns<SCHEMA>, boolean>) {
 		const queryable = Expression.compile(initialiser, undefined, this.vars);
 		this.condition = `WHERE (${queryable.text})`;
 		return this;
