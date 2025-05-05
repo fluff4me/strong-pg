@@ -1,12 +1,12 @@
 import Database, { sql } from "../Database";
-import { Initialiser, MigrationTypeFromString, OptionalTypeString, TypeString, ValidLiteral, ValidType } from "../IStrongPG";
+import { Initialiser, MigrationTypeFromString, OptionalTypeString, TypeString, ValidDate, ValidLiteral, ValidType } from "../IStrongPG";
 import { DatabaseSchema, TableSchema } from "../Schema";
 import { JoinTables } from "../statements/Join";
 import { SelectFromVirtualTable } from "../statements/Select";
 import Statement from "../statements/Statement";
 export interface ExpressionOperations<VARS = never, CURRENT_VALUE = null> {
-    greaterThan: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
-    lessThan: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
+    greaterThan: CURRENT_VALUE extends ValidDate ? ExpressionValue<VARS, ValidDate, boolean> : CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
+    lessThan: CURRENT_VALUE extends ValidDate ? ExpressionValue<VARS, ValidDate, boolean> : CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
     isNull(): ExpressionOperations<VARS, boolean>;
     isNotNull(): ExpressionOperations<VARS, boolean>;
     equals: ExpressionValue<VARS, CURRENT_VALUE, boolean>;
