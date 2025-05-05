@@ -1,6 +1,8 @@
 import { Initialiser } from "../../IStrongPG";
 import Statement from "../Statement";
-type Rename<ENUM extends string[], OLD extends ENUM[number], NEW extends string> = ENUM extends [] ? [] : ENUM extends [infer HEAD, ...infer TAIL] ? HEAD extends OLD ? TAIL : [HEAD, ...Rename<TAIL & string[], OLD, NEW>] : ENUM;
+type Rename<ENUM extends string[], OLD extends ENUM[number], NEW extends string> = {
+    [INDEX in keyof ENUM]: ENUM[INDEX] extends OLD ? NEW : ENUM[INDEX];
+};
 type AddValueBefore<ENUM extends string[], PIVOT extends ENUM[number], NEW extends string> = ENUM extends [] ? [] : ENUM extends [infer HEAD, ...infer TAIL] ? HEAD extends PIVOT ? [NEW, PIVOT, ...TAIL] : [HEAD, ...AddValueBefore<TAIL & string[], PIVOT, NEW>] : ENUM;
 type AddValueAfter<ENUM extends string[], PIVOT extends ENUM[number], NEW extends string> = ENUM extends [] ? [] : ENUM extends [infer HEAD, ...infer TAIL] ? HEAD extends PIVOT ? [PIVOT, NEW, ...TAIL] : [HEAD, ...AddValueAfter<TAIL & string[], PIVOT, NEW>] : ENUM;
 export type AlterEnumInitialiser<VALUES_START extends string[], VALUES_END extends string[]> = Initialiser<AlterEnum<VALUES_START>, AlterEnum<VALUES_END>>;

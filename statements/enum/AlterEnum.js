@@ -34,13 +34,13 @@ class AlterEnumSubStatement extends Statement_1.default {
         return values.map(value => new AlterEnumSubStatement(`ADD VALUE '${value}'`));
     }
     static renameValue(oldValue, newValue) {
-        return new AlterEnumSubStatement(`RENAME VALUE ${oldValue} TO ${newValue}`);
+        return new AlterEnumSubStatement(`RENAME VALUE '${oldValue}' TO '${newValue}'`);
     }
     static addValueBefore(newValue, pivotValue) {
-        return new AlterEnumSubStatement(`ADD VALUE ${newValue} BEFORE ${pivotValue}`);
+        return new AlterEnumSubStatement(`ADD VALUE '${newValue}' BEFORE '${pivotValue}'`);
     }
     static addValueAfter(newValue, pivotValue) {
-        return new AlterEnumSubStatement(`ADD VALUE ${newValue} AFTER ${pivotValue}`);
+        return new AlterEnumSubStatement(`ADD VALUE '${newValue}' AFTER '${pivotValue}'`);
     }
     constructor(compiled) {
         super();
