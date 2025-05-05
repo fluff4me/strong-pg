@@ -1,9 +1,7 @@
 import { Initialiser } from "../../IStrongPG";
 import Statement from "../Statement";
 
-type Rename<ENUM extends string[], OLD extends ENUM[number], NEW extends string> = ENUM extends [] ? [] :
-	ENUM extends [infer HEAD, ...infer TAIL] ?
-	HEAD extends OLD ? TAIL : [HEAD, ...Rename<TAIL & string[], OLD, NEW>] : ENUM;
+type Rename<ENUM extends string[], OLD extends ENUM[number], NEW extends string> = { [INDEX in keyof ENUM]: ENUM[INDEX] extends OLD ? NEW : ENUM[INDEX] }
 
 type AddValueBefore<ENUM extends string[], PIVOT extends ENUM[number], NEW extends string> = ENUM extends [] ? [] :
 	ENUM extends [infer HEAD, ...infer TAIL] ?
@@ -53,15 +51,15 @@ class AlterEnumSubStatement extends Statement {
 	}
 
 	public static renameValue (oldValue: string, newValue: string) {
-		return new AlterEnumSubStatement(`RENAME VALUE ${oldValue} TO ${newValue}`);
+		return new AlterEnumSubStatement(`RENAME VALUE '${oldValue}' TO '${newValue}'`);
 	}
 
 	public static addValueBefore (newValue: string, pivotValue: string) {
-		return new AlterEnumSubStatement(`ADD VALUE ${newValue} BEFORE ${pivotValue}`);
+		return new AlterEnumSubStatement(`ADD VALUE '${newValue}' BEFORE '${pivotValue}'`);
 	}
 
 	public static addValueAfter (newValue: string, pivotValue: string) {
-		return new AlterEnumSubStatement(`ADD VALUE ${newValue} AFTER ${pivotValue}`);
+		return new AlterEnumSubStatement(`ADD VALUE '${newValue}' AFTER '${pivotValue}'`);
 	}
 
 	private constructor (private readonly compiled: string) {
