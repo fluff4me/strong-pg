@@ -57,6 +57,7 @@ export interface ExpressionValues<VARS = never, VALUE = null, RESULT = null> {
 	false: ExpressionOperations<VARS, boolean>;
 	exists<DATABASE_SCHEMA extends DatabaseSchema, TABLE extends DatabaseSchema.TableName<DATABASE_SCHEMA>> (database: Database<DATABASE_SCHEMA>, table: TABLE, initialiser: NoInfer<Initialiser<SelectFromVirtualTable<JoinTables<"INNER", Extract<VARS, TableSchema>, DatabaseSchema.Table<DATABASE_SCHEMA, TABLE>, never, TABLE>, never, 1>>>): ExpressionOperations<VARS, boolean>;
 	notExists<DATABASE_SCHEMA extends DatabaseSchema, TABLE extends DatabaseSchema.TableName<DATABASE_SCHEMA>> (database: Database<DATABASE_SCHEMA>, table: TABLE, initialiser: NoInfer<Initialiser<SelectFromVirtualTable<JoinTables<"INNER", Extract<VARS, TableSchema>, DatabaseSchema.Table<DATABASE_SCHEMA, TABLE>, never, TABLE>, never, 1>>>): ExpressionOperations<VARS, boolean>;
+	coalesce<R extends ValidType> (...values: ExpressionOr<VARS, R>[]): ExpressionOperations<VARS, R>
 }
 
 export type ExpressionInitialiser<VARS, RESULT = any> = Initialiser<ExpressionValues<VARS, null, null>, ExpressionOperations<VARS, RESULT>>;
@@ -368,5 +369,16 @@ export default class Expression<VARS = never> implements ImplementableExpression
 		const e = new Expression(this.vars, this.enableStringConcatenation);
 		e.parts.push(() => `NOT EXISTS (${select.compile()[0].text})`);
 		return e;
+	}
+
+	public coalesce (...values: ExpressionOr<VARS, ValidType>[]) {
+		this.parts.push(() => {
+			const valuesString = values
+				.map((value) => Expression.stringifyValue(value, this.vars, this.enableStringConcatenation))
+				.join(",");
+
+			return `COALESCE(${valuesString})`;
+		});
+		return this
 	}
 }
