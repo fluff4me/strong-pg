@@ -49,6 +49,7 @@ export interface ExpressionValues<VARS = never, VALUE = null, RESULT = null> {
     false: ExpressionOperations<VARS, boolean>;
     exists<DATABASE_SCHEMA extends DatabaseSchema, TABLE extends DatabaseSchema.TableName<DATABASE_SCHEMA>>(database: Database<DATABASE_SCHEMA>, table: TABLE, initialiser: NoInfer<Initialiser<SelectFromVirtualTable<JoinTables<"INNER", Extract<VARS, TableSchema>, DatabaseSchema.Table<DATABASE_SCHEMA, TABLE>, never, TABLE>, never, 1>>>): ExpressionOperations<VARS, boolean>;
     notExists<DATABASE_SCHEMA extends DatabaseSchema, TABLE extends DatabaseSchema.TableName<DATABASE_SCHEMA>>(database: Database<DATABASE_SCHEMA>, table: TABLE, initialiser: NoInfer<Initialiser<SelectFromVirtualTable<JoinTables<"INNER", Extract<VARS, TableSchema>, DatabaseSchema.Table<DATABASE_SCHEMA, TABLE>, never, TABLE>, never, 1>>>): ExpressionOperations<VARS, boolean>;
+    coalesce<R extends ValidType>(...values: ExpressionOr<VARS, R>[]): ExpressionOperations<VARS, R>;
 }
 export type ExpressionInitialiser<VARS, RESULT = any> = Initialiser<ExpressionValues<VARS, null, null>, ExpressionOperations<VARS, RESULT>>;
 export type ExpressionOr<VARS, T> = sql | T | ExpressionInitialiser<VARS, T> | ExpressionOperations<any, T>;
@@ -97,4 +98,5 @@ export default class Expression<VARS = never> implements ImplementableExpression
     currentValue(sequenceId: string): this;
     exists(database: Database<any>, table: string, initialiser: Initialiser<SelectFromVirtualTable<any, string, 1>>): Expression<never>;
     notExists(database: Database<any>, table: string, initialiser: Initialiser<SelectFromVirtualTable<any, string, 1>>): Expression<never>;
+    coalesce(...values: ExpressionOr<VARS, ValidType>[]): this;
 }

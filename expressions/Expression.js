@@ -255,5 +255,14 @@ class Expression {
         e.parts.push(() => `NOT EXISTS (${select.compile()[0].text})`);
         return e;
     }
+    coalesce(...values) {
+        this.parts.push(() => {
+            const valuesString = values
+                .map((value) => Expression.stringifyValue(value, this.vars, this.enableStringConcatenation))
+                .join(",");
+            return `COALESCE(${valuesString})`;
+        });
+        return this;
+    }
 }
 exports.default = Expression;
