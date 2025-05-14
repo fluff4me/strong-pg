@@ -18,8 +18,10 @@ export type JoinColumns<TABLE1 extends TableSchema, TABLE2 extends TableSchema, 
 	Exclude<TABLE1_COLUMNS, TABLE2_COLUMNS> | Exclude<TABLE2_COLUMNS, TABLE1_COLUMNS> extends infer COLUMNS_UNION ?
 
 	| COLUMNS_UNION
-	| (TABLE1_NAME extends "" ? never : `${TABLE1_NAME}.${TABLE1_COLUMNS}`)
-	| `${TABLE2_NAME}.${TABLE2_COLUMNS}`
+	| (TABLE1_NAME extends "" ? never : `${TABLE1_NAME}.${Exclude<TABLE1_COLUMNS, `${string}.${string}`>}`)
+	| `${TABLE2_NAME}.${Exclude<TABLE2_COLUMNS, `${string}.${string}`>}`
+	| Extract<TABLE1_COLUMNS, `${string}.${string}`>
+	| Extract<TABLE2_COLUMNS, `${string}.${string}`>
 
 	: never : never : never;
 
