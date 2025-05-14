@@ -239,16 +239,30 @@ class Expression {
         this.parts.push(() => `currval('${sequenceId}')`);
         return this;
     }
-    exists(database, table, initialiser) {
-        const select = database.table(table).select(1);
+    exists(database, tableName, tableInitialiser, initialiser) {
+        if (!initialiser) {
+            initialiser = tableInitialiser;
+            tableInitialiser = undefined;
+        }
+        let table = database.table(tableName);
+        if (tableInitialiser)
+            table = tableInitialiser(table);
+        const select = table.select(1);
         select["vars"] = this.vars;
         initialiser(select);
         const e = new Expression(this.vars, this.enableStringConcatenation);
         e.parts.push(() => `EXISTS (${select.compile()[0].text})`);
         return e;
     }
-    notExists(database, table, initialiser) {
-        const select = database.table(table).select(1);
+    notExists(database, tableName, tableInitialiser, initialiser) {
+        if (!initialiser) {
+            initialiser = tableInitialiser;
+            tableInitialiser = undefined;
+        }
+        let table = database.table(tableName);
+        if (tableInitialiser)
+            table = tableInitialiser(table);
+        const select = table.select(1);
         select["vars"] = this.vars;
         initialiser(select);
         const e = new Expression(this.vars, this.enableStringConcatenation);
