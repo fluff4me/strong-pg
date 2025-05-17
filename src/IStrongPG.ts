@@ -288,15 +288,18 @@ export type MigrationTypeFromString<STR extends TypeString | OptionalTypeString>
 
 export type InputTypeFromString<STR extends TypeString | OptionalTypeString, VARS = {}> = STR extends "*"
 	? typeof SYMBOL_COLUMNS
-	: ExpressionOr<VARS, (
-		(STR extends OptionalTypeString<infer TYPE> ? TYPE : STR) extends infer TYPE extends TypeString ?
+	: ExpressionOr<VARS,
+		| (
+			(STR extends OptionalTypeString<infer TYPE> ? TYPE : STR) extends infer TYPE extends TypeString ?
 
-		TYPE extends `${infer SUB_TYPE extends TypeString}[]`
-		? InputTypeMap[DataTypeFromString<SUB_TYPE>][]
-		: InputTypeMap[DataTypeFromString<TYPE>]
+			TYPE extends `${infer SUB_TYPE extends TypeString}[]`
+			? InputTypeMap[DataTypeFromString<SUB_TYPE>][]
+			: InputTypeMap[DataTypeFromString<TYPE>]
 
-		: never
-	)>;
+			: never
+		)
+		| (STR extends OptionalTypeString<TypeString> ? null : never)
+	>;
 
 export type OutputTypeFromString<STR extends TypeString | OptionalTypeString> = STR extends "*"
 	? typeof SYMBOL_COLUMNS
