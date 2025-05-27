@@ -6,7 +6,7 @@
 	"license": "MIT",
 	"main": "Database.js",
 	"dependencies": {
-		"pg": "8.10.0"
+		"pg": "8.11.3"
 	},
 	"engines": {
 		"node": ">=16"
@@ -17,7 +17,7 @@
 		"clean": "npx ts-node tasks/utilities/TaskRunner.ts clean"
 	},
 	"devDependencies": {
-		"@types/pg": "8.6.6",
+		"@types/pg": "8.11.2",
 		"ts-node": "10.9.2",
 		"typescript": "5.7.2",
 		"del": "6.1.1",
