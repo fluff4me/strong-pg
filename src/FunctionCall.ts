@@ -15,6 +15,9 @@ export type FunctionOutput<SCHEMA extends DatabaseSchema, FUNCTION extends Funct
 			: RETURN extends `SETOF ${infer TYPE_NAME extends DatabaseSchema.TypeName<SCHEMA>}` ?
 			(DatabaseSchema.Type<SCHEMA, TYPE_NAME> extends infer TYPE ? TYPE : never)
 
+			: RETURN extends `SETOF ${infer TYPE_NAME extends TypeString}` ?
+			{ [KEY in FUNCTION_NAME]: TYPE_NAME }
+
 			: never
 		) extends infer TABLE ?
 
