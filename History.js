@@ -37,11 +37,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.History = void 0;
+exports.MigrationGroup = MigrationGroup;
 const Log_1 = __importStar(require("./Log"));
 const Transaction_1 = __importDefault(require("./Transaction"));
+function MigrationGroup(group) {
+    return group;
+}
 class History {
     constructor() {
         this.migrations = [];
+    }
+    group(group) {
+        return group(this);
     }
     migration(migration) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
