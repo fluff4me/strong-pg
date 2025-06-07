@@ -6,10 +6,24 @@ import Migration, { MigrationVersion } from "./Migration";
 import { DatabaseSchema } from "./Schema";
 import Transaction from "./Transaction";
 
+interface MigrationGroup<START extends DatabaseSchema | null, END extends DatabaseSchema> {
+	(history: History<START>): History<END>
+}
+
+function MigrationGroup<START extends DatabaseSchema | null, END extends DatabaseSchema> (group: MigrationGroup<START, END>): MigrationGroup<START, END> {
+	return group
+}
+
+export { MigrationGroup };
+
 export class History<SCHEMA extends DatabaseSchema | null = null> {
 
 	private migrations: Migration<DatabaseSchema | null, DatabaseSchema>[] = [];
 	protected readonly schema!: SCHEMA;
+
+	public group<SCHEMA_END extends DatabaseSchema> (group: MigrationGroup<SCHEMA, SCHEMA_END>): History<SCHEMA_END> {
+		return group(this)
+	}
 
 	public migration<MIGRATION extends Migration<any, any>> (migration: MIGRATION):
 		MIGRATION extends Migration<infer SCHEMA_START, infer SCHEMA_END> ?
