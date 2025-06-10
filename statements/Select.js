@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SelectFromVirtualTable = exports.Order = void 0;
 const Schema_1 = __importDefault(require("../Schema"));
 const Expression_1 = __importDefault(require("../expressions/Expression"));
+const sql_1 = __importDefault(require("../sql"));
 const Statement_1 = __importDefault(require("./Statement"));
 var Order;
 (function (Order) {
@@ -25,7 +26,7 @@ class SelectFromVirtualTable extends Statement_1.default {
         this.vars = (typeof from === "string" ? undefined : from?.["vars"]) ?? [];
     }
     where(initialiser) {
-        const queryable = Expression_1.default.compile(initialiser, undefined, this.vars);
+        const queryable = sql_1.default.is(initialiser) ? initialiser : Expression_1.default.compile(initialiser, undefined, this.vars);
         this.condition = `WHERE (${queryable.text})`;
         return this;
     }

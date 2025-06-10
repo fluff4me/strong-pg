@@ -3,6 +3,7 @@ import { InputTypeFromString, OutputTypeFromString, SingleStringUnion, SortDirec
 import Schema, { TableSchema } from "../Schema";
 import { VirtualTable } from "../VirtualTable";
 import { ExpressionInitialiser } from "../expressions/Expression";
+import sql from "../sql";
 import Statement from "./Statement";
 export type SelectColumns<SCHEMA extends TableSchema, NAME extends string, VARS = SelectWhereVars<SCHEMA, NAME>> = "*" | Schema.Column<SCHEMA>[] | SelectColumnsRecord<SCHEMA, NAME, VARS>;
 export type SelectColumnsRecord<SCHEMA extends TableSchema, NAME extends string = never, VARS = SelectWhereVars<SCHEMA, NAME>> = Partial<Record<string, Schema.Column<SCHEMA> | ExpressionInitialiser<VARS, ValidType>>>;
@@ -28,7 +29,7 @@ export declare class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME ext
     private vars;
     constructor(from: VirtualTable<SCHEMA, NAME> | string, columns: COLUMNS);
     private condition?;
-    where(initialiser: ExpressionInitialiser<SelectWhereVars<SCHEMA, NAME>, boolean>): this;
+    where(initialiser: sql | ExpressionInitialiser<SelectWhereVars<SCHEMA, NAME>, boolean>): this;
     private _limit?;
     limit(count: 1): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, NAME, COLUMNS> | undefined>;
     limit(count?: number): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, NAME, COLUMNS>[]>;
