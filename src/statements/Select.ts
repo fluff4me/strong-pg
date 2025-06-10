@@ -3,6 +3,7 @@ import { InputTypeFromString, OutputTypeFromString, SingleStringUnion, SortDirec
 import Schema, { TableSchema } from "../Schema";
 import { VirtualTable } from "../VirtualTable";
 import Expression, { ExpressionInitialiser } from "../expressions/Expression";
+import sql from "../sql";
 import Statement from "./Statement";
 
 // type JoinedTablesOutput<TABLE extends TableSchema, COLUMN_ALIASES extends Partial<Record<Schema.Column<TABLE>, string>> = {}> =
@@ -92,8 +93,8 @@ export class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME extends str
 	}
 
 	private condition?: string;
-	public where (initialiser: ExpressionInitialiser<SelectWhereVars<SCHEMA, NAME>, boolean>) {
-		const queryable = Expression.compile(initialiser, undefined, this.vars);
+	public where (initialiser: sql | ExpressionInitialiser<SelectWhereVars<SCHEMA, NAME>, boolean>) {
+		const queryable = sql.is(initialiser) ? initialiser : Expression.compile(initialiser, undefined, this.vars);
 		this.condition = `WHERE (${queryable.text})`;
 		return this;
 	}

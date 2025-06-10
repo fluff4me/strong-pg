@@ -1,4 +1,5 @@
 import { DatabaseError, Pool, PoolClient, QueryConfig } from "pg"
+import util from "util"
 import log, { color } from "./Log"
 
 function isDatabaseError (value: unknown): value is DatabaseError {
@@ -28,6 +29,11 @@ class SQL implements QueryConfig {
 
 	public async query (pool: Pool | PoolClient) {
 		try {
+			log("  > ", color("darkGray", this.text));
+			if (this.values?.length)
+				for (let i = 0; i < this.values.length; i++)
+					log(`    ${color("lightYellow", `$${i + 1}`)}${color("darkGray", ":")} `, util.inspect(this.values[i], undefined, Infinity, true));
+
 			return await pool.query(this)
 		} catch (err) {
 			if (!isDatabaseError(err))
