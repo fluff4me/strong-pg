@@ -120,6 +120,7 @@ class History {
         if (migratedVersion !== undefined)
             await pool.query("INSERT INTO migrations VALUES ($1, $2)", [startCommitIndex, migratedCommitIndex]);
         (0, Log_1.default)((0, Log_1.color)(rolledBack ? "lightYellow" : "lightGreen", `${rolledBack ? "Rolled back" : "Migrated"} to v${version}`));
+        this.rolledBack = rolledBack;
         return commitIndex;
     }
 }
