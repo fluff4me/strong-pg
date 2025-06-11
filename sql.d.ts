@@ -8,7 +8,9 @@ declare class SQL implements QueryConfig {
     constructor(...data: SqlTemplateData);
     get text(): string;
     get values(): unknown[] | undefined;
+    compile(vars: unknown[]): string;
     query(pool: Pool | PoolClient): Promise<import("pg").QueryResult<any> | undefined>;
+    /** @deprecated be careful!!! */
     protected get asRawSql(): string;
 }
 type sql = SQL;

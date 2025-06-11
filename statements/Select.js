@@ -61,6 +61,10 @@ class SelectFromVirtualTable extends Statement_1.default {
                         return column;
                     if (typeof column === "string")
                         return `${column} ${alias}`;
+                    if (sql_1.default.is(column)) {
+                        const text = column.compile(this.vars);
+                        return `${text} ${alias}`;
+                    }
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     const queryable = Expression_1.default.compile(column, undefined, this.vars);
                     return `${queryable.text} ${alias}`;
