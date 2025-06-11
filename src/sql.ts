@@ -28,6 +28,12 @@ class SQL implements QueryConfig {
 		return this.values
 	}
 
+	public compile (vars: unknown[]): string {
+		const { text, values } = this.#compileOffset(vars.length)
+		vars.push(...values ?? [])
+		return text
+	}
+
 	public async query (pool: Pool | PoolClient) {
 		try {
 			log("  > ", color("darkGray", this.text));
@@ -67,16 +73,20 @@ class SQL implements QueryConfig {
 	}
 
 	#compile () {
+		const { text, values } = this.#compileOffset()
+
+		Object.defineProperty(this, "text", { value: text })
+		Object.defineProperty(this, "values", { value: values })
+	}
+
+	#compileOffset (vi = 0) {
 		const [topLayerSegments, topLayerInterpolations] = this.#data
-		if (!topLayerInterpolations.length) {
-			Object.defineProperty(this, "text", { value: topLayerSegments[0] })
-			Object.defineProperty(this, "values", { value: undefined })
-			return
-		}
+		if (!topLayerInterpolations.length)
+			return { text: topLayerSegments[0], values: undefined }
 
 		let resultInterpolations: unknown[] | undefined
 
-		let vi = 1
+		vi++
 		const recurse = (recursiveData?: SqlTemplateData) => {
 			const [segments, interpolations] = recursiveData ?? this.#data
 
@@ -102,10 +112,10 @@ class SQL implements QueryConfig {
 
 		const text = recurse()
 
-		Object.defineProperty(this, "text", { value: text })
-		Object.defineProperty(this, "values", { value: resultInterpolations ?? topLayerInterpolations })
+		return { text, values: resultInterpolations ?? topLayerInterpolations }
 	}
 
+	/** @deprecated be careful!!! */
 	protected get asRawSql (): string {
 		this.#compileRaw()
 		return this.asRawSql

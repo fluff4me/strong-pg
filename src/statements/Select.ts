@@ -142,6 +142,11 @@ export class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME extends str
 						if (typeof column === "string")
 							return `${column} ${alias}`;
 
+						if (sql.is(column)) {
+							const text = column.compile(this.vars);
+							return `${text} ${alias}`;
+						}
+
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 						const queryable = Expression.compile(column, undefined, this.vars)
 						return `${queryable.text} ${alias}`;
