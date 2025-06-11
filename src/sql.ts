@@ -1,6 +1,7 @@
 import { DatabaseError, Pool, PoolClient, QueryConfig } from "pg"
 import util from "util"
 import log, { color } from "./Log"
+import { ExpressionInitialiser } from "./expressions/Expression"
 
 function isDatabaseError (value: unknown): value is DatabaseError {
 	return value instanceof DatabaseError
@@ -148,6 +149,9 @@ function sql (segments: TemplateStringsArray, ...interpolations: unknown[]): sql
 }
 
 namespace sql {
+
+	export type Result<RESULT> = sql & ExpressionInitialiser<any, RESULT>
+
 	export function is (value: unknown) {
 		return value instanceof SQL
 	}
