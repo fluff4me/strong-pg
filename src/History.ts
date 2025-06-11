@@ -20,6 +20,7 @@ export class History<SCHEMA extends DatabaseSchema | null = null> {
 
 	private migrations: Migration<DatabaseSchema | null, DatabaseSchema>[] = [];
 	protected readonly schema!: SCHEMA;
+	public rolledBack: boolean | undefined;
 
 	public group<SCHEMA_END extends DatabaseSchema> (group: MigrationGroup<SCHEMA, SCHEMA_END>): History<SCHEMA_END> {
 		return group(this)
@@ -116,6 +117,7 @@ export class History<SCHEMA extends DatabaseSchema | null = null> {
 
 		log(color(rolledBack ? "lightYellow" : "lightGreen", `${rolledBack ? "Rolled back" : "Migrated"} to v${version}`));
 
+		this.rolledBack = rolledBack;
 		return commitIndex;
 	}
 }
