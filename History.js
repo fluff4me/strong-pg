@@ -101,6 +101,7 @@ class History {
             }
             catch (e) {
                 const err = e;
+                this.rollbackError = err;
                 const formattedStack = stack?.format();
                 (0, Log_1.default)([
                     `${(0, Log_1.color)("lightRed", `Encountered an error: ${err.message[0].toUpperCase()}${err.message.slice(1)}`)}`,
