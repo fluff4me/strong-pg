@@ -21,6 +21,7 @@ export class History<SCHEMA extends DatabaseSchema | null = null> {
 	private migrations: Migration<DatabaseSchema | null, DatabaseSchema>[] = [];
 	protected readonly schema!: SCHEMA;
 	public rolledBack: boolean | undefined;
+	public rollbackError: DatabaseError | undefined
 
 	public group<SCHEMA_END extends DatabaseSchema> (group: MigrationGroup<SCHEMA, SCHEMA_END>): History<SCHEMA_END> {
 		return group(this)
@@ -93,6 +94,7 @@ export class History<SCHEMA extends DatabaseSchema | null = null> {
 
 			} catch (e) {
 				const err = e as DatabaseError;
+				this.rollbackError = err;
 				const formattedStack = stack?.format();
 				log([
 					`${color("lightRed", `Encountered an error: ${err.message[0].toUpperCase()}${err.message.slice(1)}`)}`,
