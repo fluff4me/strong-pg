@@ -5,10 +5,12 @@ import Statement from "../Statement";
 export type CreateIndexInitialiser<SCHEMA extends Record<string, any>> =
 	Initialiser<CreateIndex<SCHEMA>, CreateIndex<SCHEMA, true>>;
 
+export const NULLS_DISTINCT = Symbol("NULLS DISTINCT");
+export const NULLS_NOT_DISTINCT = Symbol("NULLS NOT DISTINCT");
+
 export default class CreateIndex<SCHEMA extends Record<string, any>, COLUMNS extends boolean = false> extends Statement {
 
-	private isUnique = false;
-	private isNullNotUnique = false;
+	private isUnique: typeof NULLS_DISTINCT | typeof NULLS_NOT_DISTINCT | undefined;
 	private readonly columns: string[] = [];
 	protected readonly valid!: COLUMNS;
 
@@ -16,8 +18,8 @@ export default class CreateIndex<SCHEMA extends Record<string, any>, COLUMNS ext
 		super();
 	}
 
-	public unique () {
-		this.isUnique = true;
+	public unique (option: typeof NULLS_DISTINCT | typeof NULLS_NOT_DISTINCT) {
+		this.isUnique = option;
 		return this;
 	}
 
@@ -33,12 +35,7 @@ export default class CreateIndex<SCHEMA extends Record<string, any>, COLUMNS ext
 		return this as any;
 	}
 
-	public nullNotUnique () {
-		this.isNullNotUnique = true;
-		return this;
-	}
-
 	public compile () {
-		return this.queryable(`CREATE${this.isUnique ? " UNIQUE" : ""} INDEX ${this.name} ON ${this.on} (${this.columns.join(", ")}) ${this.isUnique && this.isNullNotUnique ? "NULLS NOT DISTINCT" : ""}`);
+		return this.queryable(`CREATE${this.isUnique ? " UNIQUE" : ""} INDEX ${this.name} ON ${this.on} (${this.columns.join(", ")}) ${this.isUnique?.description ?? ""}`);
 	}
 }
