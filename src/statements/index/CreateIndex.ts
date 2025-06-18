@@ -1,12 +1,9 @@
 import Expression, { ExpressionInitialiser } from "../../expressions/Expression";
-import { Initialiser } from "../../IStrongPG";
+import { Initialiser, NULLS_DISTINCT, NULLS_NOT_DISTINCT } from "../../IStrongPG";
 import Statement from "../Statement";
 
 export type CreateIndexInitialiser<SCHEMA extends Record<string, any>> =
 	Initialiser<CreateIndex<SCHEMA>, CreateIndex<SCHEMA, true>>;
-
-export const NULLS_DISTINCT = Symbol("NULLS DISTINCT");
-export const NULLS_NOT_DISTINCT = Symbol("NULLS NOT DISTINCT");
 
 export default class CreateIndex<SCHEMA extends Record<string, any>, COLUMNS extends boolean = false> extends Statement {
 
