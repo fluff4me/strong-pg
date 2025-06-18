@@ -3,19 +3,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.NULLS_NOT_DISTINCT = exports.NULLS_DISTINCT = void 0;
 const Expression_1 = __importDefault(require("../../expressions/Expression"));
 const Statement_1 = __importDefault(require("../Statement"));
+exports.NULLS_DISTINCT = Symbol("NULLS DISTINCT");
+exports.NULLS_NOT_DISTINCT = Symbol("NULLS NOT DISTINCT");
 class CreateIndex extends Statement_1.default {
     constructor(name, on) {
         super();
         this.name = name;
         this.on = on;
-        this.isUnique = false;
-        this.isNullNotUnique = false;
         this.columns = [];
     }
-    unique() {
-        this.isUnique = true;
+    unique(option) {
+        this.isUnique = option;
         return this;
     }
     column(column) {
@@ -28,12 +29,8 @@ class CreateIndex extends Statement_1.default {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
-    nullNotUnique() {
-        this.isNullNotUnique = true;
-        return this;
-    }
     compile() {
-        return this.queryable(`CREATE${this.isUnique ? " UNIQUE" : ""} INDEX ${this.name} ON ${this.on} (${this.columns.join(", ")}) ${this.isUnique && this.isNullNotUnique ? "NULLS NOT DISTINCT" : ""}`);
+        return this.queryable(`CREATE${this.isUnique ? " UNIQUE" : ""} INDEX ${this.name} ON ${this.on} (${this.columns.join(", ")}) ${this.isUnique?.description ?? ""}`);
     }
 }
 exports.default = CreateIndex;
