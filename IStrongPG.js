@@ -1,9 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.StackUtil = exports.GENERATE_UUID = exports.DESC = exports.ASC = exports.BREADTH = exports.DEPTH = exports.CURRENT_TIMESTAMP = exports.TypeString = exports.SYMBOL_COLUMNS = exports.DataType = exports.DataTypeID = exports.SET_DEFAULT = exports.SET_NULL = exports.CASCADE = void 0;
+exports.StackUtil = exports.GENERATE_UUID = exports.DESC = exports.ASC = exports.BREADTH = exports.DEPTH = exports.CURRENT_TIMESTAMP = exports.TypeString = exports.SYMBOL_COLUMNS = exports.DataType = exports.DataTypeID = exports.NULLS_NOT_DISTINCT = exports.NULLS_DISTINCT = exports.SET_DEFAULT = exports.SET_NULL = exports.CASCADE = void 0;
 exports.CASCADE = Symbol("CASCADE");
 exports.SET_NULL = Symbol("SET NULL");
 exports.SET_DEFAULT = Symbol("SET DEFAULT");
+exports.NULLS_DISTINCT = Symbol("NULLS DISTINCT");
+exports.NULLS_NOT_DISTINCT = Symbol("NULLS NOT DISTINCT");
 var DataTypeID;
 (function (DataTypeID) {
     // numeric
