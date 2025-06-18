@@ -6,11 +6,13 @@ export default class CreateIndex<SCHEMA extends Record<string, any>, COLUMNS ext
     readonly name: string;
     readonly on: string;
     private isUnique;
+    private isNullNotUnique;
     private readonly columns;
     protected readonly valid: COLUMNS;
     constructor(name: string, on: string);
     unique(): this;
     column<COLUMN extends keyof SCHEMA & string>(column: COLUMN): CreateIndex<SCHEMA, true>;
     expression(initialiser: ExpressionInitialiser<SCHEMA, any>): CreateIndex<SCHEMA, true>;
+    nullNotUnique(): this;
     compile(): Statement.Queryable[];
 }

@@ -11,6 +11,7 @@ class CreateIndex extends Statement_1.default {
         this.name = name;
         this.on = on;
         this.isUnique = false;
+        this.isNullNotUnique = false;
         this.columns = [];
     }
     unique() {
@@ -27,8 +28,12 @@ class CreateIndex extends Statement_1.default {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
+    nullNotUnique() {
+        this.isNullNotUnique = true;
+        return this;
+    }
     compile() {
-        return this.queryable(`CREATE${this.isUnique ? " UNIQUE" : ""} INDEX ${this.name} ON ${this.on} (${this.columns.join(", ")})`);
+        return this.queryable(`CREATE${this.isUnique ? " UNIQUE" : ""} INDEX ${this.name} ON ${this.on} (${this.columns.join(", ")}) ${this.isUnique && this.isNullNotUnique ? "NULLS NOT DISTINCT" : ""}`);
     }
 }
 exports.default = CreateIndex;
