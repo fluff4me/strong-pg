@@ -8,6 +8,7 @@ export type CreateIndexInitialiser<SCHEMA extends Record<string, any>> =
 export default class CreateIndex<SCHEMA extends Record<string, any>, COLUMNS extends boolean = false> extends Statement {
 
 	private isUnique = false;
+	private isNullNotUnique = false;
 	private readonly columns: string[] = [];
 	protected readonly valid!: COLUMNS;
 
@@ -32,7 +33,12 @@ export default class CreateIndex<SCHEMA extends Record<string, any>, COLUMNS ext
 		return this as any;
 	}
 
+	public nullNotUnique () {
+		this.isNullNotUnique = true;
+		return this;
+	}
+
 	public compile () {
-		return this.queryable(`CREATE${this.isUnique ? " UNIQUE" : ""} INDEX ${this.name} ON ${this.on} (${this.columns.join(", ")})`);
+		return this.queryable(`CREATE${this.isUnique ? " UNIQUE" : ""} INDEX ${this.name} ON ${this.on} (${this.columns.join(", ")}) ${this.isUnique && this.isNullNotUnique ? "NULLS NOT DISTINCT" : ""}`);
 	}
 }
