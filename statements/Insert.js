@@ -54,7 +54,8 @@ class InsertIntoTable extends Statement_1.default {
                 return this;
             },
             doUpdate: initialiser => {
-                this.conflictAction = new Update_1.default(undefined, this.schema, this.vars);
+                this.conflictAction = new Update_1.default(this.tableName, this.schema, this.vars);
+                this.conflictAction.tableName = "";
                 initialiser(this.conflictAction);
                 return this;
             },

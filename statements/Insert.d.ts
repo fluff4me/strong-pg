@@ -11,20 +11,20 @@ export interface InsertIntoTableFactory<SCHEMA extends TableSchema, NAME extends
 }
 export interface InsertIntoTableConflictActionFactory<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[], RESULT = []> {
     doNothing(): InsertIntoTable<SCHEMA, NAME, COLUMNS, RESULT>;
-    doUpdate(initialiser: Initialiser<UpdateTable<SCHEMA, any, {
+    doUpdate(initialiser: Initialiser<UpdateTable<NAME, SCHEMA, any, {
         [KEY in COLUMNS[number] as `EXCLUDED.${KEY & string}`]: SCHEMA[KEY];
     } & {
         [KEY in COLUMNS[number] as `${NAME}.${KEY & string}`]: SCHEMA[KEY];
     }>>): InsertIntoTable<SCHEMA, NAME, COLUMNS, RESULT>;
 }
 export default class InsertIntoTable<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[], RESULT = []> extends Statement<RESULT> {
-    readonly tableName: string;
+    readonly tableName: NAME;
     readonly schema: SCHEMA;
     readonly columns: Schema.Column<SCHEMA>[];
     readonly rows: Value<Schema.RowInput<SCHEMA>>[][];
     static columns<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[]>(tableName: NAME, schema: SCHEMA, columns: COLUMNS, isUpsert?: boolean): InsertIntoTableFactory<SCHEMA, NAME, COLUMNS>;
     private vars;
-    constructor(tableName: string, schema: SCHEMA, columns: Schema.Column<SCHEMA>[], rows: Value<Schema.RowInput<SCHEMA>>[][]);
+    constructor(tableName: NAME, schema: SCHEMA, columns: Schema.Column<SCHEMA>[], rows: Value<Schema.RowInput<SCHEMA>>[][]);
     values(...values: {
         [I in keyof COLUMNS]: InputTypeFromString<SCHEMA[COLUMNS[I]]>;
     }): this;

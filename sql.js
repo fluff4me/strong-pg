@@ -176,5 +176,9 @@ function sql(segments, ...interpolations) {
         return segments.reduce((acc, cur) => sql `${acc}${separator}${cur}`);
     }
     sql.join = join;
+    function raw(text) {
+        return new SQL([text], []);
+    }
+    sql.raw = raw;
 })(sql || (sql = {}));
 exports.default = sql;

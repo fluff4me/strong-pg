@@ -50,9 +50,9 @@ export default class Table<TABLE extends TableSchema, DATABASE extends DatabaseS
     upsert<RETURN extends InsertIntoTable<TABLE, any>>(data: Schema.RowInput<TABLE>, initialiser: Initialiser<InsertIntoTable<TABLE, NAME>, RETURN>): RETURN;
     upsert<COLUMNS extends Schema.Column<TABLE>[]>(...columns: COLUMNS): InsertIntoTableFactory<TABLE, NAME, COLUMNS>;
     upsert<COLUMNS extends Schema.Column<TABLE>[], RETURN extends InsertIntoTableFactory<TABLE, NAME, COLUMNS> | InsertIntoTable<TABLE, NAME>>(...columnsAndInitialiser: [...COLUMNS, Initialiser<InsertIntoTableFactory<TABLE, NAME, COLUMNS>, RETURN>]): RETURN;
-    update(): UpdateTable<TABLE>;
-    update(data: Partial<Schema.RowInput<TABLE>>): UpdateTable<TABLE>;
-    update<RETURN extends UpdateTable<TABLE, any>>(data: Partial<Schema.RowInput<TABLE>>, initialiser: Initialiser<UpdateTable<TABLE>, RETURN>): RETURN;
+    update(): UpdateTable<NAME, TABLE>;
+    update(data: Partial<Schema.RowInput<TABLE>>): UpdateTable<NAME, TABLE>;
+    update<RETURN extends UpdateTable<NAME, TABLE, any>>(data: Partial<Schema.RowInput<TABLE>>, initialiser: Initialiser<UpdateTable<NAME, TABLE>, RETURN>): RETURN;
     delete(): DeleteFromTable<TABLE>;
     delete<RETURN extends DeleteFromTable<TABLE, any> = DeleteFromTable<TABLE>>(initialiser: Initialiser<DeleteFromTable<TABLE>, RETURN>): RETURN;
     truncate(): TruncateTable;
