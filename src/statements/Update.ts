@@ -1,15 +1,27 @@
 import { QueryResult } from "pg";
-import { InputTypeFromString, OutputTypeFromString, SingleStringUnion, ValidType } from "../IStrongPG";
+import { InputTypeFromString, OutputTypeFromString, SingleStringUnion, TypeString, ValidType } from "../IStrongPG";
 import Schema, { TableSchema } from "../Schema";
 import Expression, { ExpressionInitialiser, ExpressionOr } from "../expressions/Expression";
+import sql from "../sql";
 import Statement from "./Statement";
+import Values from "./Values";
 
-export default class UpdateTable<SCHEMA extends TableSchema, RESULT = number, VARS = {}> extends Statement<RESULT> {
+export default class UpdateTable<NAME extends string, SCHEMA extends TableSchema, RESULT = number, VARS = {}> extends Statement<RESULT> {
 
 	private vars: any[];
-	public constructor (public readonly tableName: string | undefined, public readonly schema: SCHEMA, vars?: any[]) {
+	public constructor (public readonly tableName: NAME, public readonly schema: SCHEMA, vars?: any[]) {
 		super();
 		this.vars = vars ?? [];
+	}
+
+	private fromExpr?: sql;
+	public from<VT_NAME extends string, const COLUMNS extends readonly string[], TYPES extends readonly TypeString[]> (name: VT_NAME, columns: COLUMNS, initialiser: (values: Values<NoInfer<VT_NAME>, NoInfer<COLUMNS>>) => Values<NoInfer<VT_NAME>, NoInfer<COLUMNS>, TYPES>) {
+		const values = new Values(name, columns)
+		initialiser(values);
+		this.fromExpr = values.compile();
+		return this as UpdateTable<NAME, SCHEMA, RESULT, VARS
+			& { [COLUMN in COLUMNS[number]as `${VT_NAME}.${COLUMN}`]: { [INDEX in keyof COLUMNS as COLUMN extends COLUMNS[INDEX] ? INDEX : never]: InputTypeFromString<TYPES[INDEX & keyof TYPES] & TypeString, VARS> } }
+		>;
 	}
 
 	private assignments: string[] = [];
@@ -30,7 +42,7 @@ export default class UpdateTable<SCHEMA extends TableSchema, RESULT = number, VA
 	}
 
 	private condition?: string;
-	public where (initialiser: ExpressionInitialiser<VARS & Schema.Columns<SCHEMA>, boolean>) {
+	public where (initialiser: ExpressionInitialiser<VARS & Schema.Columns<SCHEMA> & Schema.TableColumns<NAME, SCHEMA>, boolean>) {
 		const queryable = Expression.compile(initialiser, undefined, this.vars);
 		this.condition = `WHERE (${queryable.text})`;
 		return this;
@@ -43,19 +55,20 @@ export default class UpdateTable<SCHEMA extends TableSchema, RESULT = number, VA
 	}
 
 	private returningColumns?: (Schema.Column<SCHEMA> | "*")[];
-	public returning (): UpdateTable<SCHEMA, number, VARS>;
-	public returning<RETURNING_COLUMNS extends Schema.Column<SCHEMA>[]> (...columns: RETURNING_COLUMNS): UpdateTable<SCHEMA, { [KEY in RETURNING_COLUMNS[number]]: OutputTypeFromString<SCHEMA[KEY]> }[], VARS>;
-	public returning<RETURNING_COLUMN extends Schema.Column<SCHEMA> | "*"> (columns: RETURNING_COLUMN): UpdateTable<SCHEMA, { [KEY in RETURNING_COLUMN extends "*" ? Schema.Column<SCHEMA> : RETURNING_COLUMN]: OutputTypeFromString<SCHEMA[KEY]> }[], VARS>;
+	public returning (): UpdateTable<NAME, SCHEMA, number, VARS>;
+	public returning<RETURNING_COLUMNS extends Schema.Column<SCHEMA>[]> (...columns: RETURNING_COLUMNS): UpdateTable<NAME, SCHEMA, { [KEY in RETURNING_COLUMNS[number]]: OutputTypeFromString<SCHEMA[KEY]> }[], VARS>;
+	public returning<RETURNING_COLUMN extends Schema.Column<SCHEMA> | "*"> (columns: RETURNING_COLUMN): UpdateTable<NAME, SCHEMA, { [KEY in RETURNING_COLUMN extends "*" ? Schema.Column<SCHEMA> : RETURNING_COLUMN]: OutputTypeFromString<SCHEMA[KEY]> }[], VARS>;
 	public returning (...columns: (Schema.Column<SCHEMA> | "*")[]) {
 		this.returningColumns = columns;
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return this as UpdateTable<SCHEMA, any, VARS>;
+		return this as UpdateTable<NAME, SCHEMA, any, VARS>;
 	}
 
 	public compile () {
 		const returning = !this.returningColumns?.length ? ""
 			: `RETURNING ${this.returningColumns.join(",")}`;
-		return this.queryable(`UPDATE ${this.tableName ?? ""} SET ${this.assignments.join(",")} ${this.condition ?? ""} ${returning}`, undefined, this.vars);
+		const fromString = this.fromExpr ? `FROM ${this.fromExpr.compile(this.vars)}` : "";
+		return this.queryable(`UPDATE ${this.tableName ?? ""} SET ${this.assignments.join(",")} ${fromString} ${this.condition ?? ""} ${returning}`, undefined, this.vars);
 	}
 
 	protected override resolveQueryOutput (output: QueryResult<any>) {

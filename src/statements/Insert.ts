@@ -12,7 +12,7 @@ export interface InsertIntoTableFactory<SCHEMA extends TableSchema, NAME extends
 
 export interface InsertIntoTableConflictActionFactory<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[], RESULT = []> {
 	doNothing (): InsertIntoTable<SCHEMA, NAME, COLUMNS, RESULT>;
-	doUpdate (initialiser: Initialiser<UpdateTable<SCHEMA, any,
+	doUpdate (initialiser: Initialiser<UpdateTable<NAME, SCHEMA, any,
 		& { [KEY in COLUMNS[number]as `EXCLUDED.${KEY & string}`]: SCHEMA[KEY] }
 		& { [KEY in COLUMNS[number]as `${NAME}.${KEY & string}`]: SCHEMA[KEY] }
 	>>): InsertIntoTable<SCHEMA, NAME, COLUMNS, RESULT>;
@@ -49,7 +49,7 @@ export default class InsertIntoTable<SCHEMA extends TableSchema, NAME extends st
 	}
 
 	private vars: any[] = [];
-	public constructor (public readonly tableName: string, public readonly schema: SCHEMA, public readonly columns: Schema.Column<SCHEMA>[], public readonly rows: Value<Schema.RowInput<SCHEMA>>[][]) {
+	public constructor (public readonly tableName: NAME, public readonly schema: SCHEMA, public readonly columns: Schema.Column<SCHEMA>[], public readonly rows: Value<Schema.RowInput<SCHEMA>>[][]) {
 		super();
 	}
 
@@ -59,7 +59,7 @@ export default class InsertIntoTable<SCHEMA extends TableSchema, NAME extends st
 	}
 
 	private conflictTarget?: Schema.Column<SCHEMA>[];
-	private conflictAction?: null | UpdateTable<SCHEMA, any>;
+	private conflictAction?: null | UpdateTable<NAME, SCHEMA, any>;
 	public onConflict (...columns: Schema.Column<SCHEMA>[]): InsertIntoTableConflictActionFactory<SCHEMA, NAME, COLUMNS, RESULT> {
 		this.conflictTarget = columns;
 		return {
@@ -68,7 +68,8 @@ export default class InsertIntoTable<SCHEMA extends TableSchema, NAME extends st
 				return this;
 			},
 			doUpdate: initialiser => {
-				this.conflictAction = new UpdateTable(undefined, this.schema, this.vars);
+				this.conflictAction = new UpdateTable(this.tableName, this.schema, this.vars);
+				(this.conflictAction as { tableName: string }).tableName = ""
 				initialiser(this.conflictAction);
 				return this;
 			},

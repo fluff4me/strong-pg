@@ -8,7 +8,7 @@ function isDatabaseError (value: unknown): value is DatabaseError {
 		|| (typeof value === "object" && !!value && "internalQuery" in value)
 }
 
-type SqlTemplateData = [segments: TemplateStringsArray, interpolations: unknown[]]
+type SqlTemplateData = [segments: readonly string[], interpolations: unknown[]]
 
 interface SQL extends Omit<QueryConfig, "text" | "values"> { }
 class SQL implements QueryConfig {
@@ -154,7 +154,7 @@ class SQL implements QueryConfig {
 
 type sql = SQL
 
-function sql (segments: TemplateStringsArray, ...interpolations: unknown[]): sql {
+function sql (segments: readonly string[], ...interpolations: unknown[]): sql {
 	return new SQL(segments, interpolations)
 }
 
@@ -166,8 +166,12 @@ namespace sql {
 		return value instanceof SQL
 	}
 
-	export function join (segments: unknown[], separator: sql): sql {
+	export function join (segments: readonly unknown[], separator: sql): sql {
 		return segments.reduce((acc, cur) => sql`${acc}${separator}${cur}`) as sql
+	}
+
+	export function raw (text: string): sql {
+		return new SQL([text], [])
 	}
 }
 
