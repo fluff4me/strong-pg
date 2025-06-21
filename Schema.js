@@ -28,14 +28,32 @@ class Schema {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return schema;
     }
-    static triggerFunction(version, sql) {
+    static triggerFunction(version) {
         return {
-            version,
-            in: [],
-            out: [],
-            return: "TRIGGER",
+            sql(sql) {
+                return {
+                    version,
+                    in: [],
+                    out: [],
+                    return: "TRIGGER",
+                    sql,
+                };
+            },
+            plpgsql: (declarations, plpgsql) => {
+                if (sql_1.default.is(declarations))
+                    plpgsql = declarations, declarations = {};
+                return {
+                    version,
+                    in: [],
+                    out: [],
+                    return: "TRIGGER",
+                    declarations,
+                    plpgsql,
+                };
+            },
         };
     }
+    /** @deprecated */
     static legacyFunction(...args) {
         const varsOut = [];
         let returnType = "VOID";
@@ -70,17 +88,24 @@ class Schema {
                 return factory;
             },
             sql: (sql) => ({
+                version,
                 in: varsIn,
                 out: varsOut,
                 return: returnType,
                 sql,
             }),
-            plpgsql: (plpgsql) => ({
-                in: varsIn,
-                out: varsOut,
-                return: returnType,
-                plpgsql,
-            }),
+            plpgsql: (declarations, plpgsql) => {
+                if (sql_1.default.is(declarations))
+                    plpgsql = declarations, declarations = {};
+                return {
+                    version,
+                    in: varsIn,
+                    out: varsOut,
+                    return: returnType,
+                    declarations,
+                    plpgsql,
+                };
+            },
         };
         return factory;
     }
@@ -122,6 +147,7 @@ class Schema {
 }
 Schema.INDEX = {};
 Schema.TRIGGER = {};
+/** @deprecated */
 Schema.TRIGGER_FUNCTION = { version: "-1", in: [], out: [], return: "TRIGGER", sql: (0, sql_1.default) `` };
 Schema.COLLATION = {};
 exports.default = Schema;

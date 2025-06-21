@@ -20,6 +20,7 @@ export interface FunctionSchema<VERSION extends string = string, IN extends [(Ty
     readonly out: OUT;
     readonly return: RETURN;
     readonly sql?: sql;
+    readonly declarations?: Record<string, TypeString>;
     readonly plpgsql?: sql;
 }
 export type FunctionParameters<SCHEMA extends FunctionSchema> = SCHEMA extends FunctionSchema<string, infer IN, any, any> ? {
@@ -74,6 +75,12 @@ export interface SchemaFunctionFactory<VERSION extends string, IN extends [(Type
     returns<TYPE extends TypeString>(returns: TYPE): SchemaFunctionFactory<VERSION, IN, OUT, TYPE>;
     sql(sql: sql): FunctionSchema<VERSION, IN, OUT, RETURNS>;
     plpgsql(sql: sql): FunctionSchema<VERSION, IN, OUT, RETURNS>;
+    plpgsql(declarations: Record<string, TypeString>, plpgsql: sql): FunctionSchema<VERSION, IN, OUT, RETURNS>;
+}
+export interface SchemaTriggerFunctionFactory<VERSION extends string> {
+    sql(sql: sql): FunctionSchema<VERSION, [], [], "TRIGGER">;
+    plpgsql(plpgsql: sql): FunctionSchema<VERSION, [], [], "TRIGGER">;
+    plpgsql(declarations: Record<string, TypeString>, plpgsql: sql): FunctionSchema<VERSION, [], [], "TRIGGER">;
 }
 declare class Schema {
     static database<SCHEMA extends Partial<DatabaseSchema> | null>(schema: SCHEMA): SCHEMA extends null ? null : SCHEMA extends infer S extends Partial<DatabaseSchema> ? ValidateDatabaseSchema<{
@@ -89,11 +96,11 @@ declare class Schema {
     static table<SCHEMA>(schema: SCHEMA): ValidateTableSchema<SCHEMA>;
     static readonly INDEX: {};
     static readonly TRIGGER: {};
+    /** @deprecated */
     static readonly TRIGGER_FUNCTION: FunctionSchema<"-1", [], [], "TRIGGER">;
     static readonly COLLATION: {};
-    static triggerFunction<VERSION extends string>(version: VERSION, sql: sql): FunctionSchema<VERSION, [], [], "TRIGGER"> & {
-        readonly brand: unique symbol;
-    };
+    static triggerFunction<VERSION extends string>(version: VERSION): SchemaTriggerFunctionFactory<VERSION>;
+    /** @deprecated */
     static legacyFunction<IN extends (TypeString | OptionalTypeString)[]>(...args: IN): SchemaLegacyFunctionFactory<IN>;
     static function<VERSION extends string>(version: VERSION): SchemaFunctionFactory<VERSION>;
     static primaryKey<KEYS extends string[]>(...keys: KEYS): KEYS[number][];

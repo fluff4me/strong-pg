@@ -34,6 +34,7 @@ class CreateOrReplaceFunction extends Statement_1.default {
     plpgsql(declarations, plpgsql) {
         if (sql_1.default.is(declarations))
             plpgsql = declarations, declarations = {};
+        declarations ?? (declarations = {});
         if (!plpgsql)
             throw new Error("No PL/pgSQL code provided");
         const declare = Object.entries(declarations).map(([name, type]) => `${name} ${IStrongPG_1.TypeString.resolve(type)}`).join(";");

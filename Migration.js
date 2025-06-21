@@ -172,7 +172,7 @@ class Migration extends Transaction_1.default {
             if (initialiser.sql)
                 createOrReplaceFunction.sql(initialiser.sql);
             if (initialiser.plpgsql)
-                createOrReplaceFunction.plpgsql(initialiser.plpgsql);
+                createOrReplaceFunction.plpgsql(initialiser.declarations, initialiser.plpgsql);
             this.add(createOrReplaceFunction);
         }
         return this;
