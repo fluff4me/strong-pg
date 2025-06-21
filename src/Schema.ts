@@ -1,4 +1,5 @@
 import { DataTypeID, EnumToTuple, InputTypeFromString, OptionalTypeString, OutputTypeFromString, TypeString, TypeStringMap } from "./IStrongPG";
+import sql from "./sql";
 
 interface SpecialKeys<SCHEMA> {
 	PRIMARY_KEY?: keyof SCHEMA | (keyof SCHEMA)[];
@@ -20,13 +21,16 @@ export interface DatabaseSchema {
 	types: Record<string, TableSchema>;
 }
 
-export interface FunctionSchema<IN extends (TypeString | OptionalTypeString)[] = (TypeString | OptionalTypeString)[], OUT extends [TypeString, string][] = [TypeString, string][], RETURN extends TypeString = TypeString> {
-	in: IN;
-	out: OUT;
-	return: RETURN;
+export interface FunctionSchema<VERSION extends string = string, IN extends [(TypeString | OptionalTypeString), string][] = [(TypeString | OptionalTypeString), string][], OUT extends [TypeString, string][] = [TypeString, string][], RETURN extends TypeString = TypeString> {
+	readonly version: VERSION;
+	readonly in: IN;
+	readonly out: OUT;
+	readonly return: RETURN;
+	readonly sql?: sql;
+	readonly plpgsql?: sql;
 }
 
-export type FunctionParameters<SCHEMA extends FunctionSchema> = SCHEMA extends FunctionSchema<infer IN, any, any> ? { [I in keyof IN]: InputTypeFromString<IN[I]> | (IN[I] extends OptionalTypeString ? null | undefined : never) } : never;
+export type FunctionParameters<SCHEMA extends FunctionSchema> = SCHEMA extends FunctionSchema<string, infer IN, any, any> ? { [I in keyof IN]: InputTypeFromString<IN[I][0]> | (IN[I] extends OptionalTypeString ? null | undefined : never) } : never;
 
 export namespace DatabaseSchema {
 	export interface Empty {
@@ -106,10 +110,17 @@ export interface SchemaEnum<ENUM> {
 	VALUES: ENUM;
 }
 
-export interface SchemaFunctionFactory<IN extends (TypeString | OptionalTypeString)[], OUT extends [TypeString, string][] = [], RETURNS extends TypeString = "VOID"> {
-	out<TYPE extends TypeString, NAME extends string> (type: TYPE, name: NAME): SchemaFunctionFactory<IN, [...OUT, [TYPE, NAME]]>
-	returns<TYPE extends TypeString> (returns: TYPE): SchemaFunctionFactory<IN, OUT, TYPE>
-	get (): FunctionSchema<IN, OUT, RETURNS>
+export interface SchemaLegacyFunctionFactory<IN extends (TypeString | OptionalTypeString)[], OUT extends [TypeString, string][] = [], RETURNS extends TypeString = "VOID"> {
+	out<TYPE extends TypeString, NAME extends string> (type: TYPE, name: NAME): SchemaLegacyFunctionFactory<IN, [...OUT, [TYPE, NAME]]>
+	returns<TYPE extends TypeString> (returns: TYPE): SchemaLegacyFunctionFactory<IN, OUT, TYPE>
+	get (): FunctionSchema<"-1", { [I in keyof IN]: [IN[I], string] }, OUT, RETURNS>;
+}
+export interface SchemaFunctionFactory<VERSION extends string, IN extends [(TypeString | OptionalTypeString), string][] = [], OUT extends [TypeString, string][] = [], RETURNS extends TypeString = "VOID"> {
+	in<TYPE extends TypeString | OptionalTypeString, NAME extends string> (type: TYPE, name: NAME): SchemaFunctionFactory<VERSION, [...IN, [TYPE, NAME]]>
+	out<TYPE extends TypeString, NAME extends string> (type: TYPE, name: NAME): SchemaFunctionFactory<VERSION, IN, [...OUT, [TYPE, NAME]]>
+	returns<TYPE extends TypeString> (returns: TYPE): SchemaFunctionFactory<VERSION, IN, OUT, TYPE>
+	sql (sql: sql): FunctionSchema<VERSION, IN, OUT, RETURNS>;
+	plpgsql (sql: sql): FunctionSchema<VERSION, IN, OUT, RETURNS>;
 }
 
 class Schema {
@@ -151,14 +162,65 @@ class Schema {
 
 	public static readonly INDEX = {};
 	public static readonly TRIGGER = {};
-	public static readonly TRIGGER_FUNCTION: FunctionSchema<[], [], "TRIGGER"> = { in: [], out: [], return: "TRIGGER" };
+	public static readonly TRIGGER_FUNCTION: FunctionSchema<"-1", [], [], "TRIGGER"> = { version: "-1", in: [], out: [], return: "TRIGGER", sql: sql`` };
 	public static readonly COLLATION = {};
 
-	public static function<IN extends (TypeString | OptionalTypeString)[]> (...args: IN): SchemaFunctionFactory<IN> {
-		const factory: SchemaFunctionFactory<any[], any[], any> = {
-			out: (type, name) => factory as never,
-			returns: returns => factory as never,
+	public static triggerFunction<VERSION extends string> (version: VERSION, sql: sql) {
+		return {
+			version,
+			in: [],
+			out: [],
+			return: "TRIGGER",
+		} as FunctionSchema<VERSION, [], [], "TRIGGER"> & { readonly brand: unique symbol };
+	}
+
+	public static legacyFunction<IN extends (TypeString | OptionalTypeString)[]> (...args: IN): SchemaLegacyFunctionFactory<IN> {
+		const varsOut: [TypeString, string][] = []
+		let returnType: TypeString = "VOID";
+		const factory: SchemaLegacyFunctionFactory<any[], any[], any> = {
+			out: (...out) => {
+				varsOut.push(out);
+				return factory as never
+			},
+			returns: returns => {
+				returnType = returns;
+				return factory as never
+			},
 			get: () => 0 as never,
+		};
+
+		return factory as never;
+	}
+
+	public static function<VERSION extends string> (version: VERSION): SchemaFunctionFactory<VERSION> {
+		const varsIn: [(TypeString | OptionalTypeString), string][] = [];
+		const varsOut: [TypeString, string][] = []
+		let returnType: TypeString = "VOID";
+		const factory: SchemaFunctionFactory<VERSION, any[], any[], any> = {
+			in: (type, name) => {
+				varsIn.push([type, name]);
+				return factory as never;
+			},
+			out: (...out) => {
+				varsOut.push(out);
+				return factory as never
+			},
+			returns: returns => {
+				returnType = returns;
+				return factory as never
+			},
+			sql: (sql: sql) => ({
+				in: varsIn,
+				out: varsOut,
+				return: returnType,
+				sql,
+			} as never),
+			plpgsql: (plpgsql: sql) => ({
+				in: varsIn,
+				out: varsOut,
+				return: returnType,
+				plpgsql,
+			} as never),
 		};
 
 		return factory as never;

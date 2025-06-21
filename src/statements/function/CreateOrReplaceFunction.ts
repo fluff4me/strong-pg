@@ -2,10 +2,10 @@ import { Initialiser, OptionalTypeString, TypeString } from "../../IStrongPG";
 import sql from "../../sql";
 import Statement from "../Statement";
 
-export type CreateOrReplaceFunctionInitialiser<IN extends (TypeString | OptionalTypeString)[], OUT extends [TypeString, string][], RETURN extends TypeString> =
+export type CreateOrReplaceFunctionInitialiser<IN extends [(TypeString | OptionalTypeString), string][], OUT extends [TypeString, string][], RETURN extends TypeString> =
 	Initialiser<CreateOrReplaceFunction, CreateOrReplaceFunction<true, IN, OUT, RETURN>>;
 
-export default class CreateOrReplaceFunction<HAS_CODE extends boolean = false, IN extends (TypeString | OptionalTypeString)[] = [], OUT extends [TypeString, string][] = [], RETURN extends TypeString = never> extends Statement {
+export default class CreateOrReplaceFunction<HAS_CODE extends boolean = false, IN extends [(TypeString | OptionalTypeString), string][] = [], OUT extends [TypeString, string][] = [], RETURN extends TypeString = never> extends Statement {
 
 	protected readonly hasCode!: HAS_CODE;
 	private argsIn: [TypeString | OptionalTypeString, string][] = [];
@@ -18,7 +18,7 @@ export default class CreateOrReplaceFunction<HAS_CODE extends boolean = false, I
 		super();
 	}
 
-	public in<TYPE extends TypeString | OptionalTypeString> (type: TYPE, name: string): CreateOrReplaceFunction<HAS_CODE, [...IN, TYPE], OUT, RETURN> {
+	public in<TYPE extends TypeString | OptionalTypeString, NAME extends string> (type: TYPE, name: NAME): CreateOrReplaceFunction<HAS_CODE, [...IN, [TYPE, NAME]], OUT, RETURN> {
 		this.argsIn.push([type, name]);
 		return this as never;
 	}
