@@ -102,9 +102,19 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
             [TRIGGER_NAME in Exclude<keyof SCHEMA_END["triggers"], NAME>]: {};
         }) : SCHEMA_END[KEY];
     }>;
-    createOrReplaceFunction<NAME extends string, IN extends (TypeString | OptionalTypeString)[], OUT extends [TypeString, string][], RETURN extends TypeString>(name: NAME, initialiser: CreateOrReplaceFunctionInitialiser<IN, OUT, RETURN>): Migration<SCHEMA_START, {
+    createOrReplaceFunction<NAME extends string, VERSION extends string, IN extends [(TypeString | OptionalTypeString), string][], OUT extends [TypeString, string][], RETURN extends TypeString>(name: NAME, schema: FunctionSchema<VERSION, IN, OUT, RETURN>): Migration<SCHEMA_START, {
         [KEY in keyof SCHEMA_END]: KEY extends "functions" ? ({
-            [FUNCTION_NAME in NAME | keyof SCHEMA_END["functions"]]: FUNCTION_NAME extends NAME ? FunctionSchema<IN, OUT, RETURN> : SCHEMA_END["functions"][FUNCTION_NAME];
+            [FUNCTION_NAME in NAME | keyof SCHEMA_END["functions"]]: FUNCTION_NAME extends NAME ? FunctionSchema<VERSION, IN, OUT, RETURN> : SCHEMA_END["functions"][FUNCTION_NAME];
+        }) : SCHEMA_END[KEY];
+    }>;
+    /**
+     * @deprecated
+     */
+    createOrReplaceFunction<NAME extends string, IN extends [(TypeString | OptionalTypeString), string][], OUT extends [TypeString, string][], RETURN extends TypeString>(name: NAME, initialiser: CreateOrReplaceFunctionInitialiser<IN, OUT, RETURN>): Migration<SCHEMA_START, {
+        [KEY in keyof SCHEMA_END]: KEY extends "functions" ? ({
+            [FUNCTION_NAME in NAME | keyof SCHEMA_END["functions"]]: FUNCTION_NAME extends NAME ? FunctionSchema<"-1", {
+                [I in keyof IN]: [IN[I][0], string];
+            }, OUT, RETURN> : SCHEMA_END["functions"][FUNCTION_NAME];
         }) : SCHEMA_END[KEY];
     }>;
     dropFunction<NAME extends DatabaseSchema.FunctionName<SCHEMA_END>>(name: NAME): Migration<SCHEMA_START, {

@@ -19,7 +19,7 @@ declare class FunctionCall<FUNCTION extends FunctionSchema, SCHEMA extends Datab
     constructor(functionName: FUNCTION_NAME, params: FunctionParameters<FUNCTION>);
     compileWith: undefined;
     compileFrom(): string;
-    perform(): PerformFunction<FunctionSchema<(TypeString | OptionalTypeString<TypeString>)[], [TypeString, string][], TypeString>, DatabaseSchema, string>;
+    perform(): PerformFunction<FunctionSchema<string, [TypeString | OptionalTypeString<TypeString>, string][], [TypeString, string][], TypeString>, DatabaseSchema, string>;
 }
 declare class PerformFunction<FUNCTION extends FunctionSchema, SCHEMA extends DatabaseSchema, FUNCTION_NAME extends DatabaseSchema.FunctionName<SCHEMA>> extends Statement {
     private readonly functionCall;

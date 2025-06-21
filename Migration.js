@@ -157,13 +157,24 @@ class Migration extends Transaction_1.default {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
-    //#endregion
-    ////////////////////////////////////
-    ////////////////////////////////////
-    //#region Function
     createOrReplaceFunction(name, initialiser) {
-        this.add(initialiser(new CreateOrReplaceFunction_1.default(name)).setCaller());
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        if (typeof initialiser === "function")
+            this.add(initialiser(new CreateOrReplaceFunction_1.default(name)).setCaller());
+        else {
+            const createOrReplaceFunction = new CreateOrReplaceFunction_1.default(name).setCaller();
+            for (const [type, name] of initialiser.in)
+                createOrReplaceFunction.in(type, name);
+            for (const [type, name] of initialiser.out)
+                createOrReplaceFunction.out(type, name);
+            createOrReplaceFunction.returns(initialiser.return);
+            if (initialiser.sql && initialiser.plpgsql)
+                throw new Error("Cannot provide both SQL and PL/pgSQL code for a function");
+            if (initialiser.sql)
+                createOrReplaceFunction.sql(initialiser.sql);
+            if (initialiser.plpgsql)
+                createOrReplaceFunction.plpgsql(initialiser.plpgsql);
+            this.add(createOrReplaceFunction);
+        }
         return this;
     }
     dropFunction(name) {

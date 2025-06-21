@@ -1,5 +1,9 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+const sql_1 = __importDefault(require("./sql"));
 class Schema {
     static database(schema) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -24,11 +28,59 @@ class Schema {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return schema;
     }
-    static function(...args) {
+    static triggerFunction(version, sql) {
+        return {
+            version,
+            in: [],
+            out: [],
+            return: "TRIGGER",
+        };
+    }
+    static legacyFunction(...args) {
+        const varsOut = [];
+        let returnType = "VOID";
         const factory = {
-            out: (type, name) => factory,
-            returns: returns => factory,
+            out: (...out) => {
+                varsOut.push(out);
+                return factory;
+            },
+            returns: returns => {
+                returnType = returns;
+                return factory;
+            },
             get: () => 0,
+        };
+        return factory;
+    }
+    static function(version) {
+        const varsIn = [];
+        const varsOut = [];
+        let returnType = "VOID";
+        const factory = {
+            in: (type, name) => {
+                varsIn.push([type, name]);
+                return factory;
+            },
+            out: (...out) => {
+                varsOut.push(out);
+                return factory;
+            },
+            returns: returns => {
+                returnType = returns;
+                return factory;
+            },
+            sql: (sql) => ({
+                in: varsIn,
+                out: varsOut,
+                return: returnType,
+                sql,
+            }),
+            plpgsql: (plpgsql) => ({
+                in: varsIn,
+                out: varsOut,
+                return: returnType,
+                plpgsql,
+            }),
         };
         return factory;
     }
@@ -70,6 +122,6 @@ class Schema {
 }
 Schema.INDEX = {};
 Schema.TRIGGER = {};
-Schema.TRIGGER_FUNCTION = { in: [], out: [], return: "TRIGGER" };
+Schema.TRIGGER_FUNCTION = { version: "-1", in: [], out: [], return: "TRIGGER", sql: (0, sql_1.default) `` };
 Schema.COLLATION = {};
 exports.default = Schema;
