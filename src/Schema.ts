@@ -27,6 +27,7 @@ export interface FunctionSchema<VERSION extends string = string, IN extends [(Ty
 	readonly out: OUT;
 	readonly return: RETURN;
 	readonly sql?: sql;
+	readonly declarations?: Record<string, TypeString>;
 	readonly plpgsql?: sql;
 }
 
@@ -121,6 +122,13 @@ export interface SchemaFunctionFactory<VERSION extends string, IN extends [(Type
 	returns<TYPE extends TypeString> (returns: TYPE): SchemaFunctionFactory<VERSION, IN, OUT, TYPE>
 	sql (sql: sql): FunctionSchema<VERSION, IN, OUT, RETURNS>;
 	plpgsql (sql: sql): FunctionSchema<VERSION, IN, OUT, RETURNS>;
+	plpgsql (declarations: Record<string, TypeString>, plpgsql: sql): FunctionSchema<VERSION, IN, OUT, RETURNS>;
+}
+
+export interface SchemaTriggerFunctionFactory<VERSION extends string> {
+	sql (sql: sql): FunctionSchema<VERSION, [], [], "TRIGGER">;
+	plpgsql (plpgsql: sql): FunctionSchema<VERSION, [], [], "TRIGGER">;
+	plpgsql (declarations: Record<string, TypeString>, plpgsql: sql): FunctionSchema<VERSION, [], [], "TRIGGER">;
 }
 
 class Schema {
@@ -162,18 +170,37 @@ class Schema {
 
 	public static readonly INDEX = {};
 	public static readonly TRIGGER = {};
+	/** @deprecated */
 	public static readonly TRIGGER_FUNCTION: FunctionSchema<"-1", [], [], "TRIGGER"> = { version: "-1", in: [], out: [], return: "TRIGGER", sql: sql`` };
 	public static readonly COLLATION = {};
 
-	public static triggerFunction<VERSION extends string> (version: VERSION, sql: sql) {
+	public static triggerFunction<VERSION extends string> (version: VERSION): SchemaTriggerFunctionFactory<VERSION> {
 		return {
-			version,
-			in: [],
-			out: [],
-			return: "TRIGGER",
-		} as FunctionSchema<VERSION, [], [], "TRIGGER"> & { readonly brand: unique symbol };
+			sql (sql: sql) {
+				return {
+					version,
+					in: [],
+					out: [],
+					return: "TRIGGER",
+					sql,
+				} as FunctionSchema<VERSION, [], [], "TRIGGER">;
+			},
+			plpgsql: (declarations: Record<string, TypeString> | sql, plpgsql?: sql) => {
+				if (sql.is(declarations))
+					plpgsql = declarations, declarations = {};
+				return {
+					version,
+					in: [],
+					out: [],
+					return: "TRIGGER",
+					declarations,
+					plpgsql,
+				} as never;
+			},
+		}
 	}
 
+	/** @deprecated */
 	public static legacyFunction<IN extends (TypeString | OptionalTypeString)[]> (...args: IN): SchemaLegacyFunctionFactory<IN> {
 		const varsOut: [TypeString, string][] = []
 		let returnType: TypeString = "VOID";
@@ -210,17 +237,24 @@ class Schema {
 				return factory as never
 			},
 			sql: (sql: sql) => ({
+				version,
 				in: varsIn,
 				out: varsOut,
 				return: returnType,
 				sql,
 			} as never),
-			plpgsql: (plpgsql: sql) => ({
-				in: varsIn,
-				out: varsOut,
-				return: returnType,
-				plpgsql,
-			} as never),
+			plpgsql: (declarations: Record<string, TypeString> | sql, plpgsql?: sql) => {
+				if (sql.is(declarations))
+					plpgsql = declarations, declarations = {};
+				return {
+					version,
+					in: varsIn,
+					out: varsOut,
+					return: returnType,
+					declarations,
+					plpgsql,
+				} as never;
+			},
 		};
 
 		return factory as never;

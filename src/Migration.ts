@@ -352,7 +352,7 @@ export default class Migration<SCHEMA_START extends DatabaseSchema | null = null
 			if (initialiser.sql)
 				createOrReplaceFunction.sql(initialiser.sql);
 			if (initialiser.plpgsql)
-				createOrReplaceFunction.plpgsql(initialiser.plpgsql);
+				createOrReplaceFunction.plpgsql(initialiser.declarations, initialiser.plpgsql);
 			this.add(createOrReplaceFunction);
 		}
 

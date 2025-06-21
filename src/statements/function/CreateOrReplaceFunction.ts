@@ -41,10 +41,12 @@ export default class CreateOrReplaceFunction<HAS_CODE extends boolean = false, I
 	}
 
 	public plpgsql (plpgsql: sql): CreateOrReplaceFunction<true, IN, OUT, RETURN>;
-	public plpgsql (declarations: Record<string, TypeString>, plpgsql: sql): CreateOrReplaceFunction<true, IN, OUT, RETURN>;
-	public plpgsql (declarations: Record<string, TypeString> | sql, plpgsql?: sql): CreateOrReplaceFunction<true, IN, OUT, RETURN> {
+	public plpgsql (declarations: Record<string, TypeString> | undefined, plpgsql: sql): CreateOrReplaceFunction<true, IN, OUT, RETURN>;
+	public plpgsql (declarations: Record<string, TypeString> | sql | undefined, plpgsql?: sql): CreateOrReplaceFunction<true, IN, OUT, RETURN> {
 		if (sql.is(declarations))
 			plpgsql = declarations, declarations = {};
+
+		declarations ??= {};
 
 		if (!plpgsql)
 			throw new Error("No PL/pgSQL code provided");
