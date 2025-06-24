@@ -5,7 +5,7 @@ import Statement from "./statements/Statement";
 import { VirtualTable } from "./VirtualTable";
 
 export type FunctionOutput<SCHEMA extends DatabaseSchema, FUNCTION extends FunctionSchema, FUNCTION_NAME extends DatabaseSchema.FunctionName<SCHEMA>> =
-	FUNCTION extends FunctionSchema<(TypeString | OptionalTypeString)[], infer OUT, infer RETURN> ?
+	FUNCTION extends FunctionSchema<string, [TypeString | OptionalTypeString, string][], infer OUT, infer RETURN> ?
 	{ [I in keyof OUT as OUT[I] extends [TypeString, infer NAME extends PropertyKey] ? NAME : never]: OUT[I] extends [infer TYPE extends TypeString, string] ? TYPE : never } extends infer OUT_COLUMNS ?
 	(
 		(
