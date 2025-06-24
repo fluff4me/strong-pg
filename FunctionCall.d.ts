@@ -2,7 +2,7 @@ import { OptionalTypeString, TypeString } from "./IStrongPG";
 import { DatabaseSchema, FunctionParameters, FunctionSchema, TableSchema } from "./Schema";
 import Statement from "./statements/Statement";
 import { VirtualTable } from "./VirtualTable";
-export type FunctionOutput<SCHEMA extends DatabaseSchema, FUNCTION extends FunctionSchema, FUNCTION_NAME extends DatabaseSchema.FunctionName<SCHEMA>> = FUNCTION extends FunctionSchema<(TypeString | OptionalTypeString)[], infer OUT, infer RETURN> ? {
+export type FunctionOutput<SCHEMA extends DatabaseSchema, FUNCTION extends FunctionSchema, FUNCTION_NAME extends DatabaseSchema.FunctionName<SCHEMA>> = FUNCTION extends FunctionSchema<string, [TypeString | OptionalTypeString, string][], infer OUT, infer RETURN> ? {
     [I in keyof OUT as OUT[I] extends [TypeString, infer NAME extends PropertyKey] ? NAME : never]: OUT[I] extends [infer TYPE extends TypeString, string] ? TYPE : never;
 } extends infer OUT_COLUMNS ? ((RETURN extends `SETOF ${infer TABLE_NAME extends DatabaseSchema.TableName<SCHEMA>}` ? (DatabaseSchema.Table<SCHEMA, TABLE_NAME> extends infer TABLE ? TABLE : never) : RETURN extends `SETOF ${infer TYPE_NAME extends DatabaseSchema.TypeName<SCHEMA>}` ? (DatabaseSchema.Type<SCHEMA, TYPE_NAME> extends infer TYPE ? TYPE : never) : RETURN extends `SETOF ${infer TYPE_NAME extends TypeString}` ? {
     [KEY in FUNCTION_NAME]: TYPE_NAME;
