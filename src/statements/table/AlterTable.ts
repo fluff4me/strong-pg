@@ -1,5 +1,5 @@
 import Expression, { ExpressionInitialiser, ExpressionOr } from "../../expressions/Expression";
-import { ExtractTypeString, ForeignKeyOnDeleteAction, Initialiser, MigrationTypeFromString, OptionalTypeString, TypeString } from "../../IStrongPG";
+import { ExtractTypeString, ForeignKeyOnDeleteAction, Initialiser, MigrationTypeFromString, OptionalTypeString, TypeString, ValidType } from "../../IStrongPG";
 import Schema, { DatabaseSchema } from "../../Schema";
 import Statement from "../Statement";
 
@@ -188,7 +188,7 @@ class CreateColumnSubStatement extends Statement {
 	 */
 	public static setDefault<TYPE extends TypeString | OptionalTypeString> (value: ExpressionOr<{}, MigrationTypeFromString<TYPE>>) {
 		const expr = typeof value === "function" ? Expression.compile(value as never) : undefined;
-		const stringifiedValue = expr?.text ?? Expression.stringifyValueRaw(value as MigrationTypeFromString<ExtractTypeString<TYPE>>);
+		const stringifiedValue = expr?.text ?? Expression.stringifyValueRaw(value as ValidType);
 		return new CreateColumnSubStatement(`DEFAULT (${stringifiedValue})`, expr?.values);
 	}
 
@@ -249,7 +249,7 @@ class AlterColumnSubStatement extends Statement {
 	 */
 	public static setDefault<TYPE extends TypeString> (value: MigrationTypeFromString<TYPE | OptionalTypeString<TYPE>> | ExpressionInitialiser<{}, MigrationTypeFromString<TYPE | OptionalTypeString<TYPE>>>) {
 		const expr = typeof value === "function" ? Expression.compile(value as never) : undefined;
-		const stringifiedValue = expr?.text ?? Expression.stringifyValueRaw(value as MigrationTypeFromString<TYPE>);
+		const stringifiedValue = expr?.text ?? Expression.stringifyValueRaw(value as ValidType);
 		return new AlterColumnSubStatement(`SET DEFAULT (${stringifiedValue})`, expr?.values);
 	}
 

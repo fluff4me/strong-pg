@@ -12,9 +12,9 @@
 		"node": ">=16"
 	},
 	"scripts": {
-		"build": "npx ts-node tasks/utilities/TaskRunner.ts clean meta build",
-		"watch": "npx ts-node tasks/utilities/TaskRunner.ts clean meta watch",
-		"clean": "npx ts-node tasks/utilities/TaskRunner.ts clean"
+		"build": "npx task clean meta build",
+		"watch": "npx task clean meta watch",
+		"clean": "npx task clean"
 	},
 	"devDependencies": {
 		"@types/pg": "8.11.2",
@@ -27,6 +27,7 @@
 		"@typescript-eslint/eslint-plugin": "5.59.5",
 		"@typescript-eslint/parser": "5.59.5",
 		"eslint-plugin-only-warn": "1.1.0",
-		"@types/node": "22.10.1"
+		"@types/node": "22.10.1",
+		"task": "github:chirivulpes/task#package"
 	}
 }

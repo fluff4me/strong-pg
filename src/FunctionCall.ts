@@ -1,5 +1,5 @@
 import Expression from "./expressions/Expression";
-import { OptionalTypeString, TypeString } from "./IStrongPG";
+import { OptionalTypeString, TypeString, ValidType } from "./IStrongPG";
 import { DatabaseSchema, FunctionParameters, FunctionSchema, TableSchema } from "./Schema";
 import Statement from "./statements/Statement";
 import { VirtualTable } from "./VirtualTable";
@@ -37,7 +37,7 @@ class FunctionCall<FUNCTION extends FunctionSchema, SCHEMA extends DatabaseSchem
 	private readonly params: string[];
 	public constructor (private readonly functionName: FUNCTION_NAME, params: FunctionParameters<FUNCTION>) {
 		super(null as never);
-		this.params = params.map(param => Expression.stringifyValue(param, this.vars));
+		this.params = params.map(param => Expression.stringifyValue(param as ValidType, this.vars));
 	}
 
 	public override compileWith = undefined;
