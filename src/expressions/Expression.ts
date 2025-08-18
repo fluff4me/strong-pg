@@ -10,7 +10,11 @@ import { VirtualTable } from "../VirtualTable";
 export interface ExpressionOperations<VARS = never, CURRENT_VALUE = null> {
 	greaterThan: CURRENT_VALUE extends ValidDate ? ExpressionValue<VARS, ValidDate, boolean>
 	: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
+	greaterThanOrEquals: CURRENT_VALUE extends ValidDate ? ExpressionValue<VARS, ValidDate, boolean>
+	: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
 	lessThan: CURRENT_VALUE extends ValidDate ? ExpressionValue<VARS, ValidDate, boolean>
+	: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
+	lessThanOrEquals: CURRENT_VALUE extends ValidDate ? ExpressionValue<VARS, ValidDate, boolean>
 	: CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
 	isNull (): ExpressionOperations<VARS, boolean>;
 	isNotNull (): ExpressionOperations<VARS, boolean>;
@@ -169,6 +173,16 @@ export default class Expression<VARS = never> implements ImplementableExpression
 
 	public lessThan (value: ExpressionOr<VARS, ValidType>) {
 		this.parts.push(() => " < ");
+		return this.innerValue(value);
+	}
+
+	public greaterThanOrEquals (value: ExpressionOr<VARS, ValidType>) {
+		this.parts.push(() => " >= ");
+		return this.innerValue(value);
+	}
+
+	public lessThanOrEquals (value: ExpressionOr<VARS, ValidType>) {
+		this.parts.push(() => " <= ");
 		return this.innerValue(value);
 	}
 
