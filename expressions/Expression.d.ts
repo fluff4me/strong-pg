@@ -8,7 +8,9 @@ import Table from "../Table";
 import { VirtualTable } from "../VirtualTable";
 export interface ExpressionOperations<VARS = never, CURRENT_VALUE = null> {
     greaterThan: CURRENT_VALUE extends ValidDate ? ExpressionValue<VARS, ValidDate, boolean> : CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
+    greaterThanOrEquals: CURRENT_VALUE extends ValidDate ? ExpressionValue<VARS, ValidDate, boolean> : CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
     lessThan: CURRENT_VALUE extends ValidDate ? ExpressionValue<VARS, ValidDate, boolean> : CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
+    lessThanOrEquals: CURRENT_VALUE extends ValidDate ? ExpressionValue<VARS, ValidDate, boolean> : CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
     isNull(): ExpressionOperations<VARS, boolean>;
     isNotNull(): ExpressionOperations<VARS, boolean>;
     equals: ExpressionValue<VARS, CURRENT_VALUE, boolean>;
@@ -77,6 +79,8 @@ export default class Expression<VARS = never> implements ImplementableExpression
     compile(varMapper?: (varName: string) => string): string;
     greaterThan(value: ExpressionOr<VARS, ValidType>): this;
     lessThan(value: ExpressionOr<VARS, ValidType>): this;
+    greaterThanOrEquals(value: ExpressionOr<VARS, ValidType>): this;
+    lessThanOrEquals(value: ExpressionOr<VARS, ValidType>): this;
     matches(value: ExpressionOr<VARS, ValidType>): this;
     isNull(): this;
     isNotNull(): this;

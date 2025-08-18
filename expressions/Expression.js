@@ -84,6 +84,14 @@ class Expression {
         this.parts.push(() => " < ");
         return this.innerValue(value);
     }
+    greaterThanOrEquals(value) {
+        this.parts.push(() => " >= ");
+        return this.innerValue(value);
+    }
+    lessThanOrEquals(value) {
+        this.parts.push(() => " <= ");
+        return this.innerValue(value);
+    }
     matches(value) {
         this.parts.push(() => " ~ ");
         return this.innerValue(value);
