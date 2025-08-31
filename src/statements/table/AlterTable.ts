@@ -63,9 +63,9 @@ export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, 
 		return this.do(AlterTableSubStatement.addCheck(id, value));
 	}
 
-	public foreignKey<COLUMN extends Schema.Column<SCHEMA_END>, FOREIGN_TABLE extends DatabaseSchema.TableName<DB>, FOREIGN_KEY extends Schema.ColumnTyped<DatabaseSchema.Table<DB, FOREIGN_TABLE>, SCHEMA_END[COLUMN]>> (column: COLUMN, foreignTable: FOREIGN_TABLE, foreignKey: FOREIGN_KEY, onDelete?: ForeignKeyOnDeleteAction) {
+	public foreignKey<COLUMN extends Schema.Column<SCHEMA_END>, FOREIGN_TABLE extends DatabaseSchema.TableName<DB>, FOREIGN_KEY extends Schema.ColumnTyped<DatabaseSchema.Table<DB, FOREIGN_TABLE>, SCHEMA_END[COLUMN]>> (column: COLUMN, foreignTable: FOREIGN_TABLE, foreignKey: FOREIGN_KEY, onDelete?: ForeignKeyOnDeleteAction, onUpdate?: ForeignKeyOnDeleteAction) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-		return this.do(AlterTableSubStatement.addForeignKey(column as string, foreignTable, foreignKey as any, onDelete));
+		return this.do(AlterTableSubStatement.addForeignKey(column as string, foreignTable, foreignKey as any, onDelete, onUpdate));
 	}
 
 	public dropForeignKey<COLUMN extends Schema.Column<SCHEMA_END>> (column: COLUMN) {
@@ -128,9 +128,10 @@ class AlterTableSubStatement extends Statement {
 		return new AlterTableSubStatement(`ADD CONSTRAINT ${id}_check CHECK (${expr.text})`, expr.values);
 	}
 
-	public static addForeignKey (column: string, foreignTable: string, foreignColumn: string, onDelete?: ForeignKeyOnDeleteAction) {
+	public static addForeignKey (column: string, foreignTable: string, foreignColumn: string, onDelete?: ForeignKeyOnDeleteAction, onUpdate?: ForeignKeyOnDeleteAction) {
 		const onDeleteString = !onDelete ? "" : `ON DELETE ${onDelete.description!}`;
-		return new AlterTableSubStatement(`ADD CONSTRAINT ${column}_fk FOREIGN KEY (${column}) REFERENCES ${foreignTable} (${foreignColumn}) ${onDeleteString}`);
+		const onUpdateString = !onUpdate ? "" : `ON UPDATE ${onUpdate.description!}`;
+		return new AlterTableSubStatement(`ADD CONSTRAINT ${column}_fk FOREIGN KEY (${column}) REFERENCES ${foreignTable} (${foreignColumn}) ${onDeleteString} ${onUpdateString}`);
 	}
 
 	public static dropForeignKey (column: string) {
