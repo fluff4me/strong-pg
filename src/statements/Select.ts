@@ -135,6 +135,7 @@ export class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME extends str
 		const columns = this.columns === "*" ? "*"
 			: Array.isArray(this.columns) ? this.columns.join(",")
 				: Object.entries(this.columns)
+					.filter(([, column]) => column !== undefined)
 					.map(([alias, column]) => {
 						if (column === alias)
 							return column as string;
