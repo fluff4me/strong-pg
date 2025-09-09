@@ -56,6 +56,7 @@ class SelectFromVirtualTable extends Statement_1.default {
         const columns = this.columns === "*" ? "*"
             : Array.isArray(this.columns) ? this.columns.join(",")
                 : Object.entries(this.columns)
+                    .filter(([, column]) => column !== undefined)
                     .map(([alias, column]) => {
                     if (column === alias)
                         return column;
