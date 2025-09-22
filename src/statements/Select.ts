@@ -95,7 +95,7 @@ export class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME extends str
 	private condition?: string;
 	public where (initialiser: sql | ExpressionInitialiser<SelectWhereVars<SCHEMA, NAME>, boolean>) {
 		const queryable = sql.is(initialiser) ? initialiser : Expression.compile(initialiser, undefined, this.vars);
-		this.condition = `WHERE (${queryable.text})`;
+		this.condition = `WHERE (${sql.is(queryable) ? queryable.compile(this.vars) : queryable.text})`;
 		return this;
 	}
 

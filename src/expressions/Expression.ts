@@ -94,7 +94,7 @@ export default class Expression<VARS = never> implements ImplementableExpression
 		}
 
 		if (sql.is(value))
-			return value.text;
+			return value.compile(vars);
 
 		const shouldPassAsVariable = false
 			|| (typeof value === "string" && !enableStringConcatenation)
