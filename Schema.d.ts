@@ -61,6 +61,10 @@ type ValidateDatabaseSchemaEnumTableColumns<SCHEMA extends DatabaseSchema> = SCH
 ] extends [never] ? SCHEMA : Extract<ENUM_TABLE_COLUMNS, `ENUM(${string})`> extends `ENUM(${infer ENUM})` ? ENUM extends keyof SCHEMA["enums"] ? SCHEMA : `Enum ${ENUM} does not exist in the database` : never : never : never;
 export interface SchemaEnum<ENUM> {
     VALUES: ENUM;
+    sql: {
+        [KEY in keyof ENUM as ENUM[KEY] & string]: sql;
+    };
+    setName(name: string): this;
 }
 export interface SchemaLegacyFunctionFactory<IN extends (TypeString | OptionalTypeString)[], OUT extends [TypeString, string][] = [], RETURNS extends TypeString = "VOID"> {
     out<TYPE extends TypeString, NAME extends string>(type: TYPE, name: NAME): SchemaLegacyFunctionFactory<IN, [...OUT, [TYPE, NAME]]>;

@@ -10,19 +10,33 @@ class Schema {
         return schema;
     }
     static enum(enm) {
+        let enumName;
         const schema = {
             VALUES: [],
+            sql: {},
+            setName(name) {
+                enumName = name;
+                regen();
+                return this;
+            },
         };
-        for (let i = 0;; i++) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-            const value = enm[i];
-            if (typeof value !== "string")
-                break;
-            schema.VALUES.push(value);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            schema[value] = value;
-        }
+        regen();
         return schema;
+        function regen() {
+            schema.VALUES = [];
+            schema.sql = {};
+            for (let i = 0;; i++) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+                const value = enm[i];
+                if (typeof value !== "string")
+                    break;
+                schema.VALUES.push(value);
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                schema[value] = value;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                schema.sql[value] = (0, sql_1.default) `'${sql_1.default.raw(value)}'${enumName ? (0, sql_1.default) `::${sql_1.default.raw(enumName)}` : (0, sql_1.default) ``}`;
+            }
+        }
     }
     static table(schema) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
