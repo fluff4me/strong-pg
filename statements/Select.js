@@ -27,7 +27,7 @@ class SelectFromVirtualTable extends Statement_1.default {
     }
     where(initialiser) {
         const queryable = sql_1.default.is(initialiser) ? initialiser : Expression_1.default.compile(initialiser, undefined, this.vars);
-        this.condition = `WHERE (${queryable.text})`;
+        this.condition = `WHERE (${sql_1.default.is(queryable) ? queryable.compile(this.vars) : queryable.text})`;
         return this;
     }
     limit(count) {

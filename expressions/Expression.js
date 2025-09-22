@@ -19,7 +19,7 @@ class Expression {
             return `(${value.compile()})`;
         }
         if (Database_1.sql.is(value))
-            return value.text;
+            return value.compile(vars);
         const shouldPassAsVariable = false
             || (typeof value === "string" && !enableStringConcatenation)
             || (value && typeof value === "object" && !(value instanceof Date) && !(value instanceof RegExp));
