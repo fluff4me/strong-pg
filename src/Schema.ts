@@ -109,6 +109,8 @@ type ValidateDatabaseSchemaEnumTableColumns<SCHEMA extends DatabaseSchema> =
 
 export interface SchemaEnum<ENUM> {
 	VALUES: ENUM;
+	sql: { [KEY in keyof ENUM as ENUM[KEY] & string]: sql };
+	setName (name: string): this;
 }
 
 export interface SchemaLegacyFunctionFactory<IN extends (TypeString | OptionalTypeString)[], OUT extends [TypeString, string][] = [], RETURNS extends TypeString = "VOID"> {
@@ -147,20 +149,35 @@ class Schema {
 	}
 
 	public static enum<ENUM extends object> (enm: ENUM) {
+		let enumName: string | undefined
 		const schema = {
-			VALUES: [],
+			VALUES: [] as never,
+			sql: {} as never,
+			setName (name) {
+				enumName = name;
+				regen();
+				return this;
+			},
 		} as SchemaEnum<EnumToTuple<ENUM>> & { [KEY in keyof ENUM as ENUM[KEY] extends number ? KEY : never]: KEY };
-		for (let i = 0; ; i++) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			const value = (enm as any)[i];
-			if (typeof value !== "string")
-				break;
-
-			(schema.VALUES as string[]).push(value);
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			(schema as any)[value] = value;
-		}
+		regen();
 		return schema;
+
+		function regen () {
+			schema.VALUES = [] as never
+			schema.sql = {} as never
+			for (let i = 0; ; i++) {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+				const value = (enm as any)[i];
+				if (typeof value !== "string")
+					break;
+
+				(schema.VALUES as string[]).push(value);
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+				(schema as any)[value] = value;
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+				(schema.sql as any)[value] = sql`'${sql.raw(value)}'${enumName ? sql`::${sql.raw(enumName)}` : sql``}`;
+			}
+		}
 	}
 
 	public static table<SCHEMA> (schema: SCHEMA): ValidateTableSchema<SCHEMA> {
