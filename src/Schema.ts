@@ -148,7 +148,7 @@ class Schema {
 		return schema as any;
 	}
 
-	public static enum<ENUM extends object> (enm: ENUM) {
+	public static enum<ENUM extends object> (enm: ENUM): SchemaEnum<EnumToTuple<ENUM>> & { [KEY in keyof ENUM as ENUM[KEY] extends number ? KEY : never]: KEY } {
 		let enumName: string | undefined
 		const schema = {
 			VALUES: [] as never,
@@ -160,7 +160,7 @@ class Schema {
 			},
 		} as SchemaEnum<EnumToTuple<ENUM>> & { [KEY in keyof ENUM as ENUM[KEY] extends number ? KEY : never]: KEY };
 		regen();
-		return schema;
+		return schema as never;
 
 		function regen () {
 			schema.VALUES = [] as never
