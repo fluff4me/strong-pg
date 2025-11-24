@@ -337,9 +337,13 @@ export type Initialiser<T, R = any> = (value: T) => R;
 
 export type Key<OBJ, VALUE> = keyof { [KEY in keyof OBJ as OBJ[KEY] extends VALUE ? KEY : never]: VALUE };
 
-export type EnumToTuple<ENUM, LENGTH extends 1[] = []> =
-	Key<ENUM, LENGTH["length"]> extends infer KEY ?
-	[KEY] extends [never] ? [] : [KEY, ...EnumToTuple<ENUM, [...LENGTH, 1]>] : [];
+type Max<N extends number, A extends any[] = []> =
+	[N] extends [Partial<A>["length"]] ? A["length"] : Max<N, [0, ...A]>
+
+export type EnumToTuple<ENUM, TUPLE extends any[] = [], LAST extends number = Max<ENUM[keyof ENUM] & number>> = TUPLE extends [any, ...infer TAIL] ? (TAIL["length"] extends LAST
+	? TUPLE
+	: EnumToTuple<ENUM, [...TUPLE, Key<ENUM, TUPLE["length"]>]>
+) : EnumToTuple<ENUM, [...TUPLE, Key<ENUM, TUPLE["length"]>]>
 
 export type Value<T> = T[keyof T];
 
