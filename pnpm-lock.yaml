@@ -30,8 +30,8 @@ importers:
         specifier: github:fluff4me/lint#46612b5672c7d1a82a663949eea64e8058a308a3
         version: https://codeload.github.com/fluff4me/lint/tar.gz/46612b5672c7d1a82a663949eea64e8058a308a3(typescript@5.9.3)
       task:
-        specifier: github:chirivulpes/task#166aa8c59c77d4d22379a475cba9e74813fb4969
-        version: https://codeload.github.com/chirivulpes/task/tar.gz/166aa8c59c77d4d22379a475cba9e74813fb4969
+        specifier: github:chirivulpes/task#7f24d8cff0e18a887219d7b16c771b33c3622b72
+        version: https://codeload.github.com/chirivulpes/task/tar.gz/7f24d8cff0e18a887219d7b16c771b33c3622b72
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@types/node@22.16.0)(typescript@5.9.3)
@@ -1093,8 +1093,8 @@ packages:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
     engines: {node: '>=8'}
 
-  task@https://codeload.github.com/chirivulpes/task/tar.gz/166aa8c59c77d4d22379a475cba9e74813fb4969:
-    resolution: {tarball: https://codeload.github.com/chirivulpes/task/tar.gz/166aa8c59c77d4d22379a475cba9e74813fb4969}
+  task@https://codeload.github.com/chirivulpes/task/tar.gz/7f24d8cff0e18a887219d7b16c771b33c3622b72:
+    resolution: {tarball: https://codeload.github.com/chirivulpes/task/tar.gz/7f24d8cff0e18a887219d7b16c771b33c3622b72}
     version: 1.0.0
     hasBin: true
 
@@ -2341,7 +2341,7 @@ snapshots:
     dependencies:
       has-flag: 4.0.0
 
-  task@https://codeload.github.com/chirivulpes/task/tar.gz/166aa8c59c77d4d22379a475cba9e74813fb4969:
+  task@https://codeload.github.com/chirivulpes/task/tar.gz/7f24d8cff0e18a887219d7b16c771b33c3622b72:
     dependencies:
       '@types/node': 22.16.0
       '@types/ws': 8.5.13

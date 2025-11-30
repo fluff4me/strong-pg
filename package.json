@@ -17,13 +17,13 @@
 		"clean": "pnpm exec task clean"
 	},
 	"devDependencies": {
-		"@types/pg": "8.11.2",
-		"ts-node": "10.9.2",
-		"typescript": "5.9.3",
-		"del": "6.1.1",
-		"ansicolor": "1.1.100",
 		"@types/node": "22.16.0",
-		"task": "github:chirivulpes/task#package",
-		"lint": "github:fluff4me/lint"
+		"@types/pg": "8.11.2",
+		"ansicolor": "1.1.100",
+		"del": "6.1.1",
+		"lint": "github:fluff4me/lint#46612b5672c7d1a82a663949eea64e8058a308a3",
+		"task": "github:chirivulpes/task#7f24d8cff0e18a887219d7b16c771b33c3622b72",
+		"ts-node": "10.9.2",
+		"typescript": "5.9.3"
 	}
 }
