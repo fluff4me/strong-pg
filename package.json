@@ -12,22 +12,18 @@
 		"node": ">=22"
 	},
 	"scripts": {
-		"build": "npx task clean meta build",
-		"watch": "npx task clean meta watch",
-		"clean": "npx task clean"
+		"build": "pnpm exec task clean meta build",
+		"watch": "pnpm exec task clean meta watch",
+		"clean": "pnpm exec task clean"
 	},
 	"devDependencies": {
 		"@types/pg": "8.11.2",
 		"ts-node": "10.9.2",
-		"typescript": "5.7.2",
+		"typescript": "5.9.3",
 		"del": "6.1.1",
 		"ansicolor": "1.1.100",
-		"eslint": "8.40.0",
-		"@types/eslint": "8.37.0",
-		"@typescript-eslint/eslint-plugin": "5.59.5",
-		"@typescript-eslint/parser": "5.59.5",
-		"eslint-plugin-only-warn": "1.1.0",
-		"@types/node": "22.10.1",
-		"task": "github:chirivulpes/task#package"
+		"@types/node": "22.16.0",
+		"task": "github:chirivulpes/task#package",
+		"lint": "github:fluff4me/lint"
 	}
 }
