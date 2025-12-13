@@ -1,16 +1,17 @@
-import { DatabaseError, Pool, PoolClient, QueryConfig } from "pg"
-import util from "util"
-import log, { color } from "./Log"
-import { ExpressionInitialiser } from "./expressions/Expression"
+import type { Pool, PoolClient, QueryConfig } from 'pg'
+import { DatabaseError } from 'pg'
+import util from 'util'
+import log, { color } from './Log'
+import type { ExpressionInitialiser } from './expressions/Expression'
 
 function isDatabaseError (value: unknown): value is DatabaseError {
 	return value instanceof DatabaseError
-		|| (typeof value === "object" && !!value && "internalQuery" in value)
+		|| (typeof value === 'object' && !!value && 'internalQuery' in value)
 }
 
 type SqlTemplateData = [segments: readonly string[], interpolations: unknown[]]
 
-interface SQL extends Omit<QueryConfig, "text" | "values"> { }
+interface SQL extends Omit<QueryConfig, 'text' | 'values'> { }
 class SQL implements QueryConfig {
 
 	#data: SqlTemplateData
@@ -36,26 +37,27 @@ class SQL implements QueryConfig {
 
 	public async query (pool: Pool | PoolClient) {
 		try {
-			log("  > ", color("darkGray", this.text));
+			log('  > ', color('darkGray', this.text))
 			if (this.values?.length)
 				for (let i = 0; i < this.values.length; i++)
-					log(`    ${color("lightYellow", `$${i + 1}`)}${color("darkGray", ":")} `, util.inspect(this.values[i], undefined, Infinity, true));
+					log(`    ${color('lightYellow', `$${i + 1}`)}${color('darkGray', ':')} `, util.inspect(this.values[i], undefined, Infinity, true))
 
 			return await pool.query(this)
-		} catch (err) {
+		}
+		catch (err) {
 			if (!isDatabaseError(err))
 				throw err
 
-			log(color("red", "Error: ") + err.message + (err.detail ? `: ${err.detail}` : "")
-				+ (err.hint ? color("darkGray", `\nHint: ${err.hint}`) : ""))
+			log(color('red', 'Error: ') + err.message + (err.detail ? `: ${err.detail}` : '')
+				+ (err.hint ? color('darkGray', `\nHint: ${err.hint}`) : ''))
 
 			if (err.position === undefined)
 				return
 
 			let line: string
-			const start = this.text.lastIndexOf("\n", +err.position) + 1
-			const previousLine = this.text.substring(this.text.lastIndexOf("\n", start - 2) + 1, start - 1).trim()
-			const end = this.text.indexOf("\n", +err.position)
+			const start = this.text.lastIndexOf('\n', +err.position) + 1
+			const previousLine = this.text.substring(this.text.lastIndexOf('\n', start - 2) + 1, start - 1).trim()
+			const end = this.text.indexOf('\n', +err.position)
 			line = this.text.substring(start, end)
 			const length = line.length
 			line = line.trim()
@@ -63,20 +65,20 @@ class SQL implements QueryConfig {
 			const position = +err.position - start - trimmedWhitespace
 
 			if (previousLine)
-				log("  > ", color("darkGray", previousLine))
+				log('  > ', color('darkGray', previousLine))
 
-			log("  > ", line)
+			log('  > ', line)
 
 			if (position !== undefined)
-				log("    ", " ".repeat(Math.max(0, position - 1)) + color("red", "^"))
+				log('    ', ' '.repeat(Math.max(0, position - 1)) + color('red', '^'))
 		}
 	}
 
 	#compile () {
 		const { text, values } = this.#compileOffset()
 
-		Object.defineProperty(this, "text", { value: text })
-		Object.defineProperty(this, "values", { value: values })
+		Object.defineProperty(this, 'text', { value: text })
+		Object.defineProperty(this, 'values', { value: values })
 	}
 
 	#compileOffset (vi = 0) {
@@ -124,7 +126,7 @@ class SQL implements QueryConfig {
 	#compileRaw () {
 		const [topLayerSegments, topLayerInterpolations] = this.#data
 		if (!topLayerInterpolations.length) {
-			Object.defineProperty(this, "asRawSql", { value: topLayerSegments[0] })
+			Object.defineProperty(this, 'asRawSql', { value: topLayerSegments[0] })
 			return
 		}
 
@@ -148,8 +150,9 @@ class SQL implements QueryConfig {
 		}
 
 		const text = recurse()
-		Object.defineProperty(this, "asRawSql", { value: text })
+		Object.defineProperty(this, 'asRawSql', { value: text })
 	}
+
 }
 
 type sql = SQL

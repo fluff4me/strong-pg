@@ -1,38 +1,40 @@
-import Expression, { ExpressionInitialiser } from "../../expressions/Expression";
-import { Initialiser, NULLS_DISTINCT, NULLS_NOT_DISTINCT } from "../../IStrongPG";
-import Statement from "../Statement";
+import type { ExpressionInitialiser } from '../../expressions/Expression'
+import Expression from '../../expressions/Expression'
+import type { Initialiser, NULLS_DISTINCT, NULLS_NOT_DISTINCT } from '../../IStrongPG'
+import Statement from '../Statement'
 
 export type CreateIndexInitialiser<SCHEMA extends Record<string, any>> =
-	Initialiser<CreateIndex<SCHEMA>, CreateIndex<SCHEMA, true>>;
+	Initialiser<CreateIndex<SCHEMA>, CreateIndex<SCHEMA, true>>
 
 export default class CreateIndex<SCHEMA extends Record<string, any>, COLUMNS extends boolean = false> extends Statement {
 
-	private isUnique: typeof NULLS_DISTINCT | typeof NULLS_NOT_DISTINCT | undefined;
-	private readonly columns: string[] = [];
-	protected readonly valid!: COLUMNS;
+	private isUnique: typeof NULLS_DISTINCT | typeof NULLS_NOT_DISTINCT | undefined
+	private readonly columns: string[] = []
+	protected readonly valid!: COLUMNS
 
 	public constructor (public readonly name: string, public readonly on: string) {
-		super();
+		super()
 	}
 
 	public unique (option: typeof NULLS_DISTINCT | typeof NULLS_NOT_DISTINCT) {
-		this.isUnique = option;
-		return this;
+		this.isUnique = option
+		return this
 	}
 
 	public column<COLUMN extends keyof SCHEMA & string> (column: COLUMN): CreateIndex<SCHEMA, true> {
-		this.columns.push(column);
+		this.columns.push(column)
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return this as any;
+		return this as any
 	}
 
 	public expression (initialiser: ExpressionInitialiser<SCHEMA, any>): CreateIndex<SCHEMA, true> {
-		this.columns.push(Expression.compile(initialiser).text);
+		this.columns.push(Expression.compile(initialiser).text)
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return this as any;
+		return this as any
 	}
 
 	public compile () {
-		return this.queryable(`CREATE${this.isUnique ? " UNIQUE" : ""} INDEX ${this.name} ON ${this.on} (${this.columns.join(", ")}) ${this.isUnique?.description ?? ""}`);
+		return this.queryable(`CREATE${this.isUnique ? ' UNIQUE' : ''} INDEX ${this.name} ON ${this.on} (${this.columns.join(', ')}) ${this.isUnique?.description ?? ''}`)
 	}
+
 }

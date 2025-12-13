@@ -1,74 +1,76 @@
-import Expression, { ExpressionInitialiser } from "../../expressions/Expression";
-import { Initialiser } from "../../IStrongPG";
-import Schema from "../../Schema";
-import Statement from "../Statement";
+import type { ExpressionInitialiser } from '../../expressions/Expression'
+import Expression from '../../expressions/Expression'
+import type { Initialiser } from '../../IStrongPG'
+import type Schema from '../../Schema'
+import Statement from '../Statement'
 
 enum TriggerEvent {
-	Insert = "INSERT",
-	Update = "UPDATE",
-	Delete = "DELETE",
+	Insert = 'INSERT',
+	Update = 'UPDATE',
+	Delete = 'DELETE',
 }
 
 export class TriggerEvents<SCHEMA extends Record<string, any>, VALID extends boolean = false> {
 
-	private readonly valid!: VALID;
-	private events: (TriggerEvent | [TriggerEvent.Update, ...Schema.Column<SCHEMA>[]])[] = [];
+	private readonly valid!: VALID
+	private events: (TriggerEvent | [TriggerEvent.Update, ...Schema.Column<SCHEMA>[]])[] = []
 
-	public or = this;
+	public or = this
 
 	public get insert (): TriggerEvents<SCHEMA, true> {
-		this.events.push(TriggerEvent.Insert);
+		this.events.push(TriggerEvent.Insert)
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return this as any;
+		return this as any
 	}
 
 	public update (...columns: Schema.Column<SCHEMA>[]): TriggerEvents<SCHEMA, true> {
-		this.events.push(columns.length ? [TriggerEvent.Update, ...columns] : TriggerEvent.Update);
+		this.events.push(columns.length ? [TriggerEvent.Update, ...columns] : TriggerEvent.Update)
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return this as any;
+		return this as any
 	}
 
 	public get delete (): TriggerEvents<SCHEMA, true> {
-		this.events.push(TriggerEvent.Delete);
+		this.events.push(TriggerEvent.Delete)
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return this as any;
+		return this as any
 	}
 
 	public compile () {
 		return this.events.map(event => {
-			if (typeof event === "string")
-				return event;
+			if (typeof event === 'string')
+				return event
 
 			let columns: Schema.Column<SCHEMA>[];
-			[event, ...columns] = event;
-			return `${event} OF ${columns.join(", ")}`;
+			[event, ...columns] = event
+			return `${event} OF ${columns.join(', ')}`
 		})
-			.join(" OR ");
+			.join(' OR ')
 	}
+
 }
 
 export type NewAndOldColumns<SCHEMA extends Record<string, any>> =
-	{ [KEY in keyof SCHEMA as `OLD.${KEY & string}`]: SCHEMA[KEY] } & { [KEY in keyof SCHEMA as `NEW.${KEY & string}`]: SCHEMA[KEY] };
+	{ [KEY in keyof SCHEMA as `OLD.${KEY & string}`]: SCHEMA[KEY] } & { [KEY in keyof SCHEMA as `NEW.${KEY & string}`]: SCHEMA[KEY] }
 
 export type CreateTriggerInitialiser<SCHEMA extends Record<string, any>, FUNCTIONS extends Record<string, any>> =
-	Initialiser<CreateTrigger<SCHEMA, FUNCTIONS>, CreateTrigger<SCHEMA, FUNCTIONS, true, true>>;
+	Initialiser<CreateTrigger<SCHEMA, FUNCTIONS>, CreateTrigger<SCHEMA, FUNCTIONS, true, true>>
 
 export default class CreateTrigger<SCHEMA extends Record<string, any>, FUNCTIONS extends Record<string, any>, HAS_EVENTS extends boolean = false, HAS_PROCEDURE extends boolean = false> extends Statement {
 
-	protected readonly hasEvents!: HAS_EVENTS;
-	protected readonly hasProcedure!: HAS_PROCEDURE;
-	private deferrable?: "IMMEDIATE" | "DEFERRED"
+	protected readonly hasEvents!: HAS_EVENTS
+	protected readonly hasProcedure!: HAS_PROCEDURE
+	private deferrable?: 'IMMEDIATE' | 'DEFERRED'
 	public constructor (private readonly id: string, private readonly on: string, private readonly constraint?: true) {
-		super();
+		super()
 	}
 
 	public deferred () {
-		this.deferrable = "DEFERRED"
+		this.deferrable = 'DEFERRED'
 		return this
 	}
 
 	public deferredImmediate () {
-		this.deferrable = "IMMEDIATE"
+		this.deferrable = 'IMMEDIATE'
 		return this
 	}
 
@@ -77,34 +79,35 @@ export default class CreateTrigger<SCHEMA extends Record<string, any>, FUNCTIONS
 		return this
 	}
 
-	private events!: string;
+	private events!: string
 	public before (initialiser: Initialiser<TriggerEvents<SCHEMA>, TriggerEvents<SCHEMA, true>>): CreateTrigger<SCHEMA, FUNCTIONS, true, HAS_PROCEDURE> {
-		this.events = `BEFORE ${initialiser(new TriggerEvents()).compile()}`;
+		this.events = `BEFORE ${initialiser(new TriggerEvents()).compile()}`
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return this as any;
+		return this as any
 	}
 
 	public after (initialiser: Initialiser<TriggerEvents<SCHEMA>, TriggerEvents<SCHEMA, true>>): CreateTrigger<SCHEMA, FUNCTIONS, true, HAS_PROCEDURE> {
-		this.events = `AFTER ${initialiser(new TriggerEvents()).compile()}`;
+		this.events = `AFTER ${initialiser(new TriggerEvents()).compile()}`
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return this as any;
+		return this as any
 	}
 
-	private condition?: string;
-	public when (initialiser: ExpressionInitialiser<NewAndOldColumns<Schema.Columns<SCHEMA> & { "*": "*" }>, boolean>) {
-		const expr = Expression.compile(initialiser, true);
-		this.condition = `WHEN (${expr.text})`;
-		return this;
+	private condition?: string
+	public when (initialiser: ExpressionInitialiser<NewAndOldColumns<Schema.Columns<SCHEMA> & { '*': '*' }>, boolean>) {
+		const expr = Expression.compile(initialiser, true)
+		this.condition = `WHEN (${expr.text})`
+		return this
 	}
 
-	private fn!: keyof FUNCTIONS & string;
+	private fn!: keyof FUNCTIONS & string
 	public execute (functionName: keyof FUNCTIONS & string): CreateTrigger<SCHEMA, FUNCTIONS, HAS_EVENTS, true> {
-		this.fn = functionName;
+		this.fn = functionName
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return this as any;
+		return this as any
 	}
 
 	public compile () {
-		return this.queryable(`CREATE ${this.constraint ? "" : "OR REPLACE"} ${this.constraint ? "CONSTRAINT" : ""} TRIGGER ${this.id} ${this.events} ON ${this.on} ${!this.deferrable ? "" : `DEFERRABLE INITIALLY ${this.deferrable}`} FOR EACH ROW ${this.condition ?? ""} EXECUTE FUNCTION ${this.fn}()`);
+		return this.queryable(`CREATE ${this.constraint ? '' : 'OR REPLACE'} ${this.constraint ? 'CONSTRAINT' : ''} TRIGGER ${this.id} ${this.events} ON ${this.on} ${!this.deferrable ? '' : `DEFERRABLE INITIALLY ${this.deferrable}`} FOR EACH ROW ${this.condition ?? ''} EXECUTE FUNCTION ${this.fn}()`)
 	}
+
 }

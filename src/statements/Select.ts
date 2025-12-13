@@ -1,10 +1,12 @@
-import { Pool, PoolClient, QueryResult } from "pg";
-import { InputTypeFromString, OutputTypeFromString, SingleStringUnion, SortDirection, ValidType } from "../IStrongPG";
-import Schema, { TableSchema } from "../Schema";
-import { VirtualTable } from "../VirtualTable";
-import Expression, { ExpressionInitialiser } from "../expressions/Expression";
-import sql from "../sql";
-import Statement from "./Statement";
+import type { Pool, PoolClient, QueryResult } from 'pg'
+import type { InputTypeFromString, OutputTypeFromString, SingleStringUnion, SortDirection, ValidType } from '../IStrongPG'
+import type { TableSchema } from '../Schema'
+import Schema from '../Schema'
+import type { VirtualTable } from '../VirtualTable'
+import type { ExpressionInitialiser } from '../expressions/Expression'
+import Expression from '../expressions/Expression'
+import sql from '../sql'
+import Statement from './Statement'
 
 // type JoinedTablesOutput<TABLE extends TableSchema, COLUMN_ALIASES extends Partial<Record<Schema.Column<TABLE>, string>> = {}> =
 // 	keyof TABLE extends infer COLUMNS ?
@@ -38,7 +40,7 @@ import Statement from "./Statement";
 // 	: never
 
 export type SelectColumns<SCHEMA extends TableSchema, NAME extends string, VARS = SelectWhereVars<SCHEMA, NAME>> =
-	| "*"
+	| '*'
 	| Schema.Column<SCHEMA>[]
 	| SelectColumnsRecord<SCHEMA, NAME, VARS>
 
@@ -73,10 +75,10 @@ export type Order<SCHEMA extends TableSchema> =
 
 export namespace Order {
 	export function resolve<SCHEMA extends TableSchema> (order?: Order<SCHEMA>[]) {
-		return !order?.length ? ""
+		return !order?.length ? ''
 			: `${order
-				.map(order => order[0] === null ? `${String(order[1])} IS NULL ${order[2]?.description ?? ""}` : `${String(order[0])} ${(order[1] as symbol)?.description ?? ""}`)
-				.join(",")}`;
+				.map(order => order[0] === null ? `${String(order[1])} IS NULL ${order[2]?.description ?? ''}` : `${String(order[0])} ${(order[1] as symbol)?.description ?? ''}`)
+				.join(',')}`
 	}
 }
 
@@ -86,109 +88,111 @@ type SelectWhereVars<SCHEMA extends TableSchema, NAME extends string> = Schema.C
 
 export class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA, NAME> | 1 = Schema.Column<SCHEMA>[], RESULT = SelectResult<SCHEMA, NAME, COLUMNS>[]> extends Statement<RESULT> {
 
-	private vars: any[];
+	private vars: any[]
 	public constructor (private readonly from: VirtualTable<SCHEMA, NAME> | string, public readonly columns: COLUMNS) {
-		super();
-		this.vars = (typeof from === "string" ? undefined : from?.["vars"]) ?? [];
+		super()
+		this.vars = (typeof from === 'string' ? undefined : from?.['vars']) ?? []
 	}
 
-	private condition?: string;
+	private condition?: string
 	public where (initialiser: sql | ExpressionInitialiser<SelectWhereVars<SCHEMA, NAME>, boolean>) {
-		const queryable = sql.is(initialiser) ? initialiser : Expression.compile(initialiser, undefined, this.vars);
-		this.condition = `WHERE (${sql.is(queryable) ? queryable.compile(this.vars) : queryable.text})`;
-		return this;
+		const queryable = sql.is(initialiser) ? initialiser : Expression.compile(initialiser, undefined, this.vars)
+		this.condition = `WHERE (${sql.is(queryable) ? queryable.compile(this.vars) : queryable.text})`
+		return this
 	}
 
-	private _limit?: number;
-	public limit (count: 1): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, NAME, COLUMNS> | undefined>;
-	public limit (count?: number): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, NAME, COLUMNS>[]>;
+	private _limit?: number
+	public limit (count: 1): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, NAME, COLUMNS> | undefined>
+	public limit (count?: number): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, SelectResult<SCHEMA, NAME, COLUMNS>[]>
 	public limit (count?: number): SelectFromVirtualTable<SCHEMA, NAME, COLUMNS, any> {
-		this._limit = count;
-		return this;
+		this._limit = count
+		return this
 	}
 
 	private _orderBy?: Order<SCHEMA>[]
-	public orderBy (column: Schema.Column<SCHEMA>, order?: SortDirection): this;
-	public orderBy (orders: Order<SCHEMA>[]): this;
+	public orderBy (column: Schema.Column<SCHEMA>, order?: SortDirection): this
+	public orderBy (orders: Order<SCHEMA>[]): this
 	public orderBy (...args: Order<SCHEMA> | [Order<SCHEMA>[]]) {
 		if (Array.isArray(args[0]))
 			this._orderBy = args[0]
 		else
-			this._orderBy = [args as Order<SCHEMA>];
-		return this;
+			this._orderBy = [args as Order<SCHEMA>]
+		return this
 	}
 
-	private _offset?: number;
+	private _offset?: number
 	public offset (amount?: number) {
-		if (typeof amount !== "number" && amount !== undefined)
-			throw new Error("Unsafe value for offset");
-		this._offset = amount;
-		return this;
+		if (typeof amount !== 'number' && amount !== undefined)
+			throw new Error('Unsafe value for offset')
+		this._offset = amount
+		return this
 	}
 
 	public compile () {
-		let orderBy = Order.resolve(this._orderBy);
-		orderBy = orderBy ? `ORDER BY ${orderBy}` : "";
-		const offset = this._offset ? `OFFSET ${this._offset}` : "";
-		const limit = this._limit ? `LIMIT ${this._limit}` : "";
-		const from = typeof this.from === "string" ? this.from : this.from.compileFrom?.() ?? this.from["name"]
-		const columns = this.columns === "*" ? "*"
-			: Array.isArray(this.columns) ? this.columns.join(",")
+		let orderBy = Order.resolve(this._orderBy)
+		orderBy = orderBy ? `ORDER BY ${orderBy}` : ''
+		const offset = this._offset ? `OFFSET ${this._offset}` : ''
+		const limit = this._limit ? `LIMIT ${this._limit}` : ''
+		const from = typeof this.from === 'string' ? this.from : this.from.compileFrom?.() ?? this.from['name']
+		const columns = this.columns === '*' ? '*'
+			: Array.isArray(this.columns) ? this.columns.join(',')
 				: Object.entries(this.columns)
 					.filter(([, column]) => column !== undefined)
 					.map(([alias, column]) => {
 						if (column === alias)
-							return column as string;
+							return column as string
 
-						if (typeof column === "string")
-							return `${column} ${alias}`;
+						if (typeof column === 'string')
+							return `${column} ${alias}`
 
 						if (sql.is(column)) {
-							const text = column.compile(this.vars);
-							return `${text} ${alias}`;
+							const text = column.compile(this.vars)
+							return `${text} ${alias}`
 						}
 
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 						const queryable = Expression.compile(column, undefined, this.vars)
-						return `${queryable.text} ${alias}`;
+						return `${queryable.text} ${alias}`
 					})
-					.join(",");
-		return this.queryable(`${this.compileWith()}SELECT ${columns} FROM ${from} ${this.condition ?? ""} ${orderBy} ${offset} ${limit}`, undefined, this.vars);
+					.join(',')
+		return this.queryable(`${this.compileWith()}SELECT ${columns} FROM ${from} ${this.condition ?? ''} ${orderBy} ${offset} ${limit}`, undefined, this.vars)
 	}
 
 	private compileWith () {
-		const withExpr = typeof this.from === "string" ? undefined : this.from.compileWith?.();
-		return !withExpr ? "" : `WITH ${withExpr} `
+		const withExpr = typeof this.from === 'string' ? undefined : this.from.compileWith?.()
+		return !withExpr ? '' : `WITH ${withExpr} `
 	}
 
 	public async queryOne (pool: Pool | PoolClient) {
-		return this.limit(1).query(pool);
+		return this.limit(1).query(pool)
 	}
 
 	protected override resolveQueryOutput (output: QueryResult<any>) {
 		if (this._limit !== 1)
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			return output.rows;
+			return output.rows
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return output.rows[0];
+		return output.rows[0]
 	}
+
 }
 
-export default class SelectFromTable<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA, NAME> | 1 = "*"> extends SelectFromVirtualTable<SCHEMA, NAME, COLUMNS> {
+export default class SelectFromTable<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA, NAME> | 1 = '*'> extends SelectFromVirtualTable<SCHEMA, NAME, COLUMNS> {
 
 	public constructor (public readonly tableName: NAME, public readonly schema: SCHEMA, columns: COLUMNS) {
-		super(tableName, columns);
+		super(tableName, columns)
 	}
 
 	public primaryKeyed (id: InputTypeFromString<SCHEMA[SingleStringUnion<Schema.PrimaryKey<SCHEMA>[number]>]>, initialiser?: ExpressionInitialiser<SelectWhereVars<SCHEMA, NAME>, boolean>) {
-		const primaryKey = Schema.getSingleColumnPrimaryKey(this.schema);
+		const primaryKey = Schema.getSingleColumnPrimaryKey(this.schema)
 		this.where(expr => {
-			const e2 = expr.var(primaryKey as never).equals(id as never);
+			const e2 = expr.var(primaryKey as never).equals(id as never)
 			if (initialiser)
-				e2.and(initialiser);
-			return e2;
-		});
-		return this.limit(1);
+				e2.and(initialiser)
+			return e2
+		})
+		return this.limit(1)
 	}
+
 }

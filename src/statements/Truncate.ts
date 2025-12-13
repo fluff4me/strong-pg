@@ -1,18 +1,19 @@
-import Statement from "./Statement";
+import Statement from './Statement'
 
 export default class TruncateTable extends Statement<[]> {
 
 	public constructor (public readonly tableName: string | undefined) {
-		super();
+		super()
 	}
 
-	private shouldCascade?: true;
+	private shouldCascade?: true
 	public cascade () {
-		this.shouldCascade = true;
-		return this;
+		this.shouldCascade = true
+		return this
 	}
 
 	public compile () {
-		return this.queryable(`TRUNCATE ${this.tableName ?? ""} ${this.shouldCascade ? "CASCADE" : ""}`);
+		return this.queryable(`TRUNCATE ${this.tableName ?? ''} ${this.shouldCascade ? 'CASCADE' : ''}`)
 	}
+
 }

@@ -1,10 +1,11 @@
-import { DatabaseError, Pool, PoolClient } from "pg";
-import Database from "./Database";
-import { StackUtil } from "./IStrongPG";
-import log, { color } from "./Log";
-import Migration, { MigrationVersion } from "./Migration";
-import { DatabaseSchema } from "./Schema";
-import Transaction from "./Transaction";
+import type { DatabaseError, Pool, PoolClient } from 'pg'
+import type Database from './Database'
+import type { StackUtil } from './IStrongPG'
+import log, { color } from './Log'
+import type Migration from './Migration'
+import type { MigrationVersion } from './Migration'
+import type { DatabaseSchema } from './Schema'
+import Transaction from './Transaction'
 
 interface MigrationGroup<START extends DatabaseSchema | null, END extends DatabaseSchema> {
 	(history: History<START>): History<END>
@@ -14,13 +15,13 @@ function MigrationGroup<START extends DatabaseSchema | null, END extends Databas
 	return group
 }
 
-export { MigrationGroup };
+export { MigrationGroup }
 
 export class History<SCHEMA extends DatabaseSchema | null = null> {
 
-	private migrations: Migration<DatabaseSchema | null, DatabaseSchema>[] = [];
-	protected readonly schema!: SCHEMA;
-	public rolledBack: boolean | undefined;
+	private migrations: Migration<DatabaseSchema | null, DatabaseSchema>[] = []
+	protected readonly schema!: SCHEMA
+	public rolledBack: boolean | undefined
 	public rollbackError: DatabaseError | undefined
 
 	public group<SCHEMA_END extends DatabaseSchema> (group: MigrationGroup<SCHEMA, SCHEMA_END>): History<SCHEMA_END> {
@@ -34,92 +35,92 @@ export class History<SCHEMA extends DatabaseSchema | null = null> {
 		: null : null
 		: null {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-		this.migrations.push(migration as any);
+		this.migrations.push(migration as any)
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return this as any;
+		return this as any
 	}
 
 	public async migrate (db: Database<SCHEMA & DatabaseSchema>, pool: Pool | PoolClient) {
-
 		for (const migration of this.migrations)
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			migration["db"] = db as Database<any>;
+			migration['db'] = db as Database<any>
 
 		await pool.query(`CREATE TABLE IF NOT EXISTS migrations (
 				migration_index_start SMALLINT DEFAULT 0,
 				migration_index_end SMALLINT,
 				migration_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-			)`);
+			)`)
 
-		const lastMigration = await pool.query("SELECT migration_index_end FROM migrations ORDER BY migration_index_end DESC LIMIT 1");
+		const lastMigration = await pool.query('SELECT migration_index_end FROM migrations ORDER BY migration_index_end DESC LIMIT 1')
 
-		let startCommitIndex = -1;
+		let startCommitIndex = -1
 		if (lastMigration.rowCount)
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			startCommitIndex = lastMigration.rows[0].migration_index_end as number;
+			startCommitIndex = lastMigration.rows[0].migration_index_end as number
 
 		const commits = this.migrations.flatMap((migration, major) => migration.getCommits()
-			.map((commit, minor) => { commit.version = minor ? `${major + 1}.${minor}` : `${major + 1}`; return commit; }));
+			.map((commit, minor) => { commit.version = minor ? `${major + 1}.${minor}` : `${major + 1}`; return commit }))
 
 		if (!commits.length)
-			return -1;
+			return -1
 
-		const targetVersion = commits[commits.length - 1].version!;
-		log(color("lightYellow", `Found migrations up to v${targetVersion}`));
+		const targetVersion = commits[commits.length - 1].version!
+		log(color('lightYellow', `Found migrations up to v${targetVersion}`))
 
-		let migratedVersion: MigrationVersion | undefined;
-		let migratedCommitIndex: number | undefined;
-		let rolledBack = false;
+		let migratedVersion: MigrationVersion | undefined
+		let migratedCommitIndex: number | undefined
+		let rolledBack = false
 		for (let i = startCommitIndex + 1; i < commits.length; i++) {
-			const commit = commits[i];
-			log(`Beginning migration ${commit.version!} ${commit.file ? color("lightBlue", commit.file) : ""}`);
+			const commit = commits[i]
+			log(`Beginning migration ${commit.version!} ${commit.file ? color('lightBlue', commit.file) : ''}`)
 
-			const statements = commit.compile();
+			const statements = commit.compile()
 			if (!statements.length) {
-				log("Migration contains no statements");
-				continue;
+				log('Migration contains no statements')
+				continue
 			}
 
-			let stack: StackUtil.Stack | undefined;
+			let stack: StackUtil.Stack | undefined
 			try {
 				await Transaction.execute(pool, async client => {
 					for (const statement of statements) {
-						log("  > ", color("darkGray", statement.text));
-						stack = statement.stack;
-						await client.query(statement);
+						log('  > ', color('darkGray', statement.text))
+						stack = statement.stack
+						await client.query(statement)
 					}
-				});
-				migratedVersion = commit.version;
-				migratedCommitIndex = i;
-
-			} catch (e) {
-				const err = e as DatabaseError;
-				this.rollbackError = err;
-				const formattedStack = stack?.format();
+				})
+				migratedVersion = commit.version
+				migratedCommitIndex = i
+			}
+			catch (e) {
+				const err = e as DatabaseError
+				this.rollbackError = err
+				const formattedStack = stack?.format()
 				log([
-					`${color("lightRed", `Encountered an error: ${err.message[0].toUpperCase()}${err.message.slice(1)}`)}`,
-					err.hint ? `\n  ${err.hint}` : "",
-					formattedStack ? `\n${formattedStack}` : "",
-				].join(""));
-				rolledBack = true;
-				break;
+					`${color('lightRed', `Encountered an error: ${err.message[0].toUpperCase()}${err.message.slice(1)}`)}`,
+					err.hint ? `\n  ${err.hint}` : '',
+					formattedStack ? `\n${formattedStack}` : '',
+				].join(''))
+				rolledBack = true
+				break
 			}
 		}
 
-		const commitIndex = migratedCommitIndex ?? startCommitIndex;
-		const version = commits[commitIndex].version!;
+		const commitIndex = migratedCommitIndex ?? startCommitIndex
+		const version = commits[commitIndex].version!
 
 		if (migratedVersion === undefined && !rolledBack) {
-			log(color("lightGreen", `Already on v${version}, no migrations necessary`));
-			return startCommitIndex;
+			log(color('lightGreen', `Already on v${version}, no migrations necessary`))
+			return startCommitIndex
 		}
 
 		if (migratedVersion !== undefined)
-			await pool.query("INSERT INTO migrations VALUES ($1, $2)", [startCommitIndex, migratedCommitIndex]);
+			await pool.query('INSERT INTO migrations VALUES ($1, $2)', [startCommitIndex, migratedCommitIndex])
 
-		log(color(rolledBack ? "lightYellow" : "lightGreen", `${rolledBack ? "Rolled back" : "Migrated"} to v${version}`));
+		log(color(rolledBack ? 'lightYellow' : 'lightGreen', `${rolledBack ? 'Rolled back' : 'Migrated'} to v${version}`))
 
-		this.rolledBack = rolledBack;
-		return commitIndex;
+		this.rolledBack = rolledBack
+		return commitIndex
 	}
+
 }

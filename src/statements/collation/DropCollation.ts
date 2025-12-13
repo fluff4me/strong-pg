@@ -1,7 +1,9 @@
-import Statement from "../Statement";
+import Statement from '../Statement'
 
 export default class DropCollation extends Statement.Basic {
+
 	public constructor (name: string) {
-		super(`DROP COLLATION ${name}`);
+		super(`DROP COLLATION ${name}`)
 	}
+
 }

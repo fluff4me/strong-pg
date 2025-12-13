@@ -1,6 +1,6 @@
-import { Task } from "task";
-import ts from "./ts";
+import { Task } from 'task'
+import ts from './ts'
 
-export default Task("build", task => task.series(
+export default Task('build', task => task.series(
 	ts
-));
+))
