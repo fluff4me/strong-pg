@@ -21,9 +21,14 @@
 		"@types/pg": "8.11.2",
 		"ansicolor": "1.1.100",
 		"del": "6.1.1",
-		"lint": "github:fluff4me/lint#46612b5672c7d1a82a663949eea64e8058a308a3",
-		"task": "github:chirivulpes/task#e81c106500da010fa22ad15fb7ca311786e550f1",
+		"lint": "github:fluff4me/lint#ca79ead3fa0806316fd6e864f911a7f2487a5d5a",
+		"task": "github:chirivulpes/task#ef1975228fec597c8112a51ec4786b5b210c83d9",
 		"ts-node": "10.9.2",
 		"typescript": "5.9.3"
+	},
+	"pnpm": {
+		"overrides": {
+			"express": "-"
+		}
 	}
 }
