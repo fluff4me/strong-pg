@@ -1,7 +1,7 @@
-import { ExpressionInitialiser } from "../../expressions/Expression";
-import { Initialiser } from "../../IStrongPG";
-import Schema from "../../Schema";
-import Statement from "../Statement";
+import type { ExpressionInitialiser } from '../../expressions/Expression';
+import type { Initialiser } from '../../IStrongPG';
+import type Schema from '../../Schema';
+import Statement from '../Statement';
 export declare class TriggerEvents<SCHEMA extends Record<string, any>, VALID extends boolean = false> {
     private readonly valid;
     private events;
@@ -33,7 +33,7 @@ export default class CreateTrigger<SCHEMA extends Record<string, any>, FUNCTIONS
     after(initialiser: Initialiser<TriggerEvents<SCHEMA>, TriggerEvents<SCHEMA, true>>): CreateTrigger<SCHEMA, FUNCTIONS, true, HAS_PROCEDURE>;
     private condition?;
     when(initialiser: ExpressionInitialiser<NewAndOldColumns<Schema.Columns<SCHEMA> & {
-        "*": "*";
+        '*': '*';
     }>, boolean>): this;
     private fn;
     execute(functionName: keyof FUNCTIONS & string): CreateTrigger<SCHEMA, FUNCTIONS, HAS_EVENTS, true>;

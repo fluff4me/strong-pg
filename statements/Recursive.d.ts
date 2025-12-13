@@ -1,8 +1,9 @@
-import { ExpressionInitialiser } from "../expressions/Expression";
-import { SearchType, SortDirection } from "../IStrongPG";
-import Schema, { TableSchema } from "../Schema";
-import { VirtualTable } from "../VirtualTable";
-import { Order, SelectFromVirtualTable } from "./Select";
+import type { ExpressionInitialiser } from '../expressions/Expression';
+import type { SearchType, SortDirection } from '../IStrongPG';
+import type Schema from '../Schema';
+import type { TableSchema } from '../Schema';
+import { VirtualTable } from '../VirtualTable';
+import type { Order, SelectFromVirtualTable } from './Select';
 export default class Recursive<TABLE extends TableSchema, VIRTUAL_TABLE extends TableSchema, NAME extends string> extends VirtualTable<VIRTUAL_TABLE, never> {
     private readonly tableName;
     private readonly columnNames;
@@ -18,6 +19,6 @@ export default class Recursive<TABLE extends TableSchema, VIRTUAL_TABLE extends 
     private _orderBy?;
     orderBy(column: Schema.Column<VIRTUAL_TABLE>, order?: SortDirection): this;
     orderBy(orders: Order<VIRTUAL_TABLE>[]): this;
-    protected selectInitialiser(query: SelectFromVirtualTable<VIRTUAL_TABLE, "*">): void;
+    protected selectInitialiser(query: SelectFromVirtualTable<VIRTUAL_TABLE, '*'>): void;
     compileWith(): string;
 }

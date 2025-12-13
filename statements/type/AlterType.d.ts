@@ -1,6 +1,7 @@
-import { Initialiser, OptionalTypeString, TypeString } from "../../IStrongPG";
-import { DatabaseSchema } from "../../Schema";
-import Statement from "../Statement";
+import type { Initialiser, OptionalTypeString } from '../../IStrongPG';
+import { TypeString } from '../../IStrongPG';
+import type { DatabaseSchema } from '../../Schema';
+import Statement from '../Statement';
 export type AlterTypeInitialiser<DB extends DatabaseSchema, SCHEMA_START, SCHEMA_END> = Initialiser<AlterType<DB, SCHEMA_START>, AlterType<DB, SCHEMA_START, SCHEMA_END>>;
 export default class AlterType<DB extends DatabaseSchema, SCHEMA_START = null, SCHEMA_END = SCHEMA_START extends null ? {} : SCHEMA_START> extends Statement.Super<AlterTypeSubStatement> {
     readonly name: string;

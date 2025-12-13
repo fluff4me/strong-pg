@@ -14,7 +14,7 @@ class FunctionCall extends VirtualTable_1.VirtualTable {
         this.params = params.map(param => Expression_1.default.stringifyValue(param, this.vars));
     }
     compileFrom() {
-        return `${this.functionName}(${this.params.join(",")})`;
+        return `${this.functionName}(${this.params.join(',')})`;
     }
     perform() {
         return new PerformFunction(this.compileFrom(), this.vars);

@@ -26,8 +26,8 @@ class CreateOrReplaceFunction extends Statement_1.default {
         return this;
     }
     sql(sql) {
-        this.code = sql["asRawSql"];
-        this.lang = "SQL";
+        this.code = sql['asRawSql'];
+        this.lang = 'SQL';
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
@@ -36,18 +36,18 @@ class CreateOrReplaceFunction extends Statement_1.default {
             plpgsql = declarations, declarations = {};
         declarations ?? (declarations = {});
         if (!plpgsql)
-            throw new Error("No PL/pgSQL code provided");
-        const declare = Object.entries(declarations).map(([name, type]) => `${name} ${IStrongPG_1.TypeString.resolve(type)}`).join(";");
-        this.code = `${declare ? `DECLARE ${declare}; ` : ""}BEGIN ${plpgsql["asRawSql"]} END`;
-        this.lang = "plpgsql";
+            throw new Error('No PL/pgSQL code provided');
+        const declare = Object.entries(declarations).map(([name, type]) => `${name} ${IStrongPG_1.TypeString.resolve(type)}`).join(';');
+        this.code = `${declare ? `DECLARE ${declare}; ` : ''}BEGIN ${plpgsql['asRawSql']} END`;
+        this.lang = 'plpgsql';
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return this;
     }
     compile() {
-        const params = this.argsIn.map(([type, name]) => `${name ?? ""} ${IStrongPG_1.TypeString.resolve(type)}`)
-            .concat(this.argsOut.map(([type, name]) => `OUT ${name ?? ""} ${IStrongPG_1.TypeString.resolve(type)}`))
-            .join(", ");
-        const out = this.returnType ?? "TRIGGER";
+        const params = this.argsIn.map(([type, name]) => `${name ?? ''} ${IStrongPG_1.TypeString.resolve(type)}`)
+            .concat(this.argsOut.map(([type, name]) => `OUT ${name ?? ''} ${IStrongPG_1.TypeString.resolve(type)}`))
+            .join(', ');
+        const out = this.returnType ?? 'TRIGGER';
         return this.queryable(`CREATE OR REPLACE FUNCTION ${this.name}(${params}) RETURNS ${out} AS $$ ${this.code} $$ LANGUAGE ${this.lang}`);
     }
 }

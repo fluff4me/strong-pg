@@ -50,15 +50,12 @@ class AlterTable extends Statement_1.default.Super {
         return this.do(AlterTableSubStatement.addForeignKey(column, foreignTable, foreignKey, onDelete, onUpdate));
     }
     dropForeignKey(column) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         return this.do(AlterTableSubStatement.dropForeignKey(column));
     }
     dropConstraint(constraint_name) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         return this.do(AlterTableSubStatement.dropConstraint(constraint_name));
     }
     unique(name, index) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         return this.do(AlterTableSubStatement.addUnique(name, index));
     }
     schema() {
@@ -74,7 +71,7 @@ class AlterTableSubStatement extends Statement_1.default {
     static addColumn(column, type, initialiser) {
         const createColumn = new CreateColumn();
         initialiser?.(createColumn);
-        const columnStuffs = !initialiser ? "" : ` ${createColumn.compile().map(query => query.text).join(" ")}`;
+        const columnStuffs = !initialiser ? '' : ` ${createColumn.compile().map(query => query.text).join(' ')}`;
         return new AlterTableSubStatement(`ADD COLUMN ${column} ${IStrongPG_1.TypeString.resolve(type)}${columnStuffs}`);
     }
     static alterColumn(column, initialiser) {
@@ -89,7 +86,7 @@ class AlterTableSubStatement extends Statement_1.default {
         return new AlterTableSubStatement(`RENAME COLUMN ${column} TO ${newName}`);
     }
     static addPrimaryKey(table, ...keys) {
-        return new AlterTableSubStatement(`ADD CONSTRAINT ${table}_pkey PRIMARY KEY (${keys.join(",")})`);
+        return new AlterTableSubStatement(`ADD CONSTRAINT ${table}_pkey PRIMARY KEY (${keys.join(',')})`);
     }
     static dropPrimaryKey(table) {
         return new AlterTableSubStatement(`DROP CONSTRAINT ${table}_pkey`);
@@ -99,8 +96,8 @@ class AlterTableSubStatement extends Statement_1.default {
         return new AlterTableSubStatement(`ADD CONSTRAINT ${id}_check CHECK (${expr.text})`, expr.values);
     }
     static addForeignKey(column, foreignTable, foreignColumn, onDelete, onUpdate) {
-        const onDeleteString = !onDelete ? "" : `ON DELETE ${onDelete.description}`;
-        const onUpdateString = !onUpdate ? "" : `ON UPDATE ${onUpdate.description}`;
+        const onDeleteString = !onDelete ? '' : `ON DELETE ${onDelete.description}`;
+        const onUpdateString = !onUpdate ? '' : `ON UPDATE ${onUpdate.description}`;
         return new AlterTableSubStatement(`ADD CONSTRAINT ${column}_fk FOREIGN KEY (${column}) REFERENCES ${foreignTable} (${foreignColumn}) ${onDeleteString} ${onUpdateString}`);
     }
     static dropForeignKey(column) {
@@ -150,12 +147,12 @@ class CreateColumnSubStatement extends Statement_1.default {
      * Warning: Do not use this outside of migrations
      */
     static setDefault(value) {
-        const expr = typeof value === "function" ? Expression_1.default.compile(value) : undefined;
+        const expr = typeof value === 'function' ? Expression_1.default.compile(value) : undefined;
         const stringifiedValue = expr?.text ?? Expression_1.default.stringifyValueRaw(value);
         return new CreateColumnSubStatement(`DEFAULT (${stringifiedValue})`, expr?.values);
     }
     static setNotNull() {
-        return new CreateColumnSubStatement("NOT NULL");
+        return new CreateColumnSubStatement('NOT NULL');
     }
     static setCollation(collation) {
         return new CreateColumnSubStatement(`COLLATE ${collation}`);
@@ -202,18 +199,18 @@ class AlterColumnSubStatement extends Statement_1.default {
      * Warning: Do not use this outside of migrations
      */
     static setDefault(value) {
-        const expr = typeof value === "function" ? Expression_1.default.compile(value) : undefined;
+        const expr = typeof value === 'function' ? Expression_1.default.compile(value) : undefined;
         const stringifiedValue = expr?.text ?? Expression_1.default.stringifyValueRaw(value);
         return new AlterColumnSubStatement(`SET DEFAULT (${stringifiedValue})`, expr?.values);
     }
     static dropDefault() {
-        return new AlterColumnSubStatement("DROP DEFAULT");
+        return new AlterColumnSubStatement('DROP DEFAULT');
     }
     static setNotNull() {
-        return new AlterColumnSubStatement("SET NOT NULL");
+        return new AlterColumnSubStatement('SET NOT NULL');
     }
     static dropNotNull() {
-        return new AlterColumnSubStatement("DROP NOT NULL");
+        return new AlterColumnSubStatement('DROP NOT NULL');
     }
     static setType(type, initialiser) {
         const setType = new AlterColumnSetType(type);
@@ -243,7 +240,7 @@ class AlterColumnSetType extends Statement_1.default.Super {
         return `${operation}`;
     }
     joinParallelOperations(operations) {
-        return operations.join(" ");
+        return operations.join(' ');
     }
 }
 exports.AlterColumnSetType = AlterColumnSetType;
@@ -253,7 +250,7 @@ class AlterColumnSetTypeSubStatement extends Statement_1.default {
     }
     static using() {
         // TODO
-        return new AlterColumnSetTypeSubStatement("USING");
+        return new AlterColumnSetTypeSubStatement('USING');
     }
     constructor(compiled, vars) {
         super();

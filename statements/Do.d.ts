@@ -1,5 +1,5 @@
-import sql from "../sql";
-import Statement from "./Statement";
+import type sql from '../sql';
+import Statement from './Statement';
 export default class Do extends Statement {
     private readonly sql;
     constructor(sql: sql);

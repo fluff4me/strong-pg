@@ -59,13 +59,13 @@ class History {
     async migrate(db, pool) {
         for (const migration of this.migrations)
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            migration["db"] = db;
+            migration['db'] = db;
         await pool.query(`CREATE TABLE IF NOT EXISTS migrations (
 				migration_index_start SMALLINT DEFAULT 0,
 				migration_index_end SMALLINT,
 				migration_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 			)`);
-        const lastMigration = await pool.query("SELECT migration_index_end FROM migrations ORDER BY migration_index_end DESC LIMIT 1");
+        const lastMigration = await pool.query('SELECT migration_index_end FROM migrations ORDER BY migration_index_end DESC LIMIT 1');
         let startCommitIndex = -1;
         if (lastMigration.rowCount)
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -75,23 +75,23 @@ class History {
         if (!commits.length)
             return -1;
         const targetVersion = commits[commits.length - 1].version;
-        (0, Log_1.default)((0, Log_1.color)("lightYellow", `Found migrations up to v${targetVersion}`));
+        (0, Log_1.default)((0, Log_1.color)('lightYellow', `Found migrations up to v${targetVersion}`));
         let migratedVersion;
         let migratedCommitIndex;
         let rolledBack = false;
         for (let i = startCommitIndex + 1; i < commits.length; i++) {
             const commit = commits[i];
-            (0, Log_1.default)(`Beginning migration ${commit.version} ${commit.file ? (0, Log_1.color)("lightBlue", commit.file) : ""}`);
+            (0, Log_1.default)(`Beginning migration ${commit.version} ${commit.file ? (0, Log_1.color)('lightBlue', commit.file) : ''}`);
             const statements = commit.compile();
             if (!statements.length) {
-                (0, Log_1.default)("Migration contains no statements");
+                (0, Log_1.default)('Migration contains no statements');
                 continue;
             }
             let stack;
             try {
                 await Transaction_1.default.execute(pool, async (client) => {
                     for (const statement of statements) {
-                        (0, Log_1.default)("  > ", (0, Log_1.color)("darkGray", statement.text));
+                        (0, Log_1.default)('  > ', (0, Log_1.color)('darkGray', statement.text));
                         stack = statement.stack;
                         await client.query(statement);
                     }
@@ -104,10 +104,10 @@ class History {
                 this.rollbackError = err;
                 const formattedStack = stack?.format();
                 (0, Log_1.default)([
-                    `${(0, Log_1.color)("lightRed", `Encountered an error: ${err.message[0].toUpperCase()}${err.message.slice(1)}`)}`,
-                    err.hint ? `\n  ${err.hint}` : "",
-                    formattedStack ? `\n${formattedStack}` : "",
-                ].join(""));
+                    `${(0, Log_1.color)('lightRed', `Encountered an error: ${err.message[0].toUpperCase()}${err.message.slice(1)}`)}`,
+                    err.hint ? `\n  ${err.hint}` : '',
+                    formattedStack ? `\n${formattedStack}` : '',
+                ].join(''));
                 rolledBack = true;
                 break;
             }
@@ -115,12 +115,12 @@ class History {
         const commitIndex = migratedCommitIndex ?? startCommitIndex;
         const version = commits[commitIndex].version;
         if (migratedVersion === undefined && !rolledBack) {
-            (0, Log_1.default)((0, Log_1.color)("lightGreen", `Already on v${version}, no migrations necessary`));
+            (0, Log_1.default)((0, Log_1.color)('lightGreen', `Already on v${version}, no migrations necessary`));
             return startCommitIndex;
         }
         if (migratedVersion !== undefined)
-            await pool.query("INSERT INTO migrations VALUES ($1, $2)", [startCommitIndex, migratedCommitIndex]);
-        (0, Log_1.default)((0, Log_1.color)(rolledBack ? "lightYellow" : "lightGreen", `${rolledBack ? "Rolled back" : "Migrated"} to v${version}`));
+            await pool.query('INSERT INTO migrations VALUES ($1, $2)', [startCommitIndex, migratedCommitIndex]);
+        (0, Log_1.default)((0, Log_1.color)(rolledBack ? 'lightYellow' : 'lightGreen', `${rolledBack ? 'Rolled back' : 'Migrated'} to v${version}`));
         this.rolledBack = rolledBack;
         return commitIndex;
     }

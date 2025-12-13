@@ -53,7 +53,7 @@ const util_1 = __importDefault(require("util"));
 const Log_1 = __importStar(require("./Log"));
 function isDatabaseError(value) {
     return value instanceof pg_1.DatabaseError
-        || (typeof value === "object" && !!value && "internalQuery" in value);
+        || (typeof value === 'object' && !!value && 'internalQuery' in value);
 }
 class SQL {
     constructor(...data) {
@@ -76,33 +76,33 @@ class SQL {
     }
     async query(pool) {
         try {
-            (0, Log_1.default)("  > ", (0, Log_1.color)("darkGray", this.text));
+            (0, Log_1.default)('  > ', (0, Log_1.color)('darkGray', this.text));
             if (this.values?.length)
                 for (let i = 0; i < this.values.length; i++)
-                    (0, Log_1.default)(`    ${(0, Log_1.color)("lightYellow", `$${i + 1}`)}${(0, Log_1.color)("darkGray", ":")} `, util_1.default.inspect(this.values[i], undefined, Infinity, true));
+                    (0, Log_1.default)(`    ${(0, Log_1.color)('lightYellow', `$${i + 1}`)}${(0, Log_1.color)('darkGray', ':')} `, util_1.default.inspect(this.values[i], undefined, Infinity, true));
             return await pool.query(this);
         }
         catch (err) {
             if (!isDatabaseError(err))
                 throw err;
-            (0, Log_1.default)((0, Log_1.color)("red", "Error: ") + err.message + (err.detail ? `: ${err.detail}` : "")
-                + (err.hint ? (0, Log_1.color)("darkGray", `\nHint: ${err.hint}`) : ""));
+            (0, Log_1.default)((0, Log_1.color)('red', 'Error: ') + err.message + (err.detail ? `: ${err.detail}` : '')
+                + (err.hint ? (0, Log_1.color)('darkGray', `\nHint: ${err.hint}`) : ''));
             if (err.position === undefined)
                 return;
             let line;
-            const start = this.text.lastIndexOf("\n", +err.position) + 1;
-            const previousLine = this.text.substring(this.text.lastIndexOf("\n", start - 2) + 1, start - 1).trim();
-            const end = this.text.indexOf("\n", +err.position);
+            const start = this.text.lastIndexOf('\n', +err.position) + 1;
+            const previousLine = this.text.substring(this.text.lastIndexOf('\n', start - 2) + 1, start - 1).trim();
+            const end = this.text.indexOf('\n', +err.position);
             line = this.text.substring(start, end);
             const length = line.length;
             line = line.trim();
             const trimmedWhitespace = length - line.length;
             const position = +err.position - start - trimmedWhitespace;
             if (previousLine)
-                (0, Log_1.default)("  > ", (0, Log_1.color)("darkGray", previousLine));
-            (0, Log_1.default)("  > ", line);
+                (0, Log_1.default)('  > ', (0, Log_1.color)('darkGray', previousLine));
+            (0, Log_1.default)('  > ', line);
             if (position !== undefined)
-                (0, Log_1.default)("    ", " ".repeat(Math.max(0, position - 1)) + (0, Log_1.color)("red", "^"));
+                (0, Log_1.default)('    ', ' '.repeat(Math.max(0, position - 1)) + (0, Log_1.color)('red', '^'));
         }
     }
     /** @deprecated be careful!!! */
@@ -113,8 +113,8 @@ class SQL {
 }
 _a = SQL, _SQL_data = new WeakMap(), _SQL_instances = new WeakSet(), _SQL_compile = function _SQL_compile() {
     const { text, values } = __classPrivateFieldGet(this, _SQL_instances, "m", _SQL_compileOffset).call(this);
-    Object.defineProperty(this, "text", { value: text });
-    Object.defineProperty(this, "values", { value: values });
+    Object.defineProperty(this, 'text', { value: text });
+    Object.defineProperty(this, 'values', { value: values });
 }, _SQL_compileOffset = function _SQL_compileOffset(vi = 0) {
     const [topLayerSegments, topLayerInterpolations] = __classPrivateFieldGet(this, _SQL_data, "f");
     if (!topLayerInterpolations.length)
@@ -144,7 +144,7 @@ _a = SQL, _SQL_data = new WeakMap(), _SQL_instances = new WeakSet(), _SQL_compil
 }, _SQL_compileRaw = function _SQL_compileRaw() {
     const [topLayerSegments, topLayerInterpolations] = __classPrivateFieldGet(this, _SQL_data, "f");
     if (!topLayerInterpolations.length) {
-        Object.defineProperty(this, "asRawSql", { value: topLayerSegments[0] });
+        Object.defineProperty(this, 'asRawSql', { value: topLayerSegments[0] });
         return;
     }
     const recurse = (recursiveData) => {
@@ -162,7 +162,7 @@ _a = SQL, _SQL_data = new WeakMap(), _SQL_instances = new WeakSet(), _SQL_compil
         return text;
     };
     const text = recurse();
-    Object.defineProperty(this, "asRawSql", { value: text });
+    Object.defineProperty(this, 'asRawSql', { value: text });
 };
 function sql(segments, ...interpolations) {
     return new SQL(segments, interpolations);

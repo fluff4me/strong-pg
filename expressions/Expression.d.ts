@@ -1,11 +1,13 @@
-import Database, { sql } from "../Database";
-import { Initialiser, MigrationTypeFromString, OptionalTypeString, TypeString, ValidDate, ValidLiteral, ValidType } from "../IStrongPG";
-import { DatabaseSchema, TableSchema } from "../Schema";
-import { JoinTables } from "../statements/Join";
-import { SelectFromVirtualTable } from "../statements/Select";
-import Statement from "../statements/Statement";
-import Table from "../Table";
-import { VirtualTable } from "../VirtualTable";
+import type Database from '../Database';
+import { sql } from '../Database';
+import type { Initialiser, MigrationTypeFromString, OptionalTypeString, ValidDate, ValidLiteral, ValidType } from '../IStrongPG';
+import { TypeString } from '../IStrongPG';
+import type { DatabaseSchema, TableSchema } from '../Schema';
+import type { JoinTables } from '../statements/Join';
+import type { SelectFromVirtualTable } from '../statements/Select';
+import Statement from '../statements/Statement';
+import type Table from '../Table';
+import type { VirtualTable } from '../VirtualTable';
 export interface ExpressionOperations<VARS = never, CURRENT_VALUE = null> {
     greaterThan: CURRENT_VALUE extends ValidDate ? ExpressionValue<VARS, ValidDate, boolean> : CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
     greaterThanOrEquals: CURRENT_VALUE extends ValidDate ? ExpressionValue<VARS, ValidDate, boolean> : CURRENT_VALUE extends number ? ExpressionValue<VARS, number, boolean> : never;
@@ -54,10 +56,10 @@ export interface ExpressionValues<VARS = never, VALUE = null, RESULT = null> {
     currentValue(sequenceId: string): ExpressionOperations<VARS, number>;
     true: ExpressionOperations<VARS, boolean>;
     false: ExpressionOperations<VARS, boolean>;
-    exists<DATABASE_SCHEMA extends DatabaseSchema, TABLE extends DatabaseSchema.TableName<DATABASE_SCHEMA>>(database: Database<DATABASE_SCHEMA>, table: TABLE, initialiser: NoInfer<Initialiser<SelectFromVirtualTable<JoinTables<"INNER", Extract<VARS, TableSchema>, DatabaseSchema.Table<DATABASE_SCHEMA, TABLE>, never, TABLE>, never, 1>>>): ExpressionOperations<VARS, boolean>;
-    exists<DATABASE_SCHEMA extends DatabaseSchema, TABLE_NAME extends DatabaseSchema.TableName<DATABASE_SCHEMA>, const VTABLE>(database: Database<DATABASE_SCHEMA>, table: TABLE_NAME, tableInitialiser: Initialiser<NoInfer<Table<DatabaseSchema.Table<DATABASE_SCHEMA, TABLE_NAME>, DATABASE_SCHEMA, TABLE_NAME>>, VTABLE>, initialiser: NoInfer<Initialiser<SelectFromVirtualTable<JoinTables<"INNER", Extract<VARS, TableSchema>, VTABLE extends VirtualTable<infer TABLE, any> ? Pick2<TABLE, `${string}.${string}`> : never, never, TABLE_NAME>, never, 1>>>): ExpressionOperations<VARS, boolean>;
-    notExists<DATABASE_SCHEMA extends DatabaseSchema, TABLE extends DatabaseSchema.TableName<DATABASE_SCHEMA>>(database: Database<DATABASE_SCHEMA>, table: TABLE, initialiser: NoInfer<Initialiser<SelectFromVirtualTable<JoinTables<"INNER", Extract<VARS, TableSchema>, DatabaseSchema.Table<DATABASE_SCHEMA, TABLE>, never, TABLE>, never, 1>>>): ExpressionOperations<VARS, boolean>;
-    notExists<DATABASE_SCHEMA extends DatabaseSchema, TABLE_NAME extends DatabaseSchema.TableName<DATABASE_SCHEMA>, const VTABLE>(database: Database<DATABASE_SCHEMA>, table: TABLE_NAME, tableInitialiser: Initialiser<NoInfer<Table<DatabaseSchema.Table<DATABASE_SCHEMA, TABLE_NAME>, DATABASE_SCHEMA, TABLE_NAME>>, VTABLE>, initialiser: NoInfer<Initialiser<SelectFromVirtualTable<JoinTables<"INNER", Extract<VARS, TableSchema>, VTABLE extends VirtualTable<infer TABLE, any> ? Pick2<TABLE, `${string}.${string}`> : never, never, TABLE_NAME>, never, 1>>>): ExpressionOperations<VARS, boolean>;
+    exists<DATABASE_SCHEMA extends DatabaseSchema, TABLE extends DatabaseSchema.TableName<DATABASE_SCHEMA>>(database: Database<DATABASE_SCHEMA>, table: TABLE, initialiser: NoInfer<Initialiser<SelectFromVirtualTable<JoinTables<'INNER', Extract<VARS, TableSchema>, DatabaseSchema.Table<DATABASE_SCHEMA, TABLE>, never, TABLE>, never, 1>>>): ExpressionOperations<VARS, boolean>;
+    exists<DATABASE_SCHEMA extends DatabaseSchema, TABLE_NAME extends DatabaseSchema.TableName<DATABASE_SCHEMA>, const VTABLE>(database: Database<DATABASE_SCHEMA>, table: TABLE_NAME, tableInitialiser: Initialiser<NoInfer<Table<DatabaseSchema.Table<DATABASE_SCHEMA, TABLE_NAME>, DATABASE_SCHEMA, TABLE_NAME>>, VTABLE>, initialiser: NoInfer<Initialiser<SelectFromVirtualTable<JoinTables<'INNER', Extract<VARS, TableSchema>, VTABLE extends VirtualTable<infer TABLE, any> ? Pick2<TABLE, `${string}.${string}`> : never, never, TABLE_NAME>, never, 1>>>): ExpressionOperations<VARS, boolean>;
+    notExists<DATABASE_SCHEMA extends DatabaseSchema, TABLE extends DatabaseSchema.TableName<DATABASE_SCHEMA>>(database: Database<DATABASE_SCHEMA>, table: TABLE, initialiser: NoInfer<Initialiser<SelectFromVirtualTable<JoinTables<'INNER', Extract<VARS, TableSchema>, DatabaseSchema.Table<DATABASE_SCHEMA, TABLE>, never, TABLE>, never, 1>>>): ExpressionOperations<VARS, boolean>;
+    notExists<DATABASE_SCHEMA extends DatabaseSchema, TABLE_NAME extends DatabaseSchema.TableName<DATABASE_SCHEMA>, const VTABLE>(database: Database<DATABASE_SCHEMA>, table: TABLE_NAME, tableInitialiser: Initialiser<NoInfer<Table<DatabaseSchema.Table<DATABASE_SCHEMA, TABLE_NAME>, DATABASE_SCHEMA, TABLE_NAME>>, VTABLE>, initialiser: NoInfer<Initialiser<SelectFromVirtualTable<JoinTables<'INNER', Extract<VARS, TableSchema>, VTABLE extends VirtualTable<infer TABLE, any> ? Pick2<TABLE, `${string}.${string}`> : never, never, TABLE_NAME>, never, 1>>>): ExpressionOperations<VARS, boolean>;
     coalesce<R extends ValidType>(...values: ExpressionOr<VARS, R>[]): ExpressionOperations<VARS, R>;
 }
 export type ExpressionInitialiser<VARS, RESULT = any> = Initialiser<ExpressionValues<VARS, null, null>, ExpressionOperations<VARS, RESULT>>;

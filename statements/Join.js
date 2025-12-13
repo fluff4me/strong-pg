@@ -14,7 +14,7 @@ var JoinType;
 })(JoinType || (JoinType = {}));
 class Join extends VirtualTable_1.VirtualTable {
     constructor(type, table1, table2, alias1, alias2, vars) {
-        super(`vt_join_${typeof table1 === "string" ? table1 : table1.name}_${table2}`, vars);
+        super(`vt_join_${typeof table1 === 'string' ? table1 : table1.name}_${table2}`, vars);
         this.type = type;
         this.table1 = table1;
         this.table2 = table2;
@@ -27,24 +27,24 @@ class Join extends VirtualTable_1.VirtualTable {
         return this;
     }
     innerJoin(tableName, alias) {
-        return new Join("INNER", this, tableName, undefined, alias, this.vars);
+        return new Join('INNER', this, tableName, undefined, alias, this.vars);
     }
     leftOuterJoin(tableName, alias) {
-        return new Join("LEFT OUTER", this, tableName, undefined, alias, this.vars);
+        return new Join('LEFT OUTER', this, tableName, undefined, alias, this.vars);
     }
     rightOuterJoin(tableName, alias) {
-        return new Join("RIGHT OUTER", this, tableName, undefined, alias, this.vars);
+        return new Join('RIGHT OUTER', this, tableName, undefined, alias, this.vars);
     }
     fullOuterJoin(tableName, alias) {
-        return new Join("FULL OUTER", this, tableName, undefined, alias, this.vars);
+        return new Join('FULL OUTER', this, tableName, undefined, alias, this.vars);
     }
     compileFrom() {
-        if (this.type !== "INNER" && !this.condition)
-            throw new Error(`Unable to join ${typeof this.table1 === "string" ? this.table1 : "(joined table)"} and ${this.table2}, no ON expression provided`);
-        const type = this.type === "INNER" && !this.condition ? "CROSS" : this.type;
-        const table1 = typeof this.table1 === "string" ? `${this.table1 ?? ""} ${this.alias1 ?? ""}`
+        if (this.type !== 'INNER' && !this.condition)
+            throw new Error(`Unable to join ${typeof this.table1 === 'string' ? this.table1 : '(joined table)'} and ${this.table2}, no ON expression provided`);
+        const type = this.type === 'INNER' && !this.condition ? 'CROSS' : this.type;
+        const table1 = typeof this.table1 === 'string' ? `${this.table1 ?? ''} ${this.alias1 ?? ''}`
             : this.table1.compileFrom();
-        return `${table1} ${type} JOIN ${this.table2} ${this.alias2 ?? ""} ${this.condition ?? ""}`;
+        return `${table1} ${type} JOIN ${this.table2} ${this.alias2 ?? ''} ${this.condition ?? ''}`;
     }
 }
 exports.default = Join;

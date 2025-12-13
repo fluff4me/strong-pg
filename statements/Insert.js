@@ -27,7 +27,7 @@ class InsertIntoTable extends Statement_1.default {
         function registerUpsert(query) {
             query.onConflict(...primaryKey).doUpdate(update => {
                 for (let i = 0; i < columns.length; i++) {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
                     update.set(columns[i], ((expr) => expr.var(`EXCLUDED.${String(columns[i])}`)));
                 }
             });
@@ -55,7 +55,7 @@ class InsertIntoTable extends Statement_1.default {
             },
             doUpdate: initialiser => {
                 this.conflictAction = new Update_1.default(this.tableName, this.schema, this.vars);
-                this.conflictAction.tableName = "";
+                this.conflictAction.tableName = '';
                 initialiser(this.conflictAction);
                 return this;
             },
@@ -72,24 +72,24 @@ class InsertIntoTable extends Statement_1.default {
             .map((v, i) => {
             let value = v;
             const column = this.columns[i];
-            if (Schema_1.default.isColumn(this.schema, column, "TIMESTAMP") && typeof value === "number")
+            if (Schema_1.default.isColumn(this.schema, column, 'TIMESTAMP') && typeof value === 'number')
                 value = new Date(value);
             return Expression_1.default.stringifyValue(value, this.vars);
         })
-            .join(","))
+            .join(','))
             .map(columnValues => `(${columnValues})`)
-            .join(",");
-        const conflictTarget = this.conflictTarget?.length ? `(${this.conflictTarget.join(",")})` : "";
-        let conflictAction = this.conflictAction === undefined ? " "
+            .join(',');
+        const conflictTarget = this.conflictTarget?.length ? `(${this.conflictTarget.join(',')})` : '';
+        let conflictAction = this.conflictAction === undefined ? ' '
             : this.conflictAction === null ? `ON CONFLICT ${conflictTarget} DO NOTHING`
                 : undefined;
         if (this.conflictAction) {
             const compiled = this.conflictAction.compile()[0];
             conflictAction = `ON CONFLICT ${conflictTarget} DO ${compiled.text}`;
         }
-        const returning = !this.returningColumns?.length ? ""
-            : `RETURNING ${this.returningColumns.join(",")}`;
-        return this.queryable(`INSERT INTO ${this.tableName} (${this.columns.join(",")}) VALUES ${rows} ${conflictAction} ${returning}`, undefined, this.vars);
+        const returning = !this.returningColumns?.length ? ''
+            : `RETURNING ${this.returningColumns.join(',')}`;
+        return this.queryable(`INSERT INTO ${this.tableName} (${this.columns.join(',')}) VALUES ${rows} ${conflictAction} ${returning}`, undefined, this.vars);
     }
     resolveQueryOutput(output) {
         return output.rows;

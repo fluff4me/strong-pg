@@ -1,8 +1,9 @@
-import { QueryResult } from "pg";
-import { Initialiser, InputTypeFromString, OutputTypeFromString, Value } from "../IStrongPG";
-import Schema, { TableSchema } from "../Schema";
-import Statement from "./Statement";
-import UpdateTable from "./Update";
+import type { QueryResult } from 'pg';
+import type { Initialiser, InputTypeFromString, OutputTypeFromString, Value } from '../IStrongPG';
+import type { TableSchema } from '../Schema';
+import Schema from '../Schema';
+import Statement from './Statement';
+import UpdateTable from './Update';
 export interface InsertIntoTableFactory<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends Schema.Column<SCHEMA>[] = Schema.Column<SCHEMA>[]> {
     prepare(): InsertIntoTable<SCHEMA, NAME, COLUMNS>;
     values(...values: {
@@ -35,8 +36,8 @@ export default class InsertIntoTable<SCHEMA extends TableSchema, NAME extends st
     returning<RETURNING_COLUMNS extends Schema.Column<SCHEMA>[]>(...columns: RETURNING_COLUMNS): InsertIntoTable<SCHEMA, NAME, COLUMNS, {
         [KEY in RETURNING_COLUMNS[number]]: OutputTypeFromString<SCHEMA[KEY]>;
     }[]>;
-    returning<RETURNING_COLUMN extends Schema.Column<SCHEMA> | "*">(columns: RETURNING_COLUMN): InsertIntoTable<SCHEMA, NAME, COLUMNS, {
-        [KEY in RETURNING_COLUMN extends "*" ? Schema.Column<SCHEMA> : RETURNING_COLUMN]: OutputTypeFromString<SCHEMA[KEY]>;
+    returning<RETURNING_COLUMN extends Schema.Column<SCHEMA> | '*'>(columns: RETURNING_COLUMN): InsertIntoTable<SCHEMA, NAME, COLUMNS, {
+        [KEY in RETURNING_COLUMN extends '*' ? Schema.Column<SCHEMA> : RETURNING_COLUMN]: OutputTypeFromString<SCHEMA[KEY]>;
     }[]>;
     compile(): Statement.Queryable[];
     protected resolveQueryOutput(output: QueryResult<any>): RESULT;

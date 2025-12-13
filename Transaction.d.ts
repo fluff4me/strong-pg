@@ -1,5 +1,5 @@
-import { Pool, PoolClient } from "pg";
-import Statement from "./statements/Statement";
+import type { Pool, PoolClient } from 'pg';
+import Statement from './statements/Statement';
 export default class Transaction {
     static execute<R>(pool: Pool | PoolClient, executor: (client: PoolClient) => Promise<R>, handleError?: (err: Error, client: PoolClient) => any): Promise<R>;
     protected readonly statements: (Statement | (() => Statement))[];

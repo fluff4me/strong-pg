@@ -1,9 +1,10 @@
-import { QueryResult } from "pg";
-import { InputTypeFromString, OutputTypeFromString, SingleStringUnion, TypeString } from "../IStrongPG";
-import Schema, { TableSchema } from "../Schema";
-import { ExpressionInitialiser } from "../expressions/Expression";
-import Statement from "./Statement";
-import Values from "./Values";
+import type { QueryResult } from 'pg';
+import type { InputTypeFromString, OutputTypeFromString, SingleStringUnion, TypeString } from '../IStrongPG';
+import type { TableSchema } from '../Schema';
+import Schema from '../Schema';
+import type { ExpressionInitialiser } from '../expressions/Expression';
+import Statement from './Statement';
+import Values from './Values';
 export default class UpdateTable<NAME extends string, SCHEMA extends TableSchema, RESULT = number, VARS = {}> extends Statement<RESULT> {
     readonly tableName: NAME;
     readonly schema: SCHEMA;
@@ -22,8 +23,8 @@ export default class UpdateTable<NAME extends string, SCHEMA extends TableSchema
     returning<RETURNING_COLUMNS extends Schema.Column<SCHEMA>[]>(...columns: RETURNING_COLUMNS): UpdateTable<NAME, SCHEMA, {
         [KEY in RETURNING_COLUMNS[number]]: OutputTypeFromString<SCHEMA[KEY]>;
     }[], VARS>;
-    returning<RETURNING_COLUMN extends Schema.Column<SCHEMA> | "*">(columns: RETURNING_COLUMN): UpdateTable<NAME, SCHEMA, {
-        [KEY in RETURNING_COLUMN extends "*" ? Schema.Column<SCHEMA> : RETURNING_COLUMN]: OutputTypeFromString<SCHEMA[KEY]>;
+    returning<RETURNING_COLUMN extends Schema.Column<SCHEMA> | '*'>(columns: RETURNING_COLUMN): UpdateTable<NAME, SCHEMA, {
+        [KEY in RETURNING_COLUMN extends '*' ? Schema.Column<SCHEMA> : RETURNING_COLUMN]: OutputTypeFromString<SCHEMA[KEY]>;
     }[], VARS>;
     compile(): Statement.Queryable[];
     protected resolveQueryOutput(output: QueryResult<any>): RESULT;

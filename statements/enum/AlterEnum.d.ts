@@ -1,5 +1,5 @@
-import { Initialiser } from "../../IStrongPG";
-import Statement from "../Statement";
+import type { Initialiser } from '../../IStrongPG';
+import Statement from '../Statement';
 type Rename<ENUM extends string[], OLD extends ENUM[number], NEW extends string> = {
     [INDEX in keyof ENUM]: ENUM[INDEX] extends OLD ? NEW : ENUM[INDEX];
 };

@@ -21,11 +21,11 @@ class Transaction {
             }
         }
         const client = await pool.connect();
-        await client.query("BEGIN");
+        await client.query('BEGIN');
         try {
             let error;
             const errorPromise = new Promise(r => client.throwError = err => {
-                error = err || new Error("Unknown transaction error");
+                error = err || new Error('Unknown transaction error');
                 r(err);
             });
             const result = await Promise.race([errorPromise, executor(client)]);
@@ -33,11 +33,11 @@ class Transaction {
                 handleError?.(error, client);
                 throw error;
             }
-            await client.query("COMMIT");
+            await client.query('COMMIT');
             return result;
         }
         catch (err) {
-            await client.query("ROLLBACK");
+            await client.query('ROLLBACK');
             throw err;
         }
         finally {
@@ -55,8 +55,8 @@ class Transaction {
         });
     }
     compile() {
-        return this.statements.flatMap(statement => (typeof statement === "function" ? statement() : statement).compile());
+        return this.statements.flatMap(statement => (typeof statement === 'function' ? statement() : statement).compile());
     }
 }
 exports.default = Transaction;
-Statement_1.default["Transaction"] = Transaction;
+Statement_1.default['Transaction'] = Transaction;

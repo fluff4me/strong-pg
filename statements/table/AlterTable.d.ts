@@ -1,7 +1,9 @@
-import { ExpressionInitialiser, ExpressionOr } from "../../expressions/Expression";
-import { ExtractTypeString, ForeignKeyOnDeleteAction, Initialiser, MigrationTypeFromString, OptionalTypeString, TypeString } from "../../IStrongPG";
-import Schema, { DatabaseSchema } from "../../Schema";
-import Statement from "../Statement";
+import type { ExpressionInitialiser, ExpressionOr } from '../../expressions/Expression';
+import type { ExtractTypeString, ForeignKeyOnDeleteAction, Initialiser, MigrationTypeFromString, OptionalTypeString } from '../../IStrongPG';
+import { TypeString } from '../../IStrongPG';
+import type Schema from '../../Schema';
+import type { DatabaseSchema } from '../../Schema';
+import Statement from '../Statement';
 export type AlterTableInitialiser<DB extends DatabaseSchema, SCHEMA_START, SCHEMA_END> = Initialiser<AlterTable<DB, SCHEMA_START>, AlterTable<DB, SCHEMA_START, SCHEMA_END>>;
 export default class AlterTable<DB extends DatabaseSchema, SCHEMA_START = null, SCHEMA_END = SCHEMA_START extends null ? {} : SCHEMA_START> extends Statement.Super<Statement> {
     readonly table: string;

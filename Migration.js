@@ -35,9 +35,8 @@ class Migration extends Transaction_1.default {
         this.schemaStart = schemaStart;
     }
     then(statementSupplier) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         this.add(() => {
-            if (typeof statementSupplier === "function")
+            if (typeof statementSupplier === 'function')
                 return statementSupplier(this.db);
             return new Do_1.default(statementSupplier);
         });
@@ -158,7 +157,7 @@ class Migration extends Transaction_1.default {
         return this;
     }
     createOrReplaceFunction(name, initialiser) {
-        if (typeof initialiser === "function")
+        if (typeof initialiser === 'function')
             this.add(initialiser(new CreateOrReplaceFunction_1.default(name)).setCaller());
         else {
             const createOrReplaceFunction = new CreateOrReplaceFunction_1.default(name).setCaller();
@@ -168,7 +167,7 @@ class Migration extends Transaction_1.default {
                 createOrReplaceFunction.out(type, name);
             createOrReplaceFunction.returns(initialiser.return);
             if (initialiser.sql && initialiser.plpgsql)
-                throw new Error("Cannot provide both SQL and PL/pgSQL code for a function");
+                throw new Error('Cannot provide both SQL and PL/pgSQL code for a function');
             if (initialiser.sql)
                 createOrReplaceFunction.sql(initialiser.sql);
             if (initialiser.plpgsql)

@@ -28,7 +28,7 @@ class Schema {
             for (let i = 0;; i++) {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
                 const value = enm[i];
-                if (typeof value !== "string")
+                if (typeof value !== 'string')
                     break;
                 schema.VALUES.push(value);
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -49,7 +49,7 @@ class Schema {
                     version,
                     in: [],
                     out: [],
-                    return: "TRIGGER",
+                    return: 'TRIGGER',
                     sql,
                 };
             },
@@ -60,7 +60,7 @@ class Schema {
                     version,
                     in: [],
                     out: [],
-                    return: "TRIGGER",
+                    return: 'TRIGGER',
                     declarations,
                     plpgsql,
                 };
@@ -70,7 +70,7 @@ class Schema {
     /** @deprecated */
     static legacyFunction(...args) {
         const varsOut = [];
-        let returnType = "VOID";
+        let returnType = 'VOID';
         const factory = {
             out: (...out) => {
                 varsOut.push(out);
@@ -87,7 +87,7 @@ class Schema {
     static function(version) {
         const varsIn = [];
         const varsOut = [];
-        let returnType = "VOID";
+        let returnType = 'VOID';
         const factory = {
             in: (type, name) => {
                 varsIn.push([type, name]);
@@ -130,30 +130,28 @@ class Schema {
         return { type, optional: true };
     }
     static getSingleColumnPrimaryKey(schema) {
-        const primaryKey = schema["PRIMARY_KEY"];
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        const primaryKey = schema['PRIMARY_KEY'];
         // const primaryKey = ?.[0];
         if (!primaryKey || primaryKey.length !== 1)
-            throw new Error("No primary key or primary key is multiple columns");
+            throw new Error('No primary key or primary key is multiple columns');
         return primaryKey[0];
     }
     static getPrimaryKey(schema) {
-        const primaryKey = schema["PRIMARY_KEY"];
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        const primaryKey = schema['PRIMARY_KEY'];
         // const primaryKey = ?.[0];
         if (!primaryKey?.length)
-            throw new Error("No primary key");
+            throw new Error('No primary key');
         return primaryKey;
     }
     static isColumn(schema, column, type) {
         let columnType = schema[column];
         if (!columnType)
             throw new Error(`No column ${String(column)} in schema`);
-        if (typeof columnType === "object")
+        if (typeof columnType === 'object')
             columnType = columnType.type;
         switch (type) {
-            case "TIMESTAMP":
-                return columnType.startsWith("TIMESTAMP");
+            case 'TIMESTAMP':
+                return columnType.startsWith('TIMESTAMP');
             default:
                 return columnType === type;
         }
@@ -162,6 +160,6 @@ class Schema {
 Schema.INDEX = {};
 Schema.TRIGGER = {};
 /** @deprecated */
-Schema.TRIGGER_FUNCTION = { version: "-1", in: [], out: [], return: "TRIGGER", sql: (0, sql_1.default) `` };
+Schema.TRIGGER_FUNCTION = { version: '-1', in: [], out: [], return: 'TRIGGER', sql: (0, sql_1.default) `` };
 Schema.COLLATION = {};
 exports.default = Schema;

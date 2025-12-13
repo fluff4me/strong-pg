@@ -22,12 +22,12 @@ class UpdateTable extends Statement_1.default {
         return this;
     }
     set(input, value) {
-        if (typeof input === "object") {
+        if (typeof input === 'object') {
             for (const column of Object.keys(input))
                 this.set(column, input[column]);
         }
         else {
-            if (Schema_1.default.isColumn(this.schema, input, "TIMESTAMP") && typeof value === "number")
+            if (Schema_1.default.isColumn(this.schema, input, 'TIMESTAMP') && typeof value === 'number')
                 value = new Date(value);
             this.assignments.push(`${String(input)}=${Expression_1.default.stringifyValue(value, this.vars)}`);
         }
@@ -49,10 +49,10 @@ class UpdateTable extends Statement_1.default {
         return this;
     }
     compile() {
-        const returning = !this.returningColumns?.length ? ""
-            : `RETURNING ${this.returningColumns.join(",")}`;
-        const fromString = this.fromExpr ? `FROM ${this.fromExpr.compile(this.vars)}` : "";
-        return this.queryable(`UPDATE ${this.tableName ?? ""} SET ${this.assignments.join(",")} ${fromString} ${this.condition ?? ""} ${returning}`, undefined, this.vars);
+        const returning = !this.returningColumns?.length ? ''
+            : `RETURNING ${this.returningColumns.join(',')}`;
+        const fromString = this.fromExpr ? `FROM ${this.fromExpr.compile(this.vars)}` : '';
+        return this.queryable(`UPDATE ${this.tableName ?? ''} SET ${this.assignments.join(',')} ${fromString} ${this.condition ?? ''} ${returning}`, undefined, this.vars);
     }
     resolveQueryOutput(output) {
         return (!this.returningColumns?.length ? output.rowCount : output.rows);

@@ -1,11 +1,12 @@
-import { Pool, PoolClient, QueryResult } from "pg";
-import { InputTypeFromString, OutputTypeFromString, SingleStringUnion, SortDirection, ValidType } from "../IStrongPG";
-import Schema, { TableSchema } from "../Schema";
-import { VirtualTable } from "../VirtualTable";
-import { ExpressionInitialiser } from "../expressions/Expression";
-import sql from "../sql";
-import Statement from "./Statement";
-export type SelectColumns<SCHEMA extends TableSchema, NAME extends string, VARS = SelectWhereVars<SCHEMA, NAME>> = "*" | Schema.Column<SCHEMA>[] | SelectColumnsRecord<SCHEMA, NAME, VARS>;
+import type { Pool, PoolClient, QueryResult } from 'pg';
+import type { InputTypeFromString, OutputTypeFromString, SingleStringUnion, SortDirection, ValidType } from '../IStrongPG';
+import type { TableSchema } from '../Schema';
+import Schema from '../Schema';
+import type { VirtualTable } from '../VirtualTable';
+import type { ExpressionInitialiser } from '../expressions/Expression';
+import sql from '../sql';
+import Statement from './Statement';
+export type SelectColumns<SCHEMA extends TableSchema, NAME extends string, VARS = SelectWhereVars<SCHEMA, NAME>> = '*' | Schema.Column<SCHEMA>[] | SelectColumnsRecord<SCHEMA, NAME, VARS>;
 export type SelectColumnsRecord<SCHEMA extends TableSchema, NAME extends string = never, VARS = SelectWhereVars<SCHEMA, NAME>> = Partial<Record<string, Schema.Column<SCHEMA> | ExpressionInitialiser<VARS, ValidType>>>;
 type SelectResult<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA, NAME> | 1> = COLUMNS extends 1 ? 1 : ((COLUMNS extends SelectColumnsRecord<SCHEMA, NAME, any> ? {
     [K in keyof COLUMNS]: COLUMNS[K] extends infer VALUE ? (VALUE extends Schema.Column<SCHEMA> ? OutputTypeFromString<SCHEMA[VALUE & Schema.Column<SCHEMA>]> : VALUE extends ExpressionInitialiser<any, infer TYPE> ? TYPE : never) : never;
@@ -43,7 +44,7 @@ export declare class SelectFromVirtualTable<SCHEMA extends TableSchema, NAME ext
     queryOne(pool: Pool | PoolClient): Promise<SelectResult<SCHEMA, NAME, COLUMNS> | undefined>;
     protected resolveQueryOutput(output: QueryResult<any>): any;
 }
-export default class SelectFromTable<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA, NAME> | 1 = "*"> extends SelectFromVirtualTable<SCHEMA, NAME, COLUMNS> {
+export default class SelectFromTable<SCHEMA extends TableSchema, NAME extends string, COLUMNS extends SelectColumns<SCHEMA, NAME> | 1 = '*'> extends SelectFromVirtualTable<SCHEMA, NAME, COLUMNS> {
     readonly tableName: NAME;
     readonly schema: SCHEMA;
     constructor(tableName: NAME, schema: SCHEMA, columns: COLUMNS);

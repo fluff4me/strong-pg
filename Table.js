@@ -16,9 +16,9 @@ class Table {
         this.schema = schema;
     }
     select(...params) {
-        const initialiser = typeof params[params.length - 1] === "function" ? params.pop() : undefined;
+        const initialiser = typeof params[params.length - 1] === 'function' ? params.pop() : undefined;
         const input = params.length === 0 ? 1
-            : params.length === 1 && typeof params[0] === "object" ? params[0]
+            : params.length === 1 && typeof params[0] === 'object' ? params[0]
                 : params;
         const query = new Select_1.default(this.name, this.schema, input);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument
@@ -26,15 +26,15 @@ class Table {
     }
     insert(...params) {
         const isUpsert = params[0] === true;
-        if (typeof params[0] === "boolean")
+        if (typeof params[0] === 'boolean')
             params.shift();
-        const initialiser = typeof params[params.length - 1] === "function" ? params.pop() : undefined;
-        if (typeof params[0] === "object") {
+        const initialiser = typeof params[params.length - 1] === 'function' ? params.pop() : undefined;
+        if (typeof params[0] === 'object') {
             const row = params[0];
             const columns = Object.keys(row).filter(column => row[column] !== undefined);
             // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             const query = this.insert(isUpsert, ...columns)
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return
                 .values(...columns.map(key => row[key]));
             return initialiser?.(query) ?? query;
         }
@@ -66,30 +66,30 @@ class Table {
     as(alias1) {
         return {
             innerJoin: (tableName, alias2) => {
-                return new Join_1.default("INNER", this.name, tableName, alias1, alias2);
+                return new Join_1.default('INNER', this.name, tableName, alias1, alias2);
             },
             leftOuterJoin: (tableName, alias2) => {
-                return new Join_1.default("LEFT OUTER", this.name, tableName, alias1, alias2);
+                return new Join_1.default('LEFT OUTER', this.name, tableName, alias1, alias2);
             },
             rightOuterJoin: (tableName, alias2) => {
-                return new Join_1.default("RIGHT OUTER", this.name, tableName, alias1, alias2);
+                return new Join_1.default('RIGHT OUTER', this.name, tableName, alias1, alias2);
             },
             fullOuterJoin: (tableName, alias2) => {
-                return new Join_1.default("FULL OUTER", this.name, tableName, alias1, alias2);
+                return new Join_1.default('FULL OUTER', this.name, tableName, alias1, alias2);
             },
         };
     }
     innerJoin(tableName, alias) {
-        return new Join_1.default("INNER", this.name, tableName, undefined, alias);
+        return new Join_1.default('INNER', this.name, tableName, undefined, alias);
     }
     leftOuterJoin(tableName, alias) {
-        return new Join_1.default("LEFT OUTER", this.name, tableName, undefined, alias);
+        return new Join_1.default('LEFT OUTER', this.name, tableName, undefined, alias);
     }
     rightOuterJoin(tableName, alias) {
-        return new Join_1.default("RIGHT OUTER", this.name, tableName, undefined, alias);
+        return new Join_1.default('RIGHT OUTER', this.name, tableName, undefined, alias);
     }
     fullOuterJoin(tableName, alias) {
-        return new Join_1.default("FULL OUTER", this.name, tableName, undefined, alias);
+        return new Join_1.default('FULL OUTER', this.name, tableName, undefined, alias);
     }
     recursive(columns, initialiser) {
         const recursive = new Recursive_1.default(this.name, columns);

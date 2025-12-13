@@ -48,13 +48,12 @@ class Statement {
         let result;
         return Statement.Transaction.execute(pool, async (client) => {
             for (const statement of this.queryable(this.compile())) {
-                (0, Log_1.default)("  > ", (0, Log_1.color)("darkGray", statement.text));
+                (0, Log_1.default)('  > ', (0, Log_1.color)('darkGray', statement.text));
                 if (statement.values?.length)
                     for (let i = 0; i < statement.values.length; i++)
-                        (0, Log_1.default)(`    ${(0, Log_1.color)("lightYellow", `$${i + 1}`)}${(0, Log_1.color)("darkGray", ":")} `, util_1.default.inspect(statement.values[i], undefined, Infinity, true));
+                        (0, Log_1.default)(`    ${(0, Log_1.color)('lightYellow', `$${i + 1}`)}${(0, Log_1.color)('darkGray', ':')} `, util_1.default.inspect(statement.values[i], undefined, Infinity, true));
                 result = await client.query(statement);
             }
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             return this.resolveQueryOutput(result);
         });
     }
@@ -66,7 +65,7 @@ class Statement {
             queryables = [queryables];
         const result = [];
         for (const queryable of queryables) {
-            if (typeof queryable === "string")
+            if (typeof queryable === 'string')
                 result.push(new Statement.Queryable(queryable, stack, vars));
             else {
                 queryable.stack ?? (queryable.stack = stack);
@@ -115,10 +114,10 @@ exports.default = Statement;
             const parallelOperations = this.joinParallelOperations(this.compileParallelOperations());
             if (parallelOperations)
                 operations.unshift(parallelOperations);
-            return operations.flatMap(operation => this.queryable(this.compileOperation(typeof operation === "string" ? operation : operation.text), typeof operation === "string" ? undefined : operation.stack));
+            return operations.flatMap(operation => this.queryable(this.compileOperation(typeof operation === 'string' ? operation : operation.text), typeof operation === 'string' ? undefined : operation.stack));
         }
         joinParallelOperations(operations) {
-            return operations.join(",");
+            return operations.join(',');
         }
         compileParallelOperations() {
             return this.parallelOperations.flatMap(operation => operation.compile()).map(operation => operation.text);

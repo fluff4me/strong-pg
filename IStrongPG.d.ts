@@ -1,4 +1,4 @@
-import { ExpressionOr } from "./expressions/Expression";
+import type { ExpressionOr } from './expressions/Expression';
 export declare const CASCADE: unique symbol;
 export declare const SET_NULL: unique symbol;
 export declare const SET_DEFAULT: unique symbol;
@@ -39,34 +39,34 @@ export declare enum DataTypeID {
     ARRAYOF = 29
 }
 export interface TypeStringMap {
-    [DataTypeID.SMALLINT]: "SMALLINT";
-    [DataTypeID.INTEGER]: "INTEGER";
-    [DataTypeID.BIGINT]: "BIGINT";
-    [DataTypeID.NUMERIC]: "NUMERIC" | `NUMERIC(${bigint})` | `NUMERIC(${bigint},${bigint})`;
-    [DataTypeID.REAL]: "REAL";
-    [DataTypeID.DOUBLE]: "DOUBLE PRECISION";
-    [DataTypeID.SMALLSERIAL]: "SMALLSERIAL";
-    [DataTypeID.SERIAL]: "SERIAL";
-    [DataTypeID.BIGSERIAL]: "BIGSERIAL";
-    [DataTypeID.DATE]: "DATE";
-    [DataTypeID.TIMESTAMP]: "TIMESTAMP" | `TIMESTAMP(${bigint})` | `TIMESTAMP(${bigint}) WITHOUT TIME ZONE`;
-    [DataTypeID.TIME]: "TIME" | `TIME(${bigint})` | `TIME(${bigint}) WITHOUT TIME ZONE`;
-    [DataTypeID.BYTECHAR]: "\"char\"";
-    [DataTypeID.CHAR]: "CHARACTER" | `CHARACTER(${bigint})`;
-    [DataTypeID.VARCHAR]: "CHARACTER VARYING" | `CHARACTER VARYING(${bigint})`;
+    [DataTypeID.SMALLINT]: 'SMALLINT';
+    [DataTypeID.INTEGER]: 'INTEGER';
+    [DataTypeID.BIGINT]: 'BIGINT';
+    [DataTypeID.NUMERIC]: 'NUMERIC' | `NUMERIC(${bigint})` | `NUMERIC(${bigint},${bigint})`;
+    [DataTypeID.REAL]: 'REAL';
+    [DataTypeID.DOUBLE]: 'DOUBLE PRECISION';
+    [DataTypeID.SMALLSERIAL]: 'SMALLSERIAL';
+    [DataTypeID.SERIAL]: 'SERIAL';
+    [DataTypeID.BIGSERIAL]: 'BIGSERIAL';
+    [DataTypeID.DATE]: 'DATE';
+    [DataTypeID.TIMESTAMP]: 'TIMESTAMP' | `TIMESTAMP(${bigint})` | `TIMESTAMP(${bigint}) WITHOUT TIME ZONE`;
+    [DataTypeID.TIME]: 'TIME' | `TIME(${bigint})` | `TIME(${bigint}) WITHOUT TIME ZONE`;
+    [DataTypeID.BYTECHAR]: '"char"';
+    [DataTypeID.CHAR]: 'CHARACTER' | `CHARACTER(${bigint})`;
+    [DataTypeID.VARCHAR]: 'CHARACTER VARYING' | `CHARACTER VARYING(${bigint})`;
     [DataTypeID.BIT]: `BIT(${bigint})`;
-    [DataTypeID.VARBIT]: "BIT VARYING" | `BIT VARYING(${bigint})`;
-    [DataTypeID.TEXT]: "TEXT";
+    [DataTypeID.VARBIT]: 'BIT VARYING' | `BIT VARYING(${bigint})`;
+    [DataTypeID.TEXT]: 'TEXT';
     [DataTypeID.ENUM]: `ENUM(${string})`;
-    [DataTypeID.BOOLEAN]: "BOOLEAN";
-    [DataTypeID.TSVECTOR]: "TSVECTOR";
-    [DataTypeID.JSON]: "JSON";
-    [DataTypeID.JSONB]: "JSONB";
-    [DataTypeID.UUID]: "UUID";
-    [DataTypeID.RECORD]: "RECORD";
+    [DataTypeID.BOOLEAN]: 'BOOLEAN';
+    [DataTypeID.TSVECTOR]: 'TSVECTOR';
+    [DataTypeID.JSON]: 'JSON';
+    [DataTypeID.JSONB]: 'JSONB';
+    [DataTypeID.UUID]: 'UUID';
+    [DataTypeID.RECORD]: 'RECORD';
     [DataTypeID.SETOF]: `SETOF ${string}`;
-    [DataTypeID.TRIGGER]: "TRIGGER";
-    [DataTypeID.VOID]: "VOID";
+    [DataTypeID.TRIGGER]: 'TRIGGER';
+    [DataTypeID.VOID]: 'VOID';
     [DataTypeID.ARRAY]: `${string}[]`;
     [DataTypeID.ARRAYOF]: `${string}[]`;
 }
@@ -104,7 +104,7 @@ export declare namespace DataType {
     function ARRAY<TYPE extends TypeString>(type: TYPE): `${TYPE}[]`;
     function ARRAYOF<TABLENAME extends string>(type: TABLENAME): `${TABLENAME}[]`;
 }
-export type TypeString = TypeStringMap[DataTypeID] | "*";
+export type TypeString = TypeStringMap[DataTypeID] | '*';
 export interface OptionalTypeString<TYPE extends TypeString = TypeString> {
     type: TYPE;
     optional: true;
@@ -168,9 +168,9 @@ export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | Data
 export type ValidType = ValidLiteral | symbol | Date | RegExp | undefined | (ValidLiteral | symbol | Date | RegExp | undefined)[];
 export type ValidLiteral = string | boolean | number | null;
 export declare const SYMBOL_COLUMNS: unique symbol;
-export type MigrationTypeFromString<STR extends TypeString | OptionalTypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : ((STR extends OptionalTypeString<infer TYPE> ? TYPE : STR) extends infer TYPE extends TypeString ? TYPE extends `${infer SUB_TYPE extends TypeString}[]` ? MigrationTypeMap[DataTypeFromString<SUB_TYPE>][] : MigrationTypeMap[DataTypeFromString<TYPE>] : never);
-export type InputTypeFromString<STR extends TypeString | OptionalTypeString, VARS = {}> = STR extends "*" ? typeof SYMBOL_COLUMNS : ExpressionOr<VARS, ((STR extends OptionalTypeString<infer TYPE> ? TYPE : STR) extends infer TYPE extends TypeString ? TYPE extends `${infer SUB_TYPE extends TypeString}[]` ? InputTypeMap[DataTypeFromString<SUB_TYPE>][] : InputTypeMap[DataTypeFromString<TYPE>] : never) | (STR extends OptionalTypeString<TypeString> ? null : never)>;
-export type OutputTypeFromString<STR extends TypeString | OptionalTypeString> = STR extends "*" ? typeof SYMBOL_COLUMNS : (((STR extends OptionalTypeString<infer TYPE> ? TYPE : STR) extends infer TYPE extends TypeString ? TYPE extends `${infer SUB_TYPE extends TypeString}[]` ? OutputTypeMap[DataTypeFromString<SUB_TYPE>][] : OutputTypeMap[DataTypeFromString<TYPE>] : never) extends infer OUTPUT_TYPE ? STR extends OptionalTypeString ? OUTPUT_TYPE | null : OUTPUT_TYPE : never);
+export type MigrationTypeFromString<STR extends TypeString | OptionalTypeString> = STR extends '*' ? typeof SYMBOL_COLUMNS : ((STR extends OptionalTypeString<infer TYPE> ? TYPE : STR) extends infer TYPE extends TypeString ? TYPE extends `${infer SUB_TYPE extends TypeString}[]` ? MigrationTypeMap[DataTypeFromString<SUB_TYPE>][] : MigrationTypeMap[DataTypeFromString<TYPE>] : never);
+export type InputTypeFromString<STR extends TypeString | OptionalTypeString, VARS = {}> = STR extends '*' ? typeof SYMBOL_COLUMNS : ExpressionOr<VARS, ((STR extends OptionalTypeString<infer TYPE> ? TYPE : STR) extends infer TYPE extends TypeString ? TYPE extends `${infer SUB_TYPE extends TypeString}[]` ? InputTypeMap[DataTypeFromString<SUB_TYPE>][] : InputTypeMap[DataTypeFromString<TYPE>] : never) | (STR extends OptionalTypeString<TypeString> ? null : never)>;
+export type OutputTypeFromString<STR extends TypeString | OptionalTypeString> = STR extends '*' ? typeof SYMBOL_COLUMNS : (((STR extends OptionalTypeString<infer TYPE> ? TYPE : STR) extends infer TYPE extends TypeString ? TYPE extends `${infer SUB_TYPE extends TypeString}[]` ? OutputTypeMap[DataTypeFromString<SUB_TYPE>][] : OutputTypeMap[DataTypeFromString<TYPE>] : never) extends infer OUTPUT_TYPE ? STR extends OptionalTypeString ? OUTPUT_TYPE | null : OUTPUT_TYPE : never);
 export declare namespace TypeString {
     function resolve(typeString: TypeString | OptionalTypeString): string;
 }
@@ -180,8 +180,8 @@ export type Key<OBJ, VALUE> = keyof {
 };
 type Max<N extends number, A extends any[] = []> = [
     N
-] extends [Partial<A>["length"]] ? A["length"] : Max<N, [0, ...A]>;
-export type EnumToTuple<ENUM, TUPLE extends any[] = [], LAST extends number = Max<ENUM[keyof ENUM] & number>> = TUPLE extends [any, ...infer TAIL] ? (TAIL["length"] extends LAST ? TUPLE : EnumToTuple<ENUM, [...TUPLE, Key<ENUM, TUPLE["length"]>]>) : EnumToTuple<ENUM, [...TUPLE, Key<ENUM, TUPLE["length"]>]>;
+] extends [Partial<A>['length']] ? A['length'] : Max<N, [0, ...A]>;
+export type EnumToTuple<ENUM, TUPLE extends any[] = [], LAST extends number = Max<ENUM[keyof ENUM] & number>> = TUPLE extends [any, ...infer TAIL] ? (TAIL['length'] extends LAST ? TUPLE : EnumToTuple<ENUM, [...TUPLE, Key<ENUM, TUPLE['length']>]>) : EnumToTuple<ENUM, [...TUPLE, Key<ENUM, TUPLE['length']>]>;
 export type Value<T> = T[keyof T];
 export type SingleStringUnion<T> = ((k: ((T extends any ? () => T : never) extends infer U ? ((U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never) extends () => (infer R) ? R : never : never)) => any) extends (k: T) => any ? T : never;
 export declare const CURRENT_TIMESTAMP: unique symbol;

@@ -26,7 +26,7 @@ class Database {
     async dropIfShould(pool) {
         if (!process.env.DEBUG_PG_ALLOW_DROP)
             return;
-        return pool.query("DROP OWNED BY CURRENT_USER CASCADE");
+        return pool.query('DROP OWNED BY CURRENT_USER CASCADE');
     }
     table(tableName) {
         return new Table_1.default(tableName, this.schema.tables[tableName]);

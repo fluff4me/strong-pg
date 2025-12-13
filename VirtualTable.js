@@ -8,9 +8,9 @@ class VirtualTable {
         this.vars = vars;
     }
     select(...params) {
-        const initialiser = typeof params[params.length - 1] === "function" ? params.pop() : undefined;
-        const input = params.length === 0 ? "*"
-            : params.length === 1 && typeof params[0] === "object" ? params[0]
+        const initialiser = typeof params[params.length - 1] === 'function' ? params.pop() : undefined;
+        const input = params.length === 0 ? '*'
+            : params.length === 1 && typeof params[0] === 'object' ? params[0]
                 : params;
         const query = new Select_1.SelectFromVirtualTable(this, input);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument

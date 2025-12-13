@@ -8,7 +8,7 @@ const IStrongPG_1 = require("../IStrongPG");
 const Statement_1 = __importDefault(require("../statements/Statement"));
 class Expression {
     static stringifyValue(value, vars, enableStringConcatenation = false) {
-        if (typeof value === "function") {
+        if (typeof value === 'function') {
             let expr = new Expression(vars, enableStringConcatenation);
             const result = value(expr);
             if (result instanceof Expression && result !== expr)
@@ -21,8 +21,8 @@ class Expression {
         if (Database_1.sql.is(value))
             return value.compile(vars);
         const shouldPassAsVariable = false
-            || (typeof value === "string" && !enableStringConcatenation)
-            || (value && typeof value === "object" && !(value instanceof Date) && !(value instanceof RegExp));
+            || (typeof value === 'string' && !enableStringConcatenation)
+            || (value && typeof value === 'object' && !(value instanceof Date) && !(value instanceof RegExp));
         if (!shouldPassAsVariable)
             return Expression.stringifyValueRaw(value);
         const index = vars.indexOf(value);
@@ -37,24 +37,24 @@ class Expression {
      */
     static stringifyValueRaw(value) {
         switch (typeof value) {
-            case "string":
+            case 'string':
                 return `'${value}'`;
-            case "symbol":
+            case 'symbol':
                 return value.description;
-            case "boolean":
-                return value ? "TRUE" : "FALSE";
-            case "undefined":
-                return "NULL";
-            case "object":
+            case 'boolean':
+                return value ? 'TRUE' : 'FALSE';
+            case 'undefined':
+                return 'NULL';
+            case 'object':
                 if (value === null)
-                    return "NULL";
+                    return 'NULL';
                 else if (value instanceof RegExp)
-                    return `'${value.source.replace(/'/g, "''")}'`;
+                    return `'${value.source.replace(/'/g, '\'\'')}'`;
                 else if (Database_1.sql.is(value))
                     return value.text;
                 else
                     return `'${value.toISOString()}'`;
-            case "number":
+            case 'number':
                 return `${value}`;
         }
     }
@@ -72,56 +72,56 @@ class Expression {
         this.parts = [];
     }
     compile(varMapper) {
-        return this.parts.map(part => part(varMapper)).join("");
+        return this.parts.map(part => part(varMapper)).join('');
     }
     ////////////////////////////////////
     // Operations
     greaterThan(value) {
-        this.parts.push(() => " > ");
+        this.parts.push(() => ' > ');
         return this.innerValue(value);
     }
     lessThan(value) {
-        this.parts.push(() => " < ");
+        this.parts.push(() => ' < ');
         return this.innerValue(value);
     }
     greaterThanOrEquals(value) {
-        this.parts.push(() => " >= ");
+        this.parts.push(() => ' >= ');
         return this.innerValue(value);
     }
     lessThanOrEquals(value) {
-        this.parts.push(() => " <= ");
+        this.parts.push(() => ' <= ');
         return this.innerValue(value);
     }
     matches(value) {
-        this.parts.push(() => " ~ ");
+        this.parts.push(() => ' ~ ');
         return this.innerValue(value);
     }
     isNull() {
-        this.parts.push(() => " IS NULL");
+        this.parts.push(() => ' IS NULL');
         return this;
     }
     isNotNull() {
-        this.parts.push(() => " IS NOT NULL");
+        this.parts.push(() => ' IS NOT NULL');
         return this;
     }
     or(value) {
         if (value === undefined)
             return this;
-        this.parts.push(() => " OR ");
+        this.parts.push(() => ' OR ');
         return this.innerValue(value);
     }
     and(value) {
         if (value === undefined)
             return this;
-        this.parts.push(() => " AND ");
+        this.parts.push(() => ' AND ');
         return this.innerValue(value);
     }
     equals(value) {
-        this.parts.push(() => " = ");
+        this.parts.push(() => ' = ');
         return this.innerValue(value);
     }
     notEquals(value) {
-        this.parts.push(() => " != ");
+        this.parts.push(() => ' != ');
         return this.innerValue(value);
     }
     as(type) {
@@ -133,29 +133,29 @@ class Expression {
         return this;
     }
     add(value) {
-        this.parts.push(() => " + ");
+        this.parts.push(() => ' + ');
         return this.innerValue(value);
     }
     subtract(value) {
-        this.parts.push(() => " - ");
+        this.parts.push(() => ' - ');
         return this.innerValue(value);
     }
     multipliedBy(value) {
-        this.parts.push(() => " * ");
+        this.parts.push(() => ' * ');
         return this.innerValue(value);
     }
     dividedBy(value) {
-        this.parts.push(() => " / ");
+        this.parts.push(() => ' / ');
         return this.innerValue(value);
     }
     ////////////////////////////////////
     // Values
     get true() {
-        this.parts.push(() => "1=1");
+        this.parts.push(() => '1=1');
         return this;
     }
     get false() {
-        this.parts.push(() => "1=0");
+        this.parts.push(() => '1=0');
         return this;
     }
     case(initialiser) {
@@ -172,7 +172,7 @@ class Expression {
             },
             then: value => {
                 if (!when)
-                    throw new Error("Cannot add 'then' value to no 'when' expression");
+                    throw new Error('Cannot add \'then\' value to no \'when\' expression');
                 when[1] = value;
                 whens.push(when);
                 when = undefined;
@@ -189,7 +189,7 @@ class Expression {
                     ? `ELSE (${thenString})`
                     : `WHEN (${whenString}) THEN (${thenString})`;
             })
-                .join(" ");
+                .join(' ');
             return `CASE ${whensString} END`;
         });
         return this;
@@ -199,7 +199,7 @@ class Expression {
         e.parts.push(() => values
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             .map((value, i) => Expression.stringifyValue(expression => predicate(expression, value, i, values), this.vars, this.enableStringConcatenation))
-            .join(" OR "));
+            .join(' OR '));
         return e;
     }
     every(values, predicate) {
@@ -207,7 +207,7 @@ class Expression {
         e.parts.push(() => values
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             .map((value, i) => Expression.stringifyValue(expression => predicate(expression, value, i, values), this.vars, this.enableStringConcatenation))
-            .join(" AND "));
+            .join(' AND '));
         return e;
     }
     innerValue(value, mapper) {
@@ -256,7 +256,7 @@ class Expression {
         if (tableInitialiser)
             table = tableInitialiser(table);
         const select = table.select(1);
-        select["vars"] = this.vars;
+        select['vars'] = this.vars;
         initialiser(select);
         const e = new Expression(this.vars, this.enableStringConcatenation);
         e.parts.push(() => `EXISTS (${select.compile()[0].text})`);
@@ -271,7 +271,7 @@ class Expression {
         if (tableInitialiser)
             table = tableInitialiser(table);
         const select = table.select(1);
-        select["vars"] = this.vars;
+        select['vars'] = this.vars;
         initialiser(select);
         const e = new Expression(this.vars, this.enableStringConcatenation);
         e.parts.push(() => `NOT EXISTS (${select.compile()[0].text})`);
@@ -280,8 +280,8 @@ class Expression {
     coalesce(...values) {
         this.parts.push(() => {
             const valuesString = values
-                .map((value) => Expression.stringifyValue(value, this.vars, this.enableStringConcatenation))
-                .join(",");
+                .map(value => Expression.stringifyValue(value, this.vars, this.enableStringConcatenation))
+                .join(',');
             return `COALESCE(${valuesString})`;
         });
         return this;

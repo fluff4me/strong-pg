@@ -34,13 +34,13 @@ class TriggerEvents {
     }
     compile() {
         return this.events.map(event => {
-            if (typeof event === "string")
+            if (typeof event === 'string')
                 return event;
             let columns;
             [event, ...columns] = event;
-            return `${event} OF ${columns.join(", ")}`;
+            return `${event} OF ${columns.join(', ')}`;
         })
-            .join(" OR ");
+            .join(' OR ');
     }
 }
 exports.TriggerEvents = TriggerEvents;
@@ -52,11 +52,11 @@ class CreateTrigger extends Statement_1.default {
         this.constraint = constraint;
     }
     deferred() {
-        this.deferrable = "DEFERRED";
+        this.deferrable = 'DEFERRED';
         return this;
     }
     deferredImmediate() {
-        this.deferrable = "IMMEDIATE";
+        this.deferrable = 'IMMEDIATE';
         return this;
     }
     notDeferrable() {
@@ -84,7 +84,7 @@ class CreateTrigger extends Statement_1.default {
         return this;
     }
     compile() {
-        return this.queryable(`CREATE ${this.constraint ? "" : "OR REPLACE"} ${this.constraint ? "CONSTRAINT" : ""} TRIGGER ${this.id} ${this.events} ON ${this.on} ${!this.deferrable ? "" : `DEFERRABLE INITIALLY ${this.deferrable}`} FOR EACH ROW ${this.condition ?? ""} EXECUTE FUNCTION ${this.fn}()`);
+        return this.queryable(`CREATE ${this.constraint ? '' : 'OR REPLACE'} ${this.constraint ? 'CONSTRAINT' : ''} TRIGGER ${this.id} ${this.events} ON ${this.on} ${!this.deferrable ? '' : `DEFERRABLE INITIALLY ${this.deferrable}`} FOR EACH ROW ${this.condition ?? ''} EXECUTE FUNCTION ${this.fn}()`);
     }
 }
 exports.default = CreateTrigger;

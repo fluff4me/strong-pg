@@ -1,7 +1,7 @@
-import { Pool, PoolClient, QueryConfig } from "pg";
-import { ExpressionInitialiser } from "./expressions/Expression";
+import type { Pool, PoolClient, QueryConfig } from 'pg';
+import type { ExpressionInitialiser } from './expressions/Expression';
 type SqlTemplateData = [segments: readonly string[], interpolations: unknown[]];
-interface SQL extends Omit<QueryConfig, "text" | "values"> {
+interface SQL extends Omit<QueryConfig, 'text' | 'values'> {
 }
 declare class SQL implements QueryConfig {
     #private;

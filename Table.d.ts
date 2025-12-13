@@ -1,12 +1,16 @@
-import { Initialiser } from "./IStrongPG";
-import Schema, { DatabaseSchema, TableSchema } from "./Schema";
-import DeleteFromTable from "./statements/Delete";
-import InsertIntoTable, { InsertIntoTableFactory } from "./statements/Insert";
-import Join, { JoinTables } from "./statements/Join";
-import Recursive from "./statements/Recursive";
-import SelectFromTable, { SelectColumnsRecord } from "./statements/Select";
-import TruncateTable from "./statements/Truncate";
-import UpdateTable from "./statements/Update";
+import type { Initialiser } from './IStrongPG';
+import type Schema from './Schema';
+import type { DatabaseSchema, TableSchema } from './Schema';
+import DeleteFromTable from './statements/Delete';
+import type { InsertIntoTableFactory } from './statements/Insert';
+import InsertIntoTable from './statements/Insert';
+import type { JoinTables } from './statements/Join';
+import Join from './statements/Join';
+import Recursive from './statements/Recursive';
+import type { SelectColumnsRecord } from './statements/Select';
+import SelectFromTable from './statements/Select';
+import TruncateTable from './statements/Truncate';
+import UpdateTable from './statements/Update';
 export default class Table<TABLE extends TableSchema, DATABASE extends DatabaseSchema, NAME extends DatabaseSchema.TableName<DATABASE>> {
     protected readonly name: NAME;
     protected readonly schema: TABLE;
@@ -18,7 +22,7 @@ export default class Table<TABLE extends TableSchema, DATABASE extends DatabaseS
     /**
      * SELECT *
      */
-    select(column: "*"): SelectFromTable<TABLE, NAME, "*">;
+    select(column: '*'): SelectFromTable<TABLE, NAME, '*'>;
     /**
      * SELECT columns AS aliases
      */
@@ -31,7 +35,7 @@ export default class Table<TABLE extends TableSchema, DATABASE extends DatabaseS
      * SELECT *
      * ...then provide an initialiser for tweaking the query
      */
-    select<RETURN extends SelectFromTable<TABLE, "*"> = SelectFromTable<TABLE, "*">>(column: "*", initialiser: Initialiser<SelectFromTable<TABLE, "*">, RETURN>): RETURN;
+    select<RETURN extends SelectFromTable<TABLE, '*'> = SelectFromTable<TABLE, '*'>>(column: '*', initialiser: Initialiser<SelectFromTable<TABLE, '*'>, RETURN>): RETURN;
     /**
      * SELECT 1
      * ...then provide an initialiser for tweaking the query

@@ -1,6 +1,7 @@
-import { Initialiser, OptionalTypeString, TypeString } from "../../IStrongPG";
-import sql from "../../sql";
-import Statement from "../Statement";
+import type { Initialiser, OptionalTypeString } from '../../IStrongPG';
+import { TypeString } from '../../IStrongPG';
+import sql from '../../sql';
+import Statement from '../Statement';
 export type CreateOrReplaceFunctionInitialiser<IN extends [(TypeString | OptionalTypeString), string][], OUT extends [TypeString, string][], RETURN extends TypeString> = Initialiser<CreateOrReplaceFunction, CreateOrReplaceFunction<true, IN, OUT, RETURN>>;
 export default class CreateOrReplaceFunction<HAS_CODE extends boolean = false, IN extends [(TypeString | OptionalTypeString), string][] = [], OUT extends [TypeString, string][] = [], RETURN extends TypeString = never> extends Statement {
     private readonly name;

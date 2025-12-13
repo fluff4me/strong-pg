@@ -28,7 +28,7 @@ class Values {
             }
             return (0, sql_1.default) `(${sql_1.default.join(values, (0, sql_1.default) `,`)})`;
         });
-        const as = ` AS ${this.name} (${this.columns.join(",")})`;
+        const as = ` AS ${this.name} (${this.columns.join(',')})`;
         return (0, sql_1.default) `(VALUES ${sql_1.default.join(rows, (0, sql_1.default) `,`)})${sql_1.default.raw(as)}`;
     }
 }

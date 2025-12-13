@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StackUtil = exports.GENERATE_UUID = exports.DESC = exports.ASC = exports.BREADTH = exports.DEPTH = exports.CURRENT_TIMESTAMP = exports.TypeString = exports.SYMBOL_COLUMNS = exports.DataType = exports.DataTypeID = exports.NULLS_NOT_DISTINCT = exports.NULLS_DISTINCT = exports.SET_DEFAULT = exports.SET_NULL = exports.CASCADE = void 0;
-exports.CASCADE = Symbol("CASCADE");
-exports.SET_NULL = Symbol("SET NULL");
-exports.SET_DEFAULT = Symbol("SET DEFAULT");
-exports.NULLS_DISTINCT = Symbol("NULLS DISTINCT");
-exports.NULLS_NOT_DISTINCT = Symbol("NULLS NOT DISTINCT");
+exports.CASCADE = Symbol('CASCADE');
+exports.SET_NULL = Symbol('SET NULL');
+exports.SET_DEFAULT = Symbol('SET DEFAULT');
+exports.NULLS_DISTINCT = Symbol('NULLS DISTINCT');
+exports.NULLS_NOT_DISTINCT = Symbol('NULLS NOT DISTINCT');
 var DataTypeID;
 (function (DataTypeID) {
     // numeric
@@ -48,70 +48,70 @@ var DataTypeID;
 var DataType;
 (function (DataType) {
     // numeric
-    DataType.SMALLINT = "SMALLINT";
-    DataType.INTEGER = "INTEGER";
-    DataType.BIGINT = "BIGINT";
+    DataType.SMALLINT = 'SMALLINT';
+    DataType.INTEGER = 'INTEGER';
+    DataType.BIGINT = 'BIGINT';
     function NUMERIC(precision, scale) {
-        return (precision === undefined ? "NUMERIC"
+        return (precision === undefined ? 'NUMERIC'
             : scale === undefined ? `NUMERIC(${Math.round(precision)})`
                 : `NUMERIC(${Math.round(precision)},${Math.round(scale)})`);
     }
     DataType.NUMERIC = NUMERIC;
-    DataType.REAL = "REAL";
-    DataType.DOUBLE = "DOUBLE PRECISION";
-    DataType.SMALLSERIAL = "SMALLSERIAL";
-    DataType.SERIAL = "SERIAL";
-    DataType.BIGSERIAL = "BIGSERIAL";
+    DataType.REAL = 'REAL';
+    DataType.DOUBLE = 'DOUBLE PRECISION';
+    DataType.SMALLSERIAL = 'SMALLSERIAL';
+    DataType.SERIAL = 'SERIAL';
+    DataType.BIGSERIAL = 'BIGSERIAL';
     // datetime
-    DataType.DATE = "DATE";
+    DataType.DATE = 'DATE';
     function TIMESTAMP(precision, withoutTimeZone) {
-        const timeZone = withoutTimeZone ? " WITHOUT TIME ZONE" : "";
+        const timeZone = withoutTimeZone ? ' WITHOUT TIME ZONE' : '';
         return (precision ? `TIMESTAMP(${Math.round(precision)})${timeZone}` : `TIMESTAMP${timeZone}`);
     }
     DataType.TIMESTAMP = TIMESTAMP;
     function TIME(precision, withoutTimeZone) {
-        const timeZone = withoutTimeZone ? " WITHOUT TIME ZONE" : "";
+        const timeZone = withoutTimeZone ? ' WITHOUT TIME ZONE' : '';
         return (precision ? `TIME(${Math.round(precision)})${timeZone}` : `TIME${timeZone}`);
     }
     DataType.TIME = TIME;
     // INTERVAL,
     // string
     function CHAR(length) {
-        return length === undefined ? "CHARACTER"
+        return length === undefined ? 'CHARACTER'
             : `CHARACTER(${Math.round(length)})`;
     }
     DataType.CHAR = CHAR;
     function VARCHAR(length) {
-        return length === undefined ? "CHARACTER VARYING"
+        return length === undefined ? 'CHARACTER VARYING'
             : `CHARACTER VARYING(${Math.round(length)})`;
     }
     DataType.VARCHAR = VARCHAR;
-    DataType.BYTECHAR = "\"char\"";
+    DataType.BYTECHAR = '"char"';
     function BIT(length) {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         return `BIT(${Math.round(length)})`;
     }
     DataType.BIT = BIT;
     function VARBIT(length) {
-        return length === undefined ? "BIT VARYING"
+        return length === undefined ? 'BIT VARYING'
             : `BIT VARYING(${Math.round(length)})`;
     }
     DataType.VARBIT = VARBIT;
-    DataType.TEXT = "TEXT";
+    DataType.TEXT = 'TEXT';
     function ENUM(name) {
         return `ENUM(${name})`;
     }
     DataType.ENUM = ENUM;
-    DataType.UUID = "UUID";
+    DataType.UUID = 'UUID';
     // other
-    DataType.BOOLEAN = "BOOLEAN";
+    DataType.BOOLEAN = 'BOOLEAN';
     // special
-    DataType.TSVECTOR = "TSVECTOR";
-    DataType.JSON = "JSON";
-    DataType.JSONB = "JSONB";
-    DataType.RECORD = "RECORD";
-    DataType.TRIGGER = "TRIGGER";
-    DataType.VOID = "VOID";
+    DataType.TSVECTOR = 'TSVECTOR';
+    DataType.JSON = 'JSON';
+    DataType.JSONB = 'JSONB';
+    DataType.RECORD = 'RECORD';
+    DataType.TRIGGER = 'TRIGGER';
+    DataType.VOID = 'VOID';
     function SETOF(tablename) {
         return `SETOF ${tablename}`;
     }
@@ -125,33 +125,32 @@ var DataType;
     }
     DataType.ARRAYOF = ARRAYOF;
 })(DataType || (exports.DataType = DataType = {}));
-exports.SYMBOL_COLUMNS = Symbol("COLUMNS");
+exports.SYMBOL_COLUMNS = Symbol('COLUMNS');
 var TypeString;
 (function (TypeString) {
     function resolve(typeString) {
-        if (typeof typeString === "object")
+        if (typeof typeString === 'object')
             typeString = typeString.type;
-        if (typeString.startsWith("ENUM("))
-            return typeString.endsWith("[]")
+        if (typeString.startsWith('ENUM('))
+            return typeString.endsWith('[]')
                 ? `${typeString.slice(5, -3)}[]`
                 : typeString.slice(5, -1);
         return typeString;
     }
     TypeString.resolve = resolve;
 })(TypeString || (exports.TypeString = TypeString = {}));
-exports.CURRENT_TIMESTAMP = Symbol("CURRENT_TIMESTAMP AT TIME ZONE 'UTC'");
-exports.DEPTH = Symbol("DEPTH");
-exports.BREADTH = Symbol("BREADTH");
-exports.ASC = Symbol("ASC");
-exports.DESC = Symbol("DESC");
-exports.GENERATE_UUID = Symbol("gen_random_uuid()");
+exports.CURRENT_TIMESTAMP = Symbol('CURRENT_TIMESTAMP AT TIME ZONE \'UTC\'');
+exports.DEPTH = Symbol('DEPTH');
+exports.BREADTH = Symbol('BREADTH');
+exports.ASC = Symbol('ASC');
+exports.DESC = Symbol('DESC');
+exports.GENERATE_UUID = Symbol('gen_random_uuid()');
 let ansicolor;
 function color(color, text) {
     if (!ansicolor) {
         try {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            ansicolor = require("ansicolor");
-            // eslint-disable-next-line no-empty
+            ansicolor = require('ansicolor');
         }
         catch { }
         if (!ansicolor)
@@ -171,7 +170,7 @@ var StackUtil;
         const stack = err.stack;
         Error.prepareStackTrace = originalFunc;
         stack.baseFormat = new Error().stack;
-        const lines = stack.baseFormat.split("\n");
+        const lines = stack.baseFormat.split('\n');
         for (let i = 1; i < lines.length; i++)
             stack[i - 1].baseFormat = lines[i].trimStart();
         let currentSite = stack.shift();
@@ -189,27 +188,25 @@ var StackUtil;
         }
         for (const callSite of stack) {
             callSite.getAbsoluteFileName = callSite.getFileName;
-            Object.defineProperty(callSite, "getFileName", {
+            Object.defineProperty(callSite, 'getFileName', {
                 value() {
                     const basenameRegex = /(?<=\()[^)]+(?=:\d+:\d+\))/;
                     const originalFile = callSite.baseFormat.match(basenameRegex)?.[0];
                     let callerFile = originalFile ?? callSite.getAbsoluteFileName() ?? undefined;
-                    if (callerFile?.startsWith("internal/"))
+                    if (callerFile?.startsWith('internal/'))
                         return callerFile;
-                    // eslint-disable-next-line @typescript-eslint/no-var-requires 
                     let path;
                     try {
                         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                        path = require("path");
+                        path = require('path');
                         callerFile = callerFile && path?.relative(process.env.DEBUG_PG_ROOT_DIR || process.cwd(), callerFile);
-                        // eslint-disable-next-line no-empty
                     }
                     catch { }
                     return callerFile ?? null;
                 },
             });
             const originalGetLineNumber = callSite.getLineNumber;
-            Object.defineProperty(callSite, "getLineNumber", {
+            Object.defineProperty(callSite, 'getLineNumber', {
                 value() {
                     const lineNumberRegex = /(?<=[(\\/][^\\/)]+:)\d+(?=[):])/;
                     const baseLineNumber = callSite.baseFormat.match(lineNumberRegex)?.[0];
@@ -218,7 +215,7 @@ var StackUtil;
                 },
             });
             const originalGetColumnNumber = callSite.getColumnNumber;
-            Object.defineProperty(callSite, "getColumnNumber", {
+            Object.defineProperty(callSite, 'getColumnNumber', {
                 value() {
                     const columnNumberRegex = /(?<=[(\\/][^\\/)]+:\d+:)\d+(?=\))/;
                     const baseColumnNumber = callSite.baseFormat.match(columnNumberRegex)?.[0];
@@ -230,23 +227,23 @@ var StackUtil;
                 const typeName = callSite.getTypeName();
                 const methodName = callSite.getMethodName();
                 const functionName = callSite.getFunctionName();
-                const callName = methodName ?? functionName ?? "<anonymous>";
+                const callName = methodName ?? functionName ?? '<anonymous>';
                 let qualifiedCallName = typeName && (methodName || !functionName) ? `${typeName}.${callName}` : callName;
                 if (typeName && functionName && methodName && methodName !== functionName && !functionName.startsWith(typeName))
-                    qualifiedCallName = `${typeName}.${functionName}${functionName.endsWith(methodName) ? "" : color("darkGray", ` [as ${color("lightGray", methodName)}]`)}`;
-                const asyncModifier = callSite.isAsync() ? "async " : "";
-                const constructorModifier = callSite.isConstructor() ? "new " : "";
-                const evalModifier = callSite.isEval() ? color("lightRed", "eval ") : "";
+                    qualifiedCallName = `${typeName}.${functionName}${functionName.endsWith(methodName) ? '' : color('darkGray', ` [as ${color('lightGray', methodName)}]`)}`;
+                const asyncModifier = callSite.isAsync() ? 'async ' : '';
+                const constructorModifier = callSite.isConstructor() ? 'new ' : '';
+                const evalModifier = callSite.isEval() ? color('lightRed', 'eval ') : '';
                 const fileName = callSite.getFileName();
                 const lineNumber = callSite.getLineNumber();
                 const columnNumber = callSite.getColumnNumber();
-                const location = color("lightBlue", fileName ? `${fileName}:${lineNumber}:${columnNumber}` : "<anonymous>");
-                return `${evalModifier}${color("darkGray", "at")} ${asyncModifier}${constructorModifier}${qualifiedCallName} ${color("darkGray", `(${location})`)}`;
+                const location = color('lightBlue', fileName ? `${fileName}:${lineNumber}:${columnNumber}` : '<anonymous>');
+                return `${evalModifier}${color('darkGray', 'at')} ${asyncModifier}${constructorModifier}${qualifiedCallName} ${color('darkGray', `(${location})`)}`;
             };
         }
-        stack.format = (indent = "    ") => stack
+        stack.format = (indent = '    ') => stack
             .map(callSite => `${indent}${callSite.format()}`)
-            .join("\n");
+            .join('\n');
         return stack;
     }
     StackUtil.get = get;

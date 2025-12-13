@@ -34,20 +34,19 @@ class Recursive extends VirtualTable_1.VirtualTable {
     }
     selectInitialiser(query) {
         if (this.search)
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             query.orderBy([
-                ["with_recursive_search_order"],
+                ['with_recursive_search_order'],
                 ...this._orderBy ?? [],
             ]);
     }
     compileWith() {
         if (!this.recursiveCondition)
-            throw new Error("A recursive condition is required");
-        const anchorQuery = `SELECT ${this.columnNames.join(",")} FROM ${this.tableName} ${this.anchorCondition ?? ""}`;
-        const recursiveQuery = `SELECT ${this.columnNames.map(name => `recursive_table.${String(name)}`).join(",")} FROM ${this.tableName} recursive_table, ${this.name} current ${this.recursiveCondition}`;
-        const searchBy = !this.search?.columns ? "" : `BY ${this.search.columns.map(String).join(",")}`;
-        const searchQuery = !this.search ? "" : `SEARCH ${this.search.type.description} FIRST ${searchBy} SET with_recursive_search_order`;
-        return `RECURSIVE ${this.name}(${this.columnNames.join(",")}) AS (${anchorQuery} UNION ALL ${recursiveQuery}) ${searchQuery}`;
+            throw new Error('A recursive condition is required');
+        const anchorQuery = `SELECT ${this.columnNames.join(',')} FROM ${this.tableName} ${this.anchorCondition ?? ''}`;
+        const recursiveQuery = `SELECT ${this.columnNames.map(name => `recursive_table.${String(name)}`).join(',')} FROM ${this.tableName} recursive_table, ${this.name} current ${this.recursiveCondition}`;
+        const searchBy = !this.search?.columns ? '' : `BY ${this.search.columns.map(String).join(',')}`;
+        const searchQuery = !this.search ? '' : `SEARCH ${this.search.type.description} FIRST ${searchBy} SET with_recursive_search_order`;
+        return `RECURSIVE ${this.name}(${this.columnNames.join(',')}) AS (${anchorQuery} UNION ALL ${recursiveQuery}) ${searchQuery}`;
     }
 }
 exports.default = Recursive;

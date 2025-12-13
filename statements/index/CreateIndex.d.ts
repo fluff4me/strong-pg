@@ -1,6 +1,6 @@
-import { ExpressionInitialiser } from "../../expressions/Expression";
-import { Initialiser, NULLS_DISTINCT, NULLS_NOT_DISTINCT } from "../../IStrongPG";
-import Statement from "../Statement";
+import type { ExpressionInitialiser } from '../../expressions/Expression';
+import type { Initialiser, NULLS_DISTINCT, NULLS_NOT_DISTINCT } from '../../IStrongPG';
+import Statement from '../Statement';
 export type CreateIndexInitialiser<SCHEMA extends Record<string, any>> = Initialiser<CreateIndex<SCHEMA>, CreateIndex<SCHEMA, true>>;
 export default class CreateIndex<SCHEMA extends Record<string, any>, COLUMNS extends boolean = false> extends Statement {
     readonly name: string;

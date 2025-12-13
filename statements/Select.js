@@ -11,10 +11,10 @@ const Statement_1 = __importDefault(require("./Statement"));
 var Order;
 (function (Order) {
     function resolve(order) {
-        return !order?.length ? ""
+        return !order?.length ? ''
             : `${order
-                .map(order => order[0] === null ? `${String(order[1])} IS NULL ${order[2]?.description ?? ""}` : `${String(order[0])} ${order[1]?.description ?? ""}`)
-                .join(",")}`;
+                .map(order => order[0] === null ? `${String(order[1])} IS NULL ${order[2]?.description ?? ''}` : `${String(order[0])} ${order[1]?.description ?? ''}`)
+                .join(',')}`;
     }
     Order.resolve = resolve;
 })(Order || (exports.Order = Order = {}));
@@ -23,7 +23,7 @@ class SelectFromVirtualTable extends Statement_1.default {
         super();
         this.from = from;
         this.columns = columns;
-        this.vars = (typeof from === "string" ? undefined : from?.["vars"]) ?? [];
+        this.vars = (typeof from === 'string' ? undefined : from?.['vars']) ?? [];
     }
     where(initialiser) {
         const queryable = sql_1.default.is(initialiser) ? initialiser : Expression_1.default.compile(initialiser, undefined, this.vars);
@@ -42,25 +42,25 @@ class SelectFromVirtualTable extends Statement_1.default {
         return this;
     }
     offset(amount) {
-        if (typeof amount !== "number" && amount !== undefined)
-            throw new Error("Unsafe value for offset");
+        if (typeof amount !== 'number' && amount !== undefined)
+            throw new Error('Unsafe value for offset');
         this._offset = amount;
         return this;
     }
     compile() {
         let orderBy = Order.resolve(this._orderBy);
-        orderBy = orderBy ? `ORDER BY ${orderBy}` : "";
-        const offset = this._offset ? `OFFSET ${this._offset}` : "";
-        const limit = this._limit ? `LIMIT ${this._limit}` : "";
-        const from = typeof this.from === "string" ? this.from : this.from.compileFrom?.() ?? this.from["name"];
-        const columns = this.columns === "*" ? "*"
-            : Array.isArray(this.columns) ? this.columns.join(",")
+        orderBy = orderBy ? `ORDER BY ${orderBy}` : '';
+        const offset = this._offset ? `OFFSET ${this._offset}` : '';
+        const limit = this._limit ? `LIMIT ${this._limit}` : '';
+        const from = typeof this.from === 'string' ? this.from : this.from.compileFrom?.() ?? this.from['name'];
+        const columns = this.columns === '*' ? '*'
+            : Array.isArray(this.columns) ? this.columns.join(',')
                 : Object.entries(this.columns)
                     .filter(([, column]) => column !== undefined)
                     .map(([alias, column]) => {
                     if (column === alias)
                         return column;
-                    if (typeof column === "string")
+                    if (typeof column === 'string')
                         return `${column} ${alias}`;
                     if (sql_1.default.is(column)) {
                         const text = column.compile(this.vars);
@@ -70,12 +70,12 @@ class SelectFromVirtualTable extends Statement_1.default {
                     const queryable = Expression_1.default.compile(column, undefined, this.vars);
                     return `${queryable.text} ${alias}`;
                 })
-                    .join(",");
-        return this.queryable(`${this.compileWith()}SELECT ${columns} FROM ${from} ${this.condition ?? ""} ${orderBy} ${offset} ${limit}`, undefined, this.vars);
+                    .join(',');
+        return this.queryable(`${this.compileWith()}SELECT ${columns} FROM ${from} ${this.condition ?? ''} ${orderBy} ${offset} ${limit}`, undefined, this.vars);
     }
     compileWith() {
-        const withExpr = typeof this.from === "string" ? undefined : this.from.compileWith?.();
-        return !withExpr ? "" : `WITH ${withExpr} `;
+        const withExpr = typeof this.from === 'string' ? undefined : this.from.compileWith?.();
+        return !withExpr ? '' : `WITH ${withExpr} `;
     }
     async queryOne(pool) {
         return this.limit(1).query(pool);

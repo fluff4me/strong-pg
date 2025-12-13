@@ -1,7 +1,7 @@
-import { DatabaseError, Pool, PoolClient } from "pg";
-import Database from "./Database";
-import Migration from "./Migration";
-import { DatabaseSchema } from "./Schema";
+import type { DatabaseError, Pool, PoolClient } from 'pg';
+import type Database from './Database';
+import type Migration from './Migration';
+import type { DatabaseSchema } from './Schema';
 interface MigrationGroup<START extends DatabaseSchema | null, END extends DatabaseSchema> {
     (history: History<START>): History<END>;
 }

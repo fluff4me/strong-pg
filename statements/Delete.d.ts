@@ -1,8 +1,9 @@
-import { QueryResult } from "pg";
-import { InputTypeFromString, OutputTypeFromString, SingleStringUnion } from "../IStrongPG";
-import Schema, { TableSchema } from "../Schema";
-import { ExpressionInitialiser } from "../expressions/Expression";
-import Statement from "./Statement";
+import type { QueryResult } from 'pg';
+import type { InputTypeFromString, OutputTypeFromString, SingleStringUnion } from '../IStrongPG';
+import type { TableSchema } from '../Schema';
+import Schema from '../Schema';
+import type { ExpressionInitialiser } from '../expressions/Expression';
+import Statement from './Statement';
 export default class DeleteFromTable<SCHEMA extends TableSchema, RESULT = []> extends Statement<RESULT> {
     readonly tableName: string | undefined;
     readonly schema: SCHEMA;
@@ -15,8 +16,8 @@ export default class DeleteFromTable<SCHEMA extends TableSchema, RESULT = []> ex
     returning<RETURNING_COLUMNS extends Schema.Column<SCHEMA>[]>(...columns: RETURNING_COLUMNS): DeleteFromTable<SCHEMA, {
         [KEY in RETURNING_COLUMNS[number]]: OutputTypeFromString<SCHEMA[KEY]>;
     }[]>;
-    returning<RETURNING_COLUMN extends Schema.Column<SCHEMA> | "*">(columns: RETURNING_COLUMN): DeleteFromTable<SCHEMA, {
-        [KEY in RETURNING_COLUMN extends "*" ? Schema.Column<SCHEMA> : RETURNING_COLUMN]: OutputTypeFromString<SCHEMA[KEY]>;
+    returning<RETURNING_COLUMN extends Schema.Column<SCHEMA> | '*'>(columns: RETURNING_COLUMN): DeleteFromTable<SCHEMA, {
+        [KEY in RETURNING_COLUMN extends '*' ? Schema.Column<SCHEMA> : RETURNING_COLUMN]: OutputTypeFromString<SCHEMA[KEY]>;
     }[]>;
     compile(): Statement.Queryable[];
     protected resolveQueryOutput(output: QueryResult<any>): RESULT;

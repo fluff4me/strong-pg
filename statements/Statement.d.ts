@@ -1,5 +1,5 @@
-import { Pool, PoolClient, QueryResult } from "pg";
-import { StackUtil } from "../IStrongPG";
+import type { Pool, PoolClient, QueryResult } from 'pg';
+import { StackUtil } from '../IStrongPG';
 declare abstract class Statement<RESULT = void> {
     private static Transaction;
     stack?: StackUtil.Stack;
