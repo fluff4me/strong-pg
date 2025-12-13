@@ -1,6 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.StackUtil = exports.GENERATE_UUID = exports.DESC = exports.ASC = exports.BREADTH = exports.DEPTH = exports.CURRENT_TIMESTAMP = exports.TypeString = exports.SYMBOL_COLUMNS = exports.DataType = exports.DataTypeID = exports.NULLS_NOT_DISTINCT = exports.NULLS_DISTINCT = exports.SET_DEFAULT = exports.SET_NULL = exports.CASCADE = void 0;
+exports.StackUtil = exports.GENERATE_UUID = exports.DESC = exports.ASC = exports.BREADTH = exports.DEPTH = exports.CURRENT_TIMESTAMP = exports.TypeString = exports.SYMBOL_COLUMNS = exports.DataType = exports.TimeUnit = exports.DataTypeID = exports.NULLS_NOT_DISTINCT = exports.NULLS_DISTINCT = exports.SET_DEFAULT = exports.SET_NULL = exports.CASCADE = void 0;
+exports.Interval = Interval;
+const sql_1 = __importDefault(require("./sql"));
 exports.CASCADE = Symbol('CASCADE');
 exports.SET_NULL = Symbol('SET NULL');
 exports.SET_DEFAULT = Symbol('SET DEFAULT');
@@ -22,29 +27,53 @@ var DataTypeID;
     DataTypeID[DataTypeID["DATE"] = 9] = "DATE";
     DataTypeID[DataTypeID["TIMESTAMP"] = 10] = "TIMESTAMP";
     DataTypeID[DataTypeID["TIME"] = 11] = "TIME";
-    // INTERVAL,
+    DataTypeID[DataTypeID["INTERVAL"] = 12] = "INTERVAL";
     // string
-    DataTypeID[DataTypeID["CHAR"] = 12] = "CHAR";
-    DataTypeID[DataTypeID["VARCHAR"] = 13] = "VARCHAR";
-    DataTypeID[DataTypeID["BYTECHAR"] = 14] = "BYTECHAR";
-    DataTypeID[DataTypeID["BIT"] = 15] = "BIT";
-    DataTypeID[DataTypeID["VARBIT"] = 16] = "VARBIT";
-    DataTypeID[DataTypeID["TEXT"] = 17] = "TEXT";
-    DataTypeID[DataTypeID["ENUM"] = 18] = "ENUM";
-    DataTypeID[DataTypeID["UUID"] = 19] = "UUID";
+    DataTypeID[DataTypeID["CHAR"] = 13] = "CHAR";
+    DataTypeID[DataTypeID["VARCHAR"] = 14] = "VARCHAR";
+    DataTypeID[DataTypeID["BYTECHAR"] = 15] = "BYTECHAR";
+    DataTypeID[DataTypeID["BIT"] = 16] = "BIT";
+    DataTypeID[DataTypeID["VARBIT"] = 17] = "VARBIT";
+    DataTypeID[DataTypeID["TEXT"] = 18] = "TEXT";
+    DataTypeID[DataTypeID["ENUM"] = 19] = "ENUM";
+    DataTypeID[DataTypeID["UUID"] = 20] = "UUID";
     // other
-    DataTypeID[DataTypeID["BOOLEAN"] = 20] = "BOOLEAN";
+    DataTypeID[DataTypeID["BOOLEAN"] = 21] = "BOOLEAN";
     // special
-    DataTypeID[DataTypeID["TSVECTOR"] = 21] = "TSVECTOR";
-    DataTypeID[DataTypeID["JSON"] = 22] = "JSON";
-    DataTypeID[DataTypeID["JSONB"] = 23] = "JSONB";
-    DataTypeID[DataTypeID["RECORD"] = 24] = "RECORD";
-    DataTypeID[DataTypeID["SETOF"] = 25] = "SETOF";
-    DataTypeID[DataTypeID["TRIGGER"] = 26] = "TRIGGER";
-    DataTypeID[DataTypeID["VOID"] = 27] = "VOID";
-    DataTypeID[DataTypeID["ARRAY"] = 28] = "ARRAY";
-    DataTypeID[DataTypeID["ARRAYOF"] = 29] = "ARRAYOF";
+    DataTypeID[DataTypeID["TSVECTOR"] = 22] = "TSVECTOR";
+    DataTypeID[DataTypeID["JSON"] = 23] = "JSON";
+    DataTypeID[DataTypeID["JSONB"] = 24] = "JSONB";
+    DataTypeID[DataTypeID["RECORD"] = 25] = "RECORD";
+    DataTypeID[DataTypeID["SETOF"] = 26] = "SETOF";
+    DataTypeID[DataTypeID["TRIGGER"] = 27] = "TRIGGER";
+    DataTypeID[DataTypeID["VOID"] = 28] = "VOID";
+    DataTypeID[DataTypeID["ARRAY"] = 29] = "ARRAY";
+    DataTypeID[DataTypeID["ARRAYOF"] = 30] = "ARRAYOF";
 })(DataTypeID || (exports.DataTypeID = DataTypeID = {}));
+var TimeUnitSource;
+(function (TimeUnitSource) {
+    TimeUnitSource[TimeUnitSource["years"] = 0] = "years";
+    TimeUnitSource[TimeUnitSource["months"] = 1] = "months";
+    TimeUnitSource[TimeUnitSource["days"] = 2] = "days";
+    TimeUnitSource[TimeUnitSource["hours"] = 3] = "hours";
+    TimeUnitSource[TimeUnitSource["minutes"] = 4] = "minutes";
+    TimeUnitSource[TimeUnitSource["seconds"] = 5] = "seconds";
+})(TimeUnitSource || (TimeUnitSource = {}));
+var TimeUnit;
+(function (TimeUnit) {
+    TimeUnit.UNITS = Object.keys(TimeUnitSource).filter(k => isNaN(Number(k)));
+    function is(unit) {
+        return TimeUnit.UNITS.includes(unit);
+    }
+    TimeUnit.is = is;
+})(TimeUnit || (exports.TimeUnit = TimeUnit = {}));
+function Interval(time, unit) {
+    if (!Number.isInteger(time) || time < 0)
+        throw new TypeError('INTERVAL time must be a non-negative integer');
+    if (!TimeUnit.is(unit))
+        throw new TypeError(`INTERVAL unit must be one of ${TimeUnit.UNITS.join(', ')}`);
+    return sql_1.default.raw(`INTERVAL '${time} ${unit}'`);
+}
 var DataType;
 (function (DataType) {
     // numeric
@@ -74,7 +103,7 @@ var DataType;
         return (precision ? `TIME(${Math.round(precision)})${timeZone}` : `TIME${timeZone}`);
     }
     DataType.TIME = TIME;
-    // INTERVAL,
+    DataType.INTERVAL = 'INTERVAL';
     // string
     function CHAR(length) {
         return length === undefined ? 'CHARACTER'

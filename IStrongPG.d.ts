@@ -1,4 +1,6 @@
+import type { IPostgresInterval } from 'postgres-interval';
 import type { ExpressionOr } from './expressions/Expression';
+import sql from './sql';
 export declare const CASCADE: unique symbol;
 export declare const SET_NULL: unique symbol;
 export declare const SET_DEFAULT: unique symbol;
@@ -19,24 +21,25 @@ export declare enum DataTypeID {
     DATE = 9,
     TIMESTAMP = 10,
     TIME = 11,
-    CHAR = 12,
-    VARCHAR = 13,
-    BYTECHAR = 14,
-    BIT = 15,
-    VARBIT = 16,
-    TEXT = 17,
-    ENUM = 18,
-    UUID = 19,
-    BOOLEAN = 20,
-    TSVECTOR = 21,
-    JSON = 22,
-    JSONB = 23,
-    RECORD = 24,
-    SETOF = 25,
-    TRIGGER = 26,
-    VOID = 27,
-    ARRAY = 28,
-    ARRAYOF = 29
+    INTERVAL = 12,
+    CHAR = 13,
+    VARCHAR = 14,
+    BYTECHAR = 15,
+    BIT = 16,
+    VARBIT = 17,
+    TEXT = 18,
+    ENUM = 19,
+    UUID = 20,
+    BOOLEAN = 21,
+    TSVECTOR = 22,
+    JSON = 23,
+    JSONB = 24,
+    RECORD = 25,
+    SETOF = 26,
+    TRIGGER = 27,
+    VOID = 28,
+    ARRAY = 29,
+    ARRAYOF = 30
 }
 export interface TypeStringMap {
     [DataTypeID.SMALLINT]: 'SMALLINT';
@@ -51,6 +54,7 @@ export interface TypeStringMap {
     [DataTypeID.DATE]: 'DATE';
     [DataTypeID.TIMESTAMP]: 'TIMESTAMP' | `TIMESTAMP(${bigint})` | `TIMESTAMP(${bigint}) WITHOUT TIME ZONE`;
     [DataTypeID.TIME]: 'TIME' | `TIME(${bigint})` | `TIME(${bigint}) WITHOUT TIME ZONE`;
+    [DataTypeID.INTERVAL]: 'INTERVAL';
     [DataTypeID.BYTECHAR]: '"char"';
     [DataTypeID.CHAR]: 'CHARACTER' | `CHARACTER(${bigint})`;
     [DataTypeID.VARCHAR]: 'CHARACTER VARYING' | `CHARACTER VARYING(${bigint})`;
@@ -70,6 +74,24 @@ export interface TypeStringMap {
     [DataTypeID.ARRAY]: `${string}[]`;
     [DataTypeID.ARRAYOF]: `${string}[]`;
 }
+declare enum TimeUnitSource {
+    years = 0,
+    months = 1,
+    days = 2,
+    hours = 3,
+    minutes = 4,
+    seconds = 5
+}
+export type TimeUnit = keyof typeof TimeUnitSource;
+export declare namespace TimeUnit {
+    const UNITS: TimeUnit[];
+    function is(unit: string): unit is TimeUnit;
+}
+export interface Interval {
+    time: number;
+    unit: TimeUnit;
+}
+export declare function Interval(time: number, unit: TimeUnit): sql.Result<Interval>;
 export declare namespace DataType {
     const SMALLINT: TypeStringMap[DataTypeID.SMALLINT];
     const INTEGER: TypeStringMap[DataTypeID.INTEGER];
@@ -83,6 +105,7 @@ export declare namespace DataType {
     const DATE = "DATE";
     function TIMESTAMP(precision?: number, withoutTimeZone?: true): TypeStringMap[DataTypeID.TIMESTAMP];
     function TIME(precision?: number, withoutTimeZone?: true): TypeStringMap[DataTypeID.TIMESTAMP];
+    const INTERVAL: TypeStringMap[DataTypeID.INTERVAL];
     function CHAR(length?: number): TypeStringMap[DataTypeID.CHAR];
     function VARCHAR(length?: number): TypeStringMap[DataTypeID.VARCHAR];
     const BYTECHAR: TypeStringMap[DataTypeID.BYTECHAR];
@@ -132,6 +155,7 @@ export interface MigrationTypeMap {
     [DataTypeID.DATE]: ValidDate;
     [DataTypeID.TIMESTAMP]: ValidDate;
     [DataTypeID.TIME]: ValidDate;
+    [DataTypeID.INTERVAL]: sql.Result<Interval>;
     [DataTypeID.CHAR]: string;
     [DataTypeID.VARCHAR]: string;
     [DataTypeID.BYTECHAR]: string;
@@ -155,7 +179,7 @@ export interface InputTypeMap extends Omit<MigrationTypeMap, DataTypeID.JSON | D
     [DataTypeID.VOID]: void;
     [DataTypeID.TRIGGER]: never;
 }
-export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | DataTypeID.TIMESTAMP | DataTypeID.TIME | DataTypeID.UUID | DataTypeID.JSON | DataTypeID.JSONB> {
+export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | DataTypeID.TIMESTAMP | DataTypeID.TIME | DataTypeID.UUID | DataTypeID.JSON | DataTypeID.JSONB | DataTypeID.INTERVAL> {
     [DataTypeID.BIGINT]: `${bigint}`;
     [DataTypeID.BIGSERIAL]: `${bigint}`;
     [DataTypeID.UUID]: string;
@@ -164,6 +188,7 @@ export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | Data
     [DataTypeID.DATE]: Date;
     [DataTypeID.TIMESTAMP]: Date;
     [DataTypeID.TIME]: Date;
+    [DataTypeID.INTERVAL]: IPostgresInterval;
 }
 export type ValidType = ValidLiteral | symbol | Date | RegExp | undefined | (ValidLiteral | symbol | Date | RegExp | undefined)[];
 export type ValidLiteral = string | boolean | number | null;
