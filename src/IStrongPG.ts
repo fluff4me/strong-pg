@@ -1,4 +1,6 @@
+import type { IPostgresInterval } from 'postgres-interval'
 import type { ExpressionOr } from './expressions/Expression'
+import sql from './sql'
 
 export const CASCADE = Symbol('CASCADE')
 export const SET_NULL = Symbol('SET NULL')
@@ -25,7 +27,7 @@ export enum DataTypeID {
 	DATE,
 	TIMESTAMP,
 	TIME,
-	// INTERVAL,
+	INTERVAL,
 
 	// string
 	CHAR,
@@ -68,8 +70,7 @@ export interface TypeStringMap {
 	[DataTypeID.DATE]: 'DATE'
 	[DataTypeID.TIMESTAMP]: 'TIMESTAMP' | `TIMESTAMP(${bigint})` | `TIMESTAMP(${bigint}) WITHOUT TIME ZONE`
 	[DataTypeID.TIME]: 'TIME' | `TIME(${bigint})` | `TIME(${bigint}) WITHOUT TIME ZONE`
-	// idk how this one works and couldn't figure it out, so ignoring it
-	// [DataType.INTERVAL]: `INTERVAL (${bigint})`,
+	[DataTypeID.INTERVAL]: 'INTERVAL'
 
 	// string
 	[DataTypeID.BYTECHAR]: '"char"'
@@ -94,6 +95,36 @@ export interface TypeStringMap {
 	[DataTypeID.VOID]: 'VOID'
 	[DataTypeID.ARRAY]: `${string}[]`
 	[DataTypeID.ARRAYOF]: `${string}[]`
+}
+
+enum TimeUnitSource {
+	years,
+	months,
+	days,
+	hours,
+	minutes,
+	seconds,
+}
+export type TimeUnit = keyof typeof TimeUnitSource
+export namespace TimeUnit {
+	export const UNITS = Object.keys(TimeUnitSource).filter(k => isNaN(Number(k))) as TimeUnit[]
+	export function is (unit: string): unit is TimeUnit {
+		return UNITS.includes(unit as TimeUnit)
+	}
+}
+
+export interface Interval {
+	time: number
+	unit: TimeUnit
+}
+export function Interval (time: number, unit: TimeUnit): sql.Result<Interval> {
+	if (!Number.isInteger(time) || time < 0)
+		throw new TypeError('INTERVAL time must be a non-negative integer')
+
+	if (!TimeUnit.is(unit))
+		throw new TypeError(`INTERVAL unit must be one of ${TimeUnit.UNITS.join(', ')}`)
+
+	return sql.raw(`INTERVAL '${time} ${unit}'`) as sql.Result<Interval>
 }
 
 export namespace DataType {
@@ -122,7 +153,7 @@ export namespace DataType {
 		const timeZone = withoutTimeZone ? ' WITHOUT TIME ZONE' : '' as const
 		return (precision ? `TIME(${Math.round(precision)})${timeZone}` : `TIME${timeZone}`) as TypeStringMap[DataTypeID.TIMESTAMP]
 	}
-	// INTERVAL,
+	export const INTERVAL: TypeStringMap[DataTypeID.INTERVAL] = 'INTERVAL'
 
 	// string
 	export function CHAR (length?: number): TypeStringMap[DataTypeID.CHAR] {
@@ -218,7 +249,7 @@ export interface MigrationTypeMap {
 	[DataTypeID.DATE]: ValidDate
 	[DataTypeID.TIMESTAMP]: ValidDate
 	[DataTypeID.TIME]: ValidDate
-	// INTERVAL,
+	[DataTypeID.INTERVAL]: sql.Result<Interval>
 
 	// string
 	[DataTypeID.CHAR]: string
@@ -250,7 +281,7 @@ export interface InputTypeMap extends Omit<MigrationTypeMap, DataTypeID.JSON | D
 	[DataTypeID.TRIGGER]: never
 }
 
-export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | DataTypeID.TIMESTAMP | DataTypeID.TIME | DataTypeID.UUID | DataTypeID.JSON | DataTypeID.JSONB> {
+export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | DataTypeID.TIMESTAMP | DataTypeID.TIME | DataTypeID.UUID | DataTypeID.JSON | DataTypeID.JSONB | DataTypeID.INTERVAL> {
 	// numeric
 	[DataTypeID.BIGINT]: `${bigint}`
 	[DataTypeID.BIGSERIAL]: `${bigint}`
@@ -265,7 +296,7 @@ export interface OutputTypeMap extends Omit<InputTypeMap, DataTypeID.DATE | Data
 	[DataTypeID.DATE]: Date
 	[DataTypeID.TIMESTAMP]: Date
 	[DataTypeID.TIME]: Date
-	// INTERVAL,
+	[DataTypeID.INTERVAL]: IPostgresInterval
 }
 
 export type ValidType =
