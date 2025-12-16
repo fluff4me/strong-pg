@@ -9,7 +9,7 @@ declare class SQL implements QueryConfig {
     get text(): string;
     get values(): unknown[] | undefined;
     compile(vars: unknown[]): string;
-    query(pool: Pool | PoolClient): Promise<import("pg").QueryResult<any> | undefined>;
+    query(pool: Pool | PoolClient): Promise<import("pg").QueryResult<any>>;
     /** @deprecated be careful!!! */
     protected get asRawSql(): string;
 }

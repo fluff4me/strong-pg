@@ -3,10 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sql = void 0;
+exports.sql = exports.getDatabaseErrorDetails = void 0;
 const FunctionCall_1 = __importDefault(require("./FunctionCall"));
 const History_1 = require("./History");
 const Table_1 = __importDefault(require("./Table"));
+var Log_1 = require("./Log");
+Object.defineProperty(exports, "getDatabaseErrorDetails", { enumerable: true, get: function () { return Log_1.getDatabaseErrorDetails; } });
 var sql_1 = require("./sql");
 Object.defineProperty(exports, "sql", { enumerable: true, get: function () { return __importDefault(sql_1).default; } });
 class Database {

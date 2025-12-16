@@ -3,6 +3,7 @@ import FunctionCall from './FunctionCall';
 import { History } from './History';
 import type { DatabaseSchema, FunctionParameters } from './Schema';
 import Table from './Table';
+export { getDatabaseErrorDetails } from './Log';
 export { default as sql } from './sql';
 export default class Database<SCHEMA extends DatabaseSchema> {
     protected readonly schema: SCHEMA;
