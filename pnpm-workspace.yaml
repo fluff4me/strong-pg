@@ -1,3 +1,6 @@
 excludeLinksFromLockfile: true
 
-overrides:
+overrides: 
+
+minimumReleaseAgeExclude:
+  - diff

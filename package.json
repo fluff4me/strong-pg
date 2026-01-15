@@ -29,7 +29,8 @@
 	},
 	"pnpm": {
 		"overrides": {
-			"express": "-"
+			"express": "-",
+			"ts-node>diff": "8.0.3"
 		}
 	}
 }
