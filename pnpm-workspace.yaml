@@ -4,3 +4,4 @@ overrides:
 
 minimumReleaseAgeExclude:
   - diff
+  - ajv

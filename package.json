@@ -21,7 +21,7 @@
 		"@types/pg": "8.11.2",
 		"ansicolor": "1.1.100",
 		"del": "6.1.1",
-		"lint": "github:fluff4me/lint#c0ccd500c35a06157376a78ac911147be44c27cd",
+		"lint": "github:fluff4me/lint#124a38f51d0e50ffa0b89a2410073572ed8d6ec6",
 		"postgres-interval": "3.0.0",
 		"task": "github:chirivulpes/task#ef1975228fec597c8112a51ec4786b5b210c83d9",
 		"ts-node": "10.9.2",
@@ -30,7 +30,9 @@
 	"pnpm": {
 		"overrides": {
 			"express": "-",
-			"ts-node>diff": "8.0.3"
+			"ts-node>diff": "8.0.3",
+			"eslint>ajv": "8.18.0",
+			"glob>minimatch": "3.1.5"
 		}
 	}
 }
