@@ -23,7 +23,7 @@
 		"del": "6.1.1",
 		"lint": "github:fluff4me/lint#124a38f51d0e50ffa0b89a2410073572ed8d6ec6",
 		"postgres-interval": "3.0.0",
-		"task": "github:chirivulpes/task#ef1975228fec597c8112a51ec4786b5b210c83d9",
+		"task": "github:chirivulpes/task#b2332aa7f2a2d400233db8d685b40abfc53fcb5b",
 		"ts-node": "10.9.2",
 		"typescript": "5.9.3"
 	},
