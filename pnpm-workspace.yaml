@@ -1,7 +1,14 @@
 excludeLinksFromLockfile: true
 
-overrides: 
-
 minimumReleaseAgeExclude:
   - diff
   - ajv
+
+allowBuilds:
+  esbuild: true
+
+overrides:
+  "express": "-"
+  "ts-node>diff": "8.0.3"
+  "eslint>ajv": "8.18.0"
+  "glob>minimatch": "3.1.5"

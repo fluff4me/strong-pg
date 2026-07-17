@@ -1,0 +1,23 @@
+{
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		"baseUrl": "..",
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"noEmit": true,
+		"paths": {
+			"ansicolor": [
+				"node_modules/ansicolor/ansicolor.d.ts"
+			]
+		},
+		"types": [
+			"node",
+			"vitest/globals"
+		]
+	},
+	"include": [
+		"../src/**/*.ts",
+		"../vitest.config.ts",
+		"./**/*.ts"
+	]
+}

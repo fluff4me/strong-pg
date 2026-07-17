@@ -14,7 +14,12 @@
 	"scripts": {
 		"build": "pnpm exec task clean meta build",
 		"watch": "pnpm exec task clean meta watch",
-		"clean": "pnpm exec task clean"
+		"clean": "pnpm exec task clean",
+		"test": "pnpm run test:types && vitest run",
+		"test:unit": "vitest run --exclude test/integration/**",
+		"test:integration": "vitest run test/integration",
+		"test:types": "tsc --project test/tsconfig.json",
+		"test:watch": "vitest"
 	},
 	"devDependencies": {
 		"@types/node": "22.16.0",
@@ -25,7 +30,8 @@
 		"postgres-interval": "3.0.0",
 		"task": "github:chirivulpes/task#b2332aa7f2a2d400233db8d685b40abfc53fcb5b",
 		"tsx": "4.21.0",
-		"typescript": "5.9.3"
+		"typescript": "5.9.3",
+		"vitest": "^4.1.10"
 	},
 	"pnpm": {
 		"overrides": {

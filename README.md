@@ -130,3 +130,21 @@ export default async function getPool () {
 	})();
 }
 ```
+
+# Tests
+
+Run the type-level and unit suites with:
+
+```sh
+pnpm test
+```
+
+PostgreSQL integration tests require `TEST_DATABASE_URL` to point to a disposable database named exactly `strong_pg_test`. They also require `STRONG_PG_TEST_DATABASE_RESET=1` as explicit authorization to destroy test data. The integration setup refuses to connect unless both safeguards are present because it recreates the `public` schema before every test. GitHub Actions provides this disposable database and opt-in automatically.
+
+```sh
+STRONG_PG_TEST_DATABASE_RESET=1 TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/strong_pg_test pnpm test:integration
+```
+
+Security tests distinguish passing guarantees from known gaps. Normal tests prove that runtime values remain in PostgreSQL parameter arrays. Tests declared with Vitest's `test.fails` reproduce known injection-capable paths; an unexpected pass means the production behavior was hardened and the test should be converted into a normal regression test.
+
+Table, column, function, and other schema identifiers are developer-authored SQL structure. `sql.raw` is an explicit unsafe escape hatch and must never receive untrusted input.
