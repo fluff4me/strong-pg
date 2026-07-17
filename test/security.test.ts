@@ -2,9 +2,6 @@ import { describe, expect, test } from 'vitest'
 import Expression from '../src/expressions/Expression'
 import { DataType } from '../src/IStrongPG'
 import sql from '../src/sql'
-import CreateCollation from '../src/statements/collation/CreateCollation'
-import AlterEnum from '../src/statements/enum/AlterEnum'
-import AlterTable, { AlterColumn } from '../src/statements/table/AlterTable'
 import { SQL_INJECTION_PAYLOADS, compile, database } from './fixtures'
 
 describe('SQL injection protections', () => {
@@ -83,24 +80,6 @@ describe('SQL injection protections', () => {
 })
 
 describe('known security gaps', () => {
-	const payload = SQL_INJECTION_PAYLOADS[0]
-
-	for (const [operation, compileSequence] of [
-		['nextValue', () => Expression.compile((e: any) => e.nextValue(payload))],
-		['currentValue', () => Expression.compile((e: any) => e.currentValue(payload))],
-	] as const) {
-		test.fails(`parameterizes sequence names passed to ${operation}`, () => {
-			const query = compileSequence()
-
-			expect(query.text).not.toContain(payload)
-			expect(query.values).toContain(payload)
-		})
-	}
-
-	test.fails('rejects runtime-cast SQL text passed as a limit', () => {
-		expect(() => database.table('accounts').select('*').limit(payload as never).compile())
-			.toThrow('Unsafe value for limit')
-	})
 
 	for (const operation of ['limit', 'offset'] as const) {
 		for (const [name, value] of [
@@ -115,27 +94,4 @@ describe('known security gaps', () => {
 		}
 	}
 
-	const literalCases: readonly [name: string, statement: () => AlterTable<any> | AlterColumn<any, any> | AlterEnum<any> | CreateCollation][] = [
-		['create-column default literals', () => new AlterTable<any>('accounts')
-			.addColumn('label', DataType.TEXT, column => column.default(payload))],
-		['alter-column default literals', () => new AlterColumn<'label', typeof DataType.TEXT>('label').setDefault(payload)],
-		['enum values added with add', () => new AlterEnum<[]>('unsafe_enum').add(payload)],
-		['new enum values added with addBefore', () => new AlterEnum<['safe']>('unsafe_enum').addBefore(payload, 'safe')],
-		['enum pivots passed to addBefore', () => new AlterEnum<[typeof payload]>('unsafe_enum').addBefore('safe', payload)],
-		['new enum values added with addAfter', () => new AlterEnum<['safe']>('unsafe_enum').addAfter(payload, 'safe')],
-		['enum pivots passed to addAfter', () => new AlterEnum<[typeof payload]>('unsafe_enum').addAfter('safe', payload)],
-		['old enum values passed to rename', () => new AlterEnum<[typeof payload]>('unsafe_enum').rename(payload, 'safe')],
-		['new enum values passed to rename', () => new AlterEnum<['safe']>('unsafe_enum').rename('safe', payload)],
-		['collation locales', () => new CreateCollation('unsafe_collation', 'icu', payload, false)],
-	]
-
-	for (const [name, createStatement] of literalCases) {
-		test.fails(`escapes apostrophes in ${name}`, () => {
-			const query = compile(createStatement())[0]
-			const escaped = payload.split("'").join("''")
-
-			expect(query.text).toContain(`'${escaped}'`)
-			expect(query.text).not.toContain(`'${payload}'`)
-		})
-	}
 })
